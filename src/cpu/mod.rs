@@ -877,14 +877,5 @@ impl Cpu {
 				std::process::exit(1);
 			}
 		}
-
-		// TODO: move it to a test module
-		#[cfg(feature = "nestest")]
-		{
-			if self.pc == NESTEST_END_ADDRESS {
-				println!("[INFO] End reached");
-				std::process::exit(0);
-			}
-		}
 	}
 }

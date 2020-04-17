@@ -16,6 +16,7 @@ pub struct Emulator {
 impl Emulator {
 	pub fn new() -> Self {
 		let mut ppu = Ppu::new();
+
 		Self {
 			cpu_memory: CpuMemory::new(&mut ppu),
 			cpu: Cpu::new(),
@@ -28,15 +29,8 @@ impl Emulator {
 	pub fn load_rom(&mut self, filename: &String) {
 		self.cpu_memory.load_rom(filename);
 
-		// TODO: move it to a test module, so we can get rid of '#[cfg(not(feature = "nestest"))]' below
-		#[cfg(feature = "nestest")]
-		self.cpu.set_pc(NESTEST_START_ADDRESS);
-		
-		#[cfg(not(feature = "nestest"))]
-		{
-			let value = self.cpu_memory.read16(RESET_VECTOR_ADDRESS);
-			self.cpu.set_pc(value);
-		}
+		let value = self.cpu_memory.read16(RESET_VECTOR_ADDRESS);
+		self.cpu.set_pc(value);
 	}
 
 	pub fn run(&mut self) {

@@ -3,11 +3,6 @@ use ppu::*;
 pub const RESET_VECTOR_ADDRESS: u16 = 0xfffc;
 pub const IRQ_VECTOR_ADDRESS: u16 = 0xfffe;
 
-#[cfg(feature = "nestest")]
-pub const NESTEST_START_ADDRESS: u16 = 0xc000;
-#[cfg(feature = "nestest")]
-pub const NESTEST_END_ADDRESS: u16 = 0xc66e;
-
 pub const STACK_ADDRESS: u16 = 0x100;
 
 const RAM_START: u16 = 0;
@@ -46,7 +41,7 @@ impl CpuMemory {
 		}
 	}
 
-	pub fn load_rom(&mut self, filename: &String) {
+	pub fn load_rom(&mut self, filename: &str) {
 		let contents = std::fs::read(filename).unwrap();
 
 		if &contents[..4] != [0x4e, 0x45, 0x53, 0x1a] {
@@ -132,23 +127,9 @@ impl CpuMemory {
 			RAM_START ..= RAM_END => {
 				let effective_address = address as usize % RAM_SIZE as usize;
 				self.ram[effective_address] = value;
-
-				#[cfg(feature = "nestest")]
-				{
-					if (effective_address == 0x02 || effective_address == 0x03) && value != 0 {
-						println!("[ERROR] Failure code {:02X} at {:04X}", value, address);
-						std::process::exit(1);
-					}
-				}
 			},
 			PRG_RAM_START ..= PRG_RAM_END => {
-				#[cfg(feature = "instrtest")]
-				{
-					if address == 0x6000 && value < 0x80 {
-						println!("[INFO] Result code {:02X}", value);
-						std::process::exit(0);
-					}
-				}
+				println!("[DEBUG] Write to PRG RAM {:02X}", value);
 			},
 			PPUCTRL_ADDRESS => self.write_ppu_register(Register::PPUCTRL, value),
 			PPUMASK_ADDRESS => self.write_ppu_register(Register::PPUMASK, value),
