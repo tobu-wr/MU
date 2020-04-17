@@ -12,7 +12,7 @@ pub(super) struct Logger {
 impl Logger {
 	pub(super) fn new() -> Self {
 		Self {
-			file: RefCell::new(File::create("log.txt").unwrap())
+			file: RefCell::new(File::create("rnes.log").unwrap())
 		}
 	}
 
