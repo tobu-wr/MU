@@ -26,7 +26,7 @@ impl Emulator {
 		}
 	}
 
-	pub fn load_rom(&mut self, filename: &String) {
+	pub fn load_rom(&mut self, filename: &str) {
 		self.cpu_memory.load_rom(filename);
 
 		let value = self.cpu_memory.read16(RESET_VECTOR_ADDRESS);
