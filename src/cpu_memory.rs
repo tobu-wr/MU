@@ -108,6 +108,9 @@ impl CpuMemory {
 			PPUCTRL_ADDRESS => self.read_ppu_debug(Register::Ppuctrl),
 			PPUMASK_ADDRESS => self.read_ppu_debug(Register::Ppumask),
 			PPUSTATUS_ADDRESS => self.read_ppu_debug(Register::Ppustatus),
+			PPUSCROLL_ADDRESS => self.read_ppu_debug(Register::Ppuscroll),
+			PPUADDR_ADDRESS => self.read_ppu_debug(Register::Ppuaddr),
+			PPUDATA_ADDRESS => self.read_ppu_debug(Register::Ppudata),
 			_ => self.read8(address)
 		}
 	}

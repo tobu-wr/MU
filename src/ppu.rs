@@ -20,6 +20,9 @@ pub struct Ppu {
 	ppuctrl: u8,
 	ppumask: u8,
 	ppustatus: u8,
+	ppuscroll: u8,
+	ppuaddr: u8,
+	ppudata: u8,
 	cycle_counter: u8,
 	scanline_counter: u16,
 	frame_buffer: [u32; FRAME_BUFFER_SIZE]
@@ -31,6 +34,9 @@ impl Ppu {
 			ppuctrl: 0,
 			ppumask: 0,
 			ppustatus: 0,
+			ppuscroll: 0,
+			ppuaddr: 0,
+			ppudata: 0,
 			cycle_counter: 0,
 			scanline_counter: 0,
 			frame_buffer: [0; FRAME_BUFFER_SIZE]
@@ -57,10 +63,9 @@ impl Ppu {
 			Register::Ppuctrl => self.ppuctrl,
 			Register::Ppumask => self.ppumask,
 			Register::Ppustatus => self.ppustatus,
-			_ => {
-				println!("[ERROR] Unhandled PPU register read");
-				std::process::exit(1);
-			}
+			Register::Ppuscroll => self.ppuscroll,
+			Register::Ppuaddr => self.ppuaddr,
+			Register::Ppudata => self.ppudata,
 		}
 	}
 
@@ -68,6 +73,9 @@ impl Ppu {
 		match register {
 			Register::Ppuctrl => self.ppuctrl = value,
 			Register::Ppumask => self.ppumask = value,
+			Register::Ppuscroll => self.ppuscroll = value,
+			Register::Ppuaddr => self.ppuaddr = value,
+			Register::Ppudata => self.ppudata = value,
 			_ =>{
 				println!("[ERROR] Unhandled PPU register write");
 				std::process::exit(1);
