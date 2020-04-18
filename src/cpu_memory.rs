@@ -75,7 +75,7 @@ impl CpuMemory {
 				let effective_address = address as usize % RAM_SIZE as usize;
 				self.ram[effective_address]
 			},
-			PPUSTATUS_ADDRESS => self.read_ppu(Register::PPUSTATUS),
+			PPUSTATUS_ADDRESS => self.read_ppu(Register::Ppustatus),
 			0x4000 | 0x4001 | 0x4002 | 0x4003 | 0x4004 | 0x4005 | 0x4006 | 0x4007 | 0x4008 | 0x4009 | 0x400a | 0x400b | 0x400c | 0x400d | 0x400e | 0x400f | 0x4010 | 0x4011 | 0x4012 | 0x4013 | 0x4017 | APU_STATUS_ADDRESS => {
 				println!("[DEBUG] Read from an APU register");
 				0
@@ -105,7 +105,7 @@ impl CpuMemory {
 	#[cfg(feature = "log")]
 	pub fn read8_debug(&self, address: u16) -> u8 {
 		if address == PPUSTATUS_ADDRESS {
-			self.read_ppu_debug(Register::PPUSTATUS)
+			self.read_ppu_debug(Register::Ppustatus)
 		} else {
 			self.read8(address)
 		}
@@ -151,17 +151,17 @@ impl CpuMemory {
 			PRG_RAM_START ..= PRG_RAM_END => {
 				println!("[DEBUG] Write to PRG RAM {:02X}", value);
 			},
-			PPUCTRL_ADDRESS => self.write_ppu(Register::PPUCTRL, value),
-			PPUMASK_ADDRESS => self.write_ppu(Register::PPUMASK, value),
+			PPUCTRL_ADDRESS => self.write_ppu(Register::Ppuctrl, value),
+			PPUMASK_ADDRESS => self.write_ppu(Register::Ppumask, value),
 			0x2003 => {
 				println!("[DEBUG] Write to OAMADDR {:02X}", value);
 			},
 			0x2004 => {
 				println!("[DEBUG] Write to OAMDATA {:02X}", value);
 			},
-			PPUSCROLL_ADDRESS => self.write_ppu(Register::PPUSCROLL, value),
-			PPUADDR_ADDRESS => self.write_ppu(Register::PPUADDR, value),
-			PPUDATA_ADDRESS => self.write_ppu(Register::PPUDATA, value),
+			PPUSCROLL_ADDRESS => self.write_ppu(Register::Ppuscroll, value),
+			PPUADDR_ADDRESS => self.write_ppu(Register::Ppuaddr, value),
+			PPUDATA_ADDRESS => self.write_ppu(Register::Ppudata, value),
 			0x4000 | 0x4001 | 0x4002 | 0x4003 | 0x4004 | 0x4005 | 0x4006 | 0x4007 | 0x4008 | 0x4009 | 0x400a | 0x400b | 0x400c | 0x400d | 0x400e | 0x400f | 0x4010 | 0x4011 | 0x4012 | 0x4013 | 0x4017 | APU_STATUS_ADDRESS => {
 				println!("[DEBUG] Write to an APU register");
 			},

@@ -8,12 +8,12 @@ pub const FRAME_HEIGHT: usize = 240;
 const FRAME_BUFFER_SIZE: usize = FRAME_WIDTH * FRAME_HEIGHT;
 
 pub enum Register {
-	PPUCTRL,
-	PPUMASK,
-	PPUSTATUS,
-	PPUSCROLL,
-	PPUADDR,
-	PPUDATA
+	Ppuctrl,
+	Ppumask,
+	Ppustatus,
+	Ppuscroll,
+	Ppuaddr,
+	Ppudata
 }
 
 pub struct Ppu {
@@ -35,7 +35,7 @@ impl Ppu {
 
 	pub fn read(&mut self, register: Register) -> u8{
 		match register {
-			Register::PPUSTATUS => {
+			Register::Ppustatus => {
 				let value = self.ppustatus;
 				self.ppustatus &= 0x7f;
 				value
@@ -49,7 +49,7 @@ impl Ppu {
 
 	pub fn read_debug(&mut self, register: Register) -> u8{
 		match register {
-			Register::PPUSTATUS => self.ppustatus,
+			Register::Ppustatus => self.ppustatus,
 			_ => {
 				println!("[ERROR] Unhandled PPU register read");
 				std::process::exit(1);
