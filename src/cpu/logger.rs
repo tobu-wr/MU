@@ -25,27 +25,27 @@ impl Logger {
 	}
 
 	fn format_immediate(cpu: &Cpu, memory: &CpuMemory, mnemonic: &str) -> String {
-		let operand = memory.read8(cpu.pc.wrapping_add(1));
+		let operand = memory.read8_debug(cpu.pc.wrapping_add(1));
 		format!("{:02X}{:>8} #${:02X}", operand, mnemonic, operand)
 	}
 
 	fn format_zero_page(cpu: &Cpu, memory: &CpuMemory, mnemonic: &str) -> String {
-		let address = memory.read8(cpu.pc.wrapping_add(1));
-		let operand = memory.read8(address as _);
+		let address = memory.read8_debug(cpu.pc.wrapping_add(1));
+		let operand = memory.read8_debug(address as _);
 		format!("{:02X}{:>8} ${:02X} = {:02X}", address, mnemonic, address, operand)
 	}
 
 	fn format_zero_page_x(cpu: &Cpu, memory: &CpuMemory, mnemonic: &str) -> String {
-		let immediate = memory.read8(cpu.pc.wrapping_add(1));
+		let immediate = memory.read8_debug(cpu.pc.wrapping_add(1));
 		let address = immediate.wrapping_add(cpu.x);
-		let operand = memory.read8(address as _);
+		let operand = memory.read8_debug(address as _);
 		format!("{:02X}{:>8} ${:02X},X @ {:02X} = {:02X}", immediate, mnemonic, immediate, address, operand)
 	}
 
 	fn format_zero_page_y(cpu: &Cpu, memory: &CpuMemory, mnemonic: &str) -> String {
-		let immediate = memory.read8(cpu.pc.wrapping_add(1));
+		let immediate = memory.read8_debug(cpu.pc.wrapping_add(1));
 		let address = immediate.wrapping_add(cpu.y);
-		let operand = memory.read8(address as _);
+		let operand = memory.read8_debug(address as _);
 		format!("{:02X}{:>8} ${:02X},Y @ {:02X} = {:02X}", immediate, mnemonic, immediate, address, operand)
 	}
 
@@ -53,7 +53,7 @@ impl Logger {
 		let address = memory.read16(cpu.pc.wrapping_add(1));
 		let low_byte = address & 0xff;
 		let high_byte = address >> 8;
-		let operand = memory.read8(address);
+		let operand = memory.read8_debug(address);
 		format!("{:02X} {:02X}{:>5} ${:04X} = {:02X}", low_byte, high_byte, mnemonic, address, operand)
 	}
 
@@ -62,7 +62,7 @@ impl Logger {
 		let low_byte = intermediate_address & 0xff;
 		let high_byte = intermediate_address >> 8;
 		let address = intermediate_address.wrapping_add(cpu.x as _);
-		let operand = memory.read8(address);
+		let operand = memory.read8_debug(address);
 		format!("{:02X} {:02X}{:>5} ${:04X},X @ {:04X} = {:02X}", low_byte, high_byte, mnemonic, intermediate_address, address, operand)
 	}
 
@@ -71,27 +71,27 @@ impl Logger {
 		let low_byte = intermediate_address & 0xff;
 		let high_byte = intermediate_address >> 8;
 		let address = intermediate_address.wrapping_add(cpu.y as _);
-		let operand = memory.read8(address);
+		let operand = memory.read8_debug(address);
 		format!("{:02X} {:02X}{:>5} ${:04X},Y @ {:04X} = {:02X}", low_byte, high_byte, mnemonic, intermediate_address, address, operand)
 	}
 
 	fn format_indirect_x(cpu: &Cpu, memory: &CpuMemory, mnemonic: &str) -> String {
-		let immediate = memory.read8(cpu.pc.wrapping_add(1));
+		let immediate = memory.read8_debug(cpu.pc.wrapping_add(1));
 		let intermediate_address = immediate.wrapping_add(cpu.x);
-		let low_byte = memory.read8(intermediate_address as _) as u16;
-		let high_byte = memory.read8(intermediate_address.wrapping_add(1) as _) as u16;
+		let low_byte = memory.read8_debug(intermediate_address as _) as u16;
+		let high_byte = memory.read8_debug(intermediate_address.wrapping_add(1) as _) as u16;
 		let address = (high_byte << 8) | low_byte;
-		let operand = memory.read8(address);
+		let operand = memory.read8_debug(address);
 		format!("{:02X}{:>8} (${:02X},X) @ {:02X} = {:04X} = {:02X}", immediate, mnemonic, immediate, intermediate_address, address, operand)
 	}
 
 	fn format_indirect_y(cpu: &Cpu, memory: &CpuMemory, mnemonic: &str) -> String {
-		let immediate = memory.read8(cpu.pc.wrapping_add(1));
-		let low_byte = memory.read8(immediate as _) as u16;
-		let high_byte = memory.read8(immediate.wrapping_add(1) as _) as u16;
+		let immediate = memory.read8_debug(cpu.pc.wrapping_add(1));
+		let low_byte = memory.read8_debug(immediate as _) as u16;
+		let high_byte = memory.read8_debug(immediate.wrapping_add(1) as _) as u16;
 		let intermediate_address = (high_byte << 8) | low_byte;
 		let address = intermediate_address.wrapping_add(cpu.y as _);
-		let operand = memory.read8(address);
+		let operand = memory.read8_debug(address);
 		format!("{:02X}{:>8} (${:02X}),Y = {:04X} @ {:04X} = {:02X}", immediate, mnemonic, immediate, intermediate_address, address, operand)
 	}
 
@@ -103,7 +103,7 @@ impl Logger {
 	}
 
 	fn format_jump_relative(cpu: &Cpu, memory: &CpuMemory, mnemonic: &str) -> String {
-		let offset = memory.read8(cpu.pc.wrapping_add(1)) as i8;
+		let offset = memory.read8_debug(cpu.pc.wrapping_add(1)) as i8;
 		let address = if offset > 0 {
 			cpu.pc.wrapping_add(offset as _)
 		} else {
@@ -113,7 +113,7 @@ impl Logger {
 	}
 
 	pub(super) fn create_log(&self, cpu: &Cpu, memory: &CpuMemory) {
-		let opcode = memory.read8(cpu.pc);
+		let opcode = memory.read8_debug(cpu.pc);
 		let instruction_string = match opcode {
 			0xea => Self::format("NOP"),
 			0x1a | 0x3a | 0x5a | 0x7a | 0xda | 0xfa => Self::format("*NOP"),
@@ -218,7 +218,7 @@ impl Logger {
 
 			// AXS
 			0xcb => {
-				let operand = memory.read8(self.pc);
+				let operand = memory.read8_debug(self.pc);
 				self.pc = self.pc.wrapping_add(1);
 				self.x &= self.a;
 				self.set_flag(Flag::C, self.x >= operand);
@@ -391,11 +391,11 @@ impl Logger {
 			// JMP (indirect)
 			0x6c => {
 				let intermediate_address = memory.read16(cpu.pc.wrapping_add(1));
-				let low_byte = memory.read8(intermediate_address) as u16;
+				let low_byte = memory.read8_debug(intermediate_address) as u16;
 				let high_byte = if (intermediate_address & 0xff) == 0xff  {
-					memory.read8(intermediate_address & 0xff00)
+					memory.read8_debug(intermediate_address & 0xff00)
 				} else {
-					memory.read8(intermediate_address + 1)
+					memory.read8_debug(intermediate_address + 1)
 				} as u16;
 				let address = (high_byte << 8) | low_byte;
 				format!("{:02X} {:02X}  JMP (${:04X}) = {:04X}", low_byte, high_byte, intermediate_address, address)

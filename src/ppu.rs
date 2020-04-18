@@ -33,16 +33,13 @@ impl Ppu {
 		}
 	}
 
-	pub fn read_register(&mut self, register: Register) -> u8{
+	pub fn read(&mut self, register: Register) -> u8{
 		match register {
 			Register::PPUSTATUS => {
 				let value = self.ppustatus;
 				self.ppustatus &= 0x7f;
 				value
 			},
-			/*Register::PPUDATA => {
-				0
-			},*/
 			_ => {
 				println!("[ERROR] Unhandled PPU register read");
 				std::process::exit(1);
@@ -50,7 +47,17 @@ impl Ppu {
 		}
 	}
 
-	pub fn write_register(&self, register: Register, _value: u8) {
+	pub fn read_debug(&mut self, register: Register) -> u8{
+		match register {
+			Register::PPUSTATUS => self.ppustatus,
+			_ => {
+				println!("[ERROR] Unhandled PPU register read");
+				std::process::exit(1);
+			}
+		}
+	}
+
+	pub fn write(&self, register: Register, _value: u8) {
 		match register {
 		/*	Register::PPUCTRL => {
 

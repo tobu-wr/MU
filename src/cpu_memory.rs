@@ -63,9 +63,9 @@ impl CpuMemory {
 		println!("[INFO] Mapper: {}", mapper);
 	}
 
-	fn read_ppu_register(&self, register: Register) -> u8 {
+	fn read_ppu(&self, register: Register) -> u8 {
 		unsafe {
-			(*self.ppu).read_register(register)
+			(*self.ppu).read(register)
 		}
 	}
 
@@ -75,7 +75,7 @@ impl CpuMemory {
 				let effective_address = address as usize % RAM_SIZE as usize;
 				self.ram[effective_address]
 			},
-			PPUSTATUS_ADDRESS => self.read_ppu_register(Register::PPUSTATUS),
+			PPUSTATUS_ADDRESS => self.read_ppu(Register::PPUSTATUS),
 			0x4000 | 0x4001 | 0x4002 | 0x4003 | 0x4004 | 0x4005 | 0x4006 | 0x4007 | 0x4008 | 0x4009 | 0x400a | 0x400b | 0x400c | 0x400d | 0x400e | 0x400f | 0x4010 | 0x4011 | 0x4012 | 0x4013 | 0x4017 | APU_STATUS_ADDRESS => {
 				println!("[DEBUG] Read from an APU register");
 				0
@@ -92,6 +92,22 @@ impl CpuMemory {
 				println!("[ERROR] Unhandled read from {:04X}", address);
 				std::process::exit(1);
 			}
+		}
+	}
+
+	#[cfg(feature = "log")]
+	fn read_ppu_debug(&self, register: Register) -> u8 {
+		unsafe {
+			(*self.ppu).read_debug(register)
+		}
+	}
+
+	#[cfg(feature = "log")]
+	pub fn read8_debug(&self, address: u16) -> u8 {
+		if address == PPUSTATUS_ADDRESS {
+			self.read_ppu_debug(Register::PPUSTATUS)
+		} else {
+			self.read8(address)
 		}
 	}
 
@@ -120,9 +136,9 @@ impl CpuMemory {
 		}
 	}
 
-	fn write_ppu_register(&self, register: Register, value: u8) {
+	fn write_ppu(&self, register: Register, value: u8) {
 		unsafe {
-			(*self.ppu).write_register(register, value);
+			(*self.ppu).write(register, value);
 		}
 	}
 
@@ -135,17 +151,17 @@ impl CpuMemory {
 			PRG_RAM_START ..= PRG_RAM_END => {
 				println!("[DEBUG] Write to PRG RAM {:02X}", value);
 			},
-			PPUCTRL_ADDRESS => self.write_ppu_register(Register::PPUCTRL, value),
-			PPUMASK_ADDRESS => self.write_ppu_register(Register::PPUMASK, value),
+			PPUCTRL_ADDRESS => self.write_ppu(Register::PPUCTRL, value),
+			PPUMASK_ADDRESS => self.write_ppu(Register::PPUMASK, value),
 			0x2003 => {
 				println!("[DEBUG] Write to OAMADDR {:02X}", value);
 			},
 			0x2004 => {
 				println!("[DEBUG] Write to OAMDATA {:02X}", value);
 			},
-			PPUSCROLL_ADDRESS => self.write_ppu_register(Register::PPUSCROLL, value),
-			PPUADDR_ADDRESS => self.write_ppu_register(Register::PPUADDR, value),
-			PPUDATA_ADDRESS => self.write_ppu_register(Register::PPUDATA, value),
+			PPUSCROLL_ADDRESS => self.write_ppu(Register::PPUSCROLL, value),
+			PPUADDR_ADDRESS => self.write_ppu(Register::PPUADDR, value),
+			PPUDATA_ADDRESS => self.write_ppu(Register::PPUDATA, value),
 			0x4000 | 0x4001 | 0x4002 | 0x4003 | 0x4004 | 0x4005 | 0x4006 | 0x4007 | 0x4008 | 0x4009 | 0x400a | 0x400b | 0x400c | 0x400d | 0x400e | 0x400f | 0x4010 | 0x4011 | 0x4012 | 0x4013 | 0x4017 | APU_STATUS_ADDRESS => {
 				println!("[DEBUG] Write to an APU register");
 			},
