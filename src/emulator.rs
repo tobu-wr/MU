@@ -15,15 +15,17 @@ pub struct Emulator {
 
 impl Emulator {
 	pub fn new() -> Self {
-		let mut ppu = Ppu::new();
-
 		Self {
-			cpu_memory: CpuMemory::new(&mut ppu),
+			cpu_memory: CpuMemory::new(),
 			cpu: Cpu::new(),
 			ppu_memory: PpuMemory::new(),
-			ppu,
+			ppu: Ppu::new(),
 			window: Window::new("RNES", FRAME_WIDTH, FRAME_HEIGHT, WindowOptions::default()).unwrap()
 		}
+	}
+
+	pub fn init(&mut self) {
+		self.cpu_memory.connect(&mut self.ppu);
 	}
 
 	pub fn load_rom(&mut self, filename: &str) {
@@ -46,7 +48,7 @@ mod tests {
 	use super::*;
 
 	#[test]
-	fn nestest(){
+	fn nestest() {
 		let mut emulator = Emulator::new();
 		emulator.cpu_memory.load_rom("tests/nestest.nes");
 		emulator.cpu.set_pc(0xc000);

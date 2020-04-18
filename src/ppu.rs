@@ -18,7 +18,7 @@ pub enum Register {
 
 pub struct Ppu {
 	ppustatus: u8,
-	cycle_counter: u16,
+	cycle_counter: u8,
 	scanline_counter: u16,
 	frame_buffer: [u32; FRAME_BUFFER_SIZE]
 }

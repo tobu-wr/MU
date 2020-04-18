@@ -32,13 +32,17 @@ pub struct CpuMemory {
 }
 
 impl CpuMemory {
-	pub fn new(ppu: *mut Ppu) -> Self {
+	pub fn new() -> Self {
 		Self {
 			ram: [0; RAM_SIZE as _],
 			//prg_ram: 
 			prg_rom: Vec::new(),
-			ppu
+			ppu: std::ptr::null_mut()
 		}
+	}
+
+	pub fn connect(&mut self, ppu: *mut Ppu) {
+		self.ppu = ppu;
 	}
 
 	pub fn load_rom(&mut self, filename: &str) {
