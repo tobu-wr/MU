@@ -18,6 +18,7 @@ pub enum Register {
 
 pub struct Ppu {
 	ppuctrl: u8,
+	ppumask: u8,
 	ppustatus: u8,
 	cycle_counter: u8,
 	scanline_counter: u16,
@@ -28,6 +29,7 @@ impl Ppu {
 	pub fn new() -> Self {
 		Self {
 			ppuctrl: 0,
+			ppumask: 0,
 			ppustatus: 0,
 			cycle_counter: 0,
 			scanline_counter: 0,
@@ -53,6 +55,7 @@ impl Ppu {
 	pub fn read_debug(&self, register: Register) -> u8 {
 		match register {
 			Register::Ppuctrl => self.ppuctrl,
+			Register::Ppumask => self.ppumask,
 			Register::Ppustatus => self.ppustatus,
 			_ => {
 				println!("[ERROR] Unhandled PPU register read");
@@ -61,23 +64,10 @@ impl Ppu {
 		}
 	}
 
-	pub fn write(&self, register: Register, _value: u8) {
+	pub fn write(&mut self, register: Register, value: u8) {
 		match register {
-		/*	Register::PPUCTRL => {
-
-			},
-			Register::PPUMASK => {
-
-			}
-			Register::PPUSCROLL => {
-
-			},
-			Register::PPUADDR => {
-
-			},
-			Register::PPUDATA => {
-
-			},*/
+			Register::Ppuctrl => self.ppuctrl = value,
+			Register::Ppumask => self.ppumask = value,
 			_ =>{
 				println!("[ERROR] Unhandled PPU register write");
 				std::process::exit(1);

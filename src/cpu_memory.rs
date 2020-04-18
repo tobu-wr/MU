@@ -106,6 +106,7 @@ impl CpuMemory {
 	pub fn read8_debug(&self, address: u16) -> u8 {
 		match address {
 			PPUCTRL_ADDRESS => self.read_ppu_debug(Register::Ppuctrl),
+			PPUMASK_ADDRESS => self.read_ppu_debug(Register::Ppumask),
 			PPUSTATUS_ADDRESS => self.read_ppu_debug(Register::Ppustatus),
 			_ => self.read8(address)
 		}
