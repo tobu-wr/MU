@@ -17,6 +17,7 @@ pub enum Register {
 }
 
 pub struct Ppu {
+	ppuctrl: u8,
 	ppustatus: u8,
 	cycle_counter: u8,
 	scanline_counter: u16,
@@ -26,6 +27,7 @@ pub struct Ppu {
 impl Ppu {
 	pub fn new() -> Self {
 		Self {
+			ppuctrl: 0,
 			ppustatus: 0,
 			cycle_counter: 0,
 			scanline_counter: 0,
@@ -33,7 +35,7 @@ impl Ppu {
 		}
 	}
 
-	pub fn read(&mut self, register: Register) -> u8{
+	pub fn read(&mut self, register: Register) -> u8 {
 		match register {
 			Register::Ppustatus => {
 				let value = self.ppustatus;
@@ -47,8 +49,10 @@ impl Ppu {
 		}
 	}
 
-	pub fn read_debug(&mut self, register: Register) -> u8{
+	#[cfg(feature = "log")]
+	pub fn read_debug(&self, register: Register) -> u8 {
 		match register {
+			Register::Ppuctrl => self.ppuctrl,
 			Register::Ppustatus => self.ppustatus,
 			_ => {
 				println!("[ERROR] Unhandled PPU register read");

@@ -89,7 +89,7 @@ impl CpuMemory {
 				self.prg_rom[effective_address]
 			},
 			_ => {
-				println!("[ERROR] Unhandled read from {:04X}", address);
+				println!("[ERROR] Unhandled read8 from {:04X}", address);
 				std::process::exit(1);
 			}
 		}
@@ -104,10 +104,10 @@ impl CpuMemory {
 
 	#[cfg(feature = "log")]
 	pub fn read8_debug(&self, address: u16) -> u8 {
-		if address == PPUSTATUS_ADDRESS {
-			self.read_ppu_debug(Register::Ppustatus)
-		} else {
-			self.read8(address)
+		match address {
+			PPUCTRL_ADDRESS => self.read_ppu_debug(Register::Ppuctrl),
+			PPUSTATUS_ADDRESS => self.read_ppu_debug(Register::Ppustatus),
+			_ => self.read8(address)
 		}
 	}
 
@@ -130,7 +130,7 @@ impl CpuMemory {
 				(high_byte << 8) | low_byte
 			},
 			_ => {
-				println!("[ERROR] Unhandled read from {:04X}", address);
+				println!("[ERROR] Unhandled read16 from {:04X}", address);
 				std::process::exit(1);
 			}
 		}
