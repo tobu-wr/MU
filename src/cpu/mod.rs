@@ -11,6 +11,7 @@ enum Flag {
 	Z = 1 << 1,
 	I = 1 << 2,
 	D = 1 << 3,
+	B = 1 << 4,
 	V = 1 << 6,
 	N = 1 << 7
 }
@@ -61,7 +62,7 @@ impl Cpu {
 	}
 
 	fn get_flag(&self, flag: Flag) -> bool {
-		(self.p & (flag as u8)) != 0
+		(self.p & flag as u8) != 0
 	}
 
 	fn set_flag(&mut self, flag: Flag, value: bool) {
@@ -80,14 +81,30 @@ impl Cpu {
 		self.set_flag(Flag::Z, value == 0);
 	}
 
-	fn push(&mut self, memory: &mut CpuMemory, value: u8) {
+	fn push8(&mut self, memory: &mut CpuMemory, value: u8) {
 		memory.write8(STACK_ADDRESS + self.s as u16, value);
 		self.s = self.s.wrapping_sub(1);
 	}
 
-	fn pull(&mut self, memory: &CpuMemory) -> u8 {
+	fn push16(&mut self, memory: &mut CpuMemory, value: u16) {
+		self.push8(memory, (value >> 8) as _);
+		self.push8(memory, value as _);
+	}
+
+	fn pull8(&mut self, memory: &CpuMemory) -> u8 {
 		self.s = self.s.wrapping_add(1);
 		memory.read8(STACK_ADDRESS + self.s as u16)
+	}
+
+	fn pull16(&mut self, memory: &CpuMemory) -> u16 {
+		let low_byte = self.pull8(memory) as u16;
+		let high_byte = self.pull8(memory) as u16;
+		(high_byte << 8) | low_byte
+	}
+
+	fn plp(&mut self, memory: &CpuMemory) {
+		let value = self.pull8(memory);
+		self.p = (value | 0b0010_0000) & !(Flag::B as u8);
 	}
 
 	fn get_address(&mut self, memory: &CpuMemory, addressing_mode: AddressingMode) -> u16 {
@@ -139,7 +156,8 @@ impl Cpu {
 				self.pc = self.pc.wrapping_add(1);
 				let low_byte = memory.read8(address as _) as u16;
 				let high_byte = memory.read8(address.wrapping_add(1) as _) as u16;
-				((high_byte << 8) | low_byte).wrapping_add(self.y as _)
+				let value = (high_byte << 8) | low_byte;
+				value.wrapping_add(self.y as _)
 			}
 		}
 	}
@@ -343,7 +361,8 @@ impl Cpu {
 	}
 
 	fn adc_value(&mut self, value: u8) {
-		let sum = self.a as u16 + value as u16 + self.get_flag(Flag::C) as u16;
+		let carry = self.get_flag(Flag::C);
+		let sum = self.a as u16 + value as u16 + carry as u16;
 		self.set_flag(Flag::C, sum > 0xff);
 		let result = sum as u8;
 		self.set_flag(Flag::V, ((self.a ^ result) & (value ^ result) & 0x80) != 0);
@@ -450,11 +469,16 @@ impl Cpu {
 	}
 
 	pub fn execute_next_instruction(&mut self, memory: &mut CpuMemory) {
+		/*if /*check for interrupts*/ {
+			// TODO
+		}*/
+
 		#[cfg(feature = "log")]
 		self.logger.create_log(self, memory);
 		
 		let opcode = memory.read8(self.pc);
 		self.pc = self.pc.wrapping_add(1);
+		
 		match opcode {
 			// NOPs
 			0x1a | 0x3a | 0x5a | 0x7a | 0xda | 0xea | 0xfa => {},
@@ -764,20 +788,19 @@ impl Cpu {
 			0xd1 => self.cmp(memory, AddressingMode::IndirectY),
 
 			// PHA
-			0x48 => self.push(memory, self.a),
+			0x48 => self.push8(memory, self.a),
 
 			// PLA
 			0x68 => {
-				self.a = self.pull(memory);
+				self.a = self.pull8(memory);
 				self.set_n_flag(self.a);
 				self.set_z_flag(self.a);
 			},
 
 			// PHP
-			0x08 => self.push(memory, self.p | 0b0001_0000),
+			0x08 => self.push8(memory, self.p | Flag::B as u8),
 
-			// PLP
-			0x28 => self.p = (self.pull(memory) | 0b0010_0000) & 0b1110_1111,
+			0x28 => self.plp(memory),
 
 			// CLC
 			0x18 => self.set_flag(Flag::C, false),
@@ -842,9 +865,8 @@ impl Cpu {
 			// BRK
 			/*0x00 => {
 				let address = self.pc.wrapping_add(1);
-				self.push(memory, (address >> 8) as _);
-				self.push(memory, address as _);
-				self.push(memory, self.p | 0b0001_0000);
+				self.push16(memory, address);
+				self.push8(memory, self.p | Flag::B as u8);
 				self.pc = memory.read16(IRQ_VECTOR_ADDRESS);
 				self.set_flag(Flag::I, true);
 			},*/
@@ -852,25 +874,18 @@ impl Cpu {
 			// JSR
 			0x20 => {
 				let address = self.pc.wrapping_add(1);
-				self.push(memory, (address >> 8) as _);
-				self.push(memory, address as _);
+				self.push16(memory, address);
 				self.pc = memory.read16(self.pc);
 			},
 
 			// RTI
 			0x40 => {
-				self.p = (self.pull(memory) | 0b0010_0000) & 0b1110_1111;
-				let low_byte = self.pull(memory) as u16;
-				let high_byte = self.pull(memory) as u16;
-				self.pc = (high_byte << 8) | low_byte;
+				self.plp(memory);
+				self.pc = self.pull16(memory);
 			},
 
 			// RTS
-			0x60 => {
-				let low_byte = self.pull(memory) as u16;
-				let high_byte = self.pull(memory) as u16;
-				self.pc = ((high_byte << 8) | low_byte).wrapping_add(1);
-			},
+			0x60 => self.pc = self.pull16(memory).wrapping_add(1),
 
 			_ => {
 				println!("[ERROR] Unknown opcode {:02X} at {:04X}", opcode, self.pc.wrapping_sub(1));
