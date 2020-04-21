@@ -29,6 +29,12 @@ enum AddressingMode {
 	IndirectY
 }
 
+#[derive(PartialEq)]
+pub enum Interrupt {
+	Irq,
+	Nmi
+}
+
 pub struct Cpu {
 	a: u8,
 	x: u8,
@@ -36,6 +42,7 @@ pub struct Cpu {
 	pc: u16,
 	s: u8,
 	p: u8,
+	pending_interrupt: Option<Interrupt>,
 
 	#[cfg(feature = "log")]
 	logger: Logger
@@ -50,6 +57,7 @@ impl Cpu {
 			pc: 0,
 			s: 0xfd,
 			p: 0x24,
+			pending_interrupt: None,
 
 			#[cfg(feature = "log")]
 			logger: Logger::new()
@@ -468,10 +476,24 @@ impl Cpu {
 		self.pc = self.pc.wrapping_add(1);
 	}
 
+	pub fn request_interrupt(&mut self, interrupt: Interrupt) {
+		if self.pending_interrupt != Some(Interrupt::Nmi) {
+			self.pending_interrupt = Some(interrupt);
+		}
+	}
+
 	pub fn execute_next_instruction(&mut self, memory: &mut CpuMemory) {
-		/*if /*check for interrupts*/ {
-			// TODO
-		}*/
+		if self.pending_interrupt == Some(Interrupt::Nmi) || (self.pending_interrupt == Some(Interrupt::Irq) && !self.get_flag(Flag::I)) {
+			self.push16(memory, self.pc);
+			self.push8(memory, self.p);
+			self.pc = memory.read16(if self.pending_interrupt == Some(Interrupt::Nmi) {
+				NMI_VECTOR_ADDRESS
+			} else {
+				IRQ_VECTOR_ADDRESS
+			});
+			self.set_flag(Flag::I, true);
+			self.pending_interrupt = None;
+		}
 
 		#[cfg(feature = "log")]
 		self.logger.create_log(self, memory);
