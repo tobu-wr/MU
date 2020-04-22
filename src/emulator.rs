@@ -26,6 +26,7 @@ impl Emulator {
 
 	pub fn init(&mut self) {
 		self.cpu_memory.connect(&mut self.ppu);
+		self.ppu.connect(&mut self.cpu);
 	}
 
 	pub fn load_rom(&mut self, filename: &str) {

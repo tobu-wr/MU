@@ -1,5 +1,6 @@
 use ppu::*;
 
+pub const NMI_VECTOR_ADDRESS: u16 = 0xfffa;
 pub const RESET_VECTOR_ADDRESS: u16 = 0xfffc;
 pub const IRQ_VECTOR_ADDRESS: u16 = 0xfffe;
 
@@ -78,6 +79,10 @@ impl CpuMemory {
 			PPUSTATUS_ADDRESS => self.read_ppu(Register::Ppustatus),
 			0x4000 | 0x4001 | 0x4002 | 0x4003 | 0x4004 | 0x4005 | 0x4006 | 0x4007 | 0x4008 | 0x4009 | 0x400a | 0x400b | 0x400c | 0x400d | 0x400e | 0x400f | 0x4010 | 0x4011 | 0x4012 | 0x4013 | 0x4017 | APU_STATUS_ADDRESS => {
 				println!("[DEBUG] Read from an APU register");
+				0
+			},
+			0x4016 => {
+				println!("[DEBUG] Read from JOY1");
 				0
 			},
 			PRG_ROM_START ..= PRG_ROM_END => {
@@ -168,6 +173,9 @@ impl CpuMemory {
 			PPUDATA_ADDRESS => self.write_ppu(Register::Ppudata, value),
 			0x4000 | 0x4001 | 0x4002 | 0x4003 | 0x4004 | 0x4005 | 0x4006 | 0x4007 | 0x4008 | 0x4009 | 0x400a | 0x400b | 0x400c | 0x400d | 0x400e | 0x400f | 0x4010 | 0x4011 | 0x4012 | 0x4013 | 0x4017 | APU_STATUS_ADDRESS => {
 				println!("[DEBUG] Write to an APU register");
+			},
+			0x4016 => {
+				println!("[DEBUG] Write to JOY1 {:02X}", value);
 			},
 			_ => {
 				println!("[ERROR] Unhandled write to {:04X}", address);
