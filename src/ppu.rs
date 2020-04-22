@@ -27,7 +27,7 @@ pub struct Ppu {
 	cycle_counter: u8,
 	scanline_counter: u16,
 	frame_buffer: [u32; FRAME_BUFFER_SIZE],
-	ppu_memory: PpuMemory,
+	memory: PpuMemory,
 	cpu: *mut Cpu
 }
 
@@ -43,7 +43,7 @@ impl Ppu {
 			cycle_counter: 0,
 			scanline_counter: 0,
 			frame_buffer: [0; FRAME_BUFFER_SIZE],
-			ppu_memory: PpuMemory::new(),
+			memory: PpuMemory::new(),
 			cpu: std::ptr::null_mut()
 		}
 	}
@@ -81,10 +81,7 @@ impl Ppu {
 			Register::Ppustatus => self.ppustatus,
 			Register::Ppuscroll => self.read16_debug(self.ppuscroll),
 			Register::Ppuaddr => self.read16_debug(self.ppuaddr),
-			Register::Ppudata => {
-				// TODO
-				0
-			}
+			Register::Ppudata => self.memory.read(self.ppuaddr)
 		}
 	}
 
@@ -108,7 +105,7 @@ impl Ppu {
 			Register::Ppuscroll => self.ppuscroll = self.write16(self.ppuscroll, value),
 			Register::Ppuaddr => self.ppuaddr = self.write16(self.ppuaddr, value),
 			Register::Ppudata => {
-				self.ppu_memory.write(self.ppuaddr, value);
+				self.memory.write(self.ppuaddr, value);
 				self.ppuaddr += if (self.ppuctrl & 0x04) == 0 {
 					1
 				} else {
