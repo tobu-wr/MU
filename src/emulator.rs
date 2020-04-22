@@ -2,13 +2,11 @@ use minifb::{Window, WindowOptions};
 
 use cpu_memory::*;
 use cpu::*;
-use ppu_memory::*;
 use ppu::*;
 
 pub struct Emulator {
 	cpu_memory: CpuMemory,
 	cpu: Cpu,
-	ppu_memory: PpuMemory,
 	ppu: Ppu,
 	window: Window
 }
@@ -18,7 +16,6 @@ impl Emulator {
 		Self {
 			cpu_memory: CpuMemory::new(),
 			cpu: Cpu::new(),
-			ppu_memory: PpuMemory::new(),
 			ppu: Ppu::new(),
 			window: Window::new("RNES", FRAME_WIDTH, FRAME_HEIGHT, WindowOptions::default()).unwrap()
 		}
@@ -39,7 +36,7 @@ impl Emulator {
 	pub fn run(&mut self) {
 		while self.window.is_open() {
 			self.cpu.execute_next_instruction(&mut self.cpu_memory);
-			self.ppu.do_cycle(&self.ppu_memory, &mut self.window);
+			self.ppu.do_cycle(&mut self.window);
 		}
 	}
 }

@@ -23,12 +23,12 @@ pub struct Ppu {
 	ppustatus: u8,
 	ppuscroll: u16,
 	ppuaddr: u16,
-	ppudata: u8,
 	flipflop: bool,
-	cpu: *mut Cpu,
 	cycle_counter: u8,
 	scanline_counter: u16,
-	frame_buffer: [u32; FRAME_BUFFER_SIZE]
+	frame_buffer: [u32; FRAME_BUFFER_SIZE],
+	ppu_memory: PpuMemory,
+	cpu: *mut Cpu
 }
 
 impl Ppu {
@@ -39,12 +39,12 @@ impl Ppu {
 			ppustatus: 0,
 			ppuscroll: 0,
 			ppuaddr: 0,
-			ppudata: 0,
 			flipflop: false,
-			cpu: std::ptr::null_mut(),
 			cycle_counter: 0,
 			scanline_counter: 0,
-			frame_buffer: [0; FRAME_BUFFER_SIZE]
+			frame_buffer: [0; FRAME_BUFFER_SIZE],
+			ppu_memory: PpuMemory::new(),
+			cpu: std::ptr::null_mut()
 		}
 	}
 
@@ -81,7 +81,10 @@ impl Ppu {
 			Register::Ppustatus => self.ppustatus,
 			Register::Ppuscroll => self.read16_debug(self.ppuscroll),
 			Register::Ppuaddr => self.read16_debug(self.ppuaddr),
-			Register::Ppudata => self.ppudata
+			Register::Ppudata => {
+				// TODO
+				0
+			}
 		}
 	}
 
@@ -96,12 +99,7 @@ impl Ppu {
 
 	pub fn write(&mut self, register: Register, value: u8) {
 		match register {
-			Register::Ppuctrl => {
-				self.ppuctrl = value;
-				if (self.ppuctrl & self.ppustatus & 0x80) != 0 {
-					self.request_nmi();
-				}
-			},
+			Register::Ppuctrl => self.ppuctrl = value,
 			Register::Ppumask => self.ppumask = value,
 			Register::Ppustatus => {
 				println!("[ERROR] Write to PPUSTATUS");
@@ -109,7 +107,14 @@ impl Ppu {
 			},
 			Register::Ppuscroll => self.ppuscroll = self.write16(self.ppuscroll, value),
 			Register::Ppuaddr => self.ppuaddr = self.write16(self.ppuaddr, value),
-			Register::Ppudata => self.ppudata = value,
+			Register::Ppudata => {
+				self.ppu_memory.write(self.ppuaddr, value);
+				self.ppuaddr += if (self.ppuctrl & 0x04) == 0 {
+					1
+				} else {
+					32
+				};
+			}
 		}
 	}
 
@@ -122,7 +127,7 @@ impl Ppu {
 		}
 	}
 
-	pub fn do_cycle(&mut self, _memory: &PpuMemory, window: &mut Window) {
+	pub fn do_cycle(&mut self, window: &mut Window) {
 		self.cycle_counter += 1;
 		if self.cycle_counter == 113 {
 			self.cycle_counter = 0;
