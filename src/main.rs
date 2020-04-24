@@ -12,6 +12,6 @@ fn main() {
 	let filename = std::env::args().nth(1).unwrap();
 	let mut emulator = Emulator::new();
 	emulator.init();
-	emulator.load_rom(&filename);
+	emulator.load_file(&filename);
 	emulator.run();
 }
