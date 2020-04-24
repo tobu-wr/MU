@@ -46,22 +46,8 @@ impl CpuMemory {
 		self.ppu = ppu;
 	}
 
-	pub fn load_rom(&mut self, filename: &str) {
-		let contents = std::fs::read(filename).unwrap();
-
-		if &contents[..4] != [0x4e, 0x45, 0x53, 0x1a] {
-			println!("[ERROR] Wrong file format");
-			std::process::exit(1);
-		}
-
-		let prg_rom_size = (contents[4] as usize) * 16;
-		println!("[INFO] PRG ROM size: {}KB", prg_rom_size);
-
-		const HEADER_SIZE: usize = 16;
-		self.prg_rom = contents[HEADER_SIZE..(HEADER_SIZE + prg_rom_size * 1024)].to_vec();
-
-		let mapper = (contents[7] & 0xf0) | (contents[6] >> 4);
-		println!("[INFO] Mapper: {}", mapper);
+	pub fn load_prg_rom(&mut self, prg_rom: &[u8]) {
+		self.prg_rom = prg_rom.to_vec();
 	}
 
 	fn read_ppu(&self, register: Register) -> u8 {
