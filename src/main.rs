@@ -5,6 +5,7 @@ mod cpu_memory;
 mod cpu;
 mod ppu_memory;
 mod ppu;
+mod joypad;
 
 use emulator::*;
 

@@ -4,12 +4,14 @@ use cpu_memory::*;
 use ppu_memory::*;
 use cpu::*;
 use ppu::*;
+use joypad::*;
 
 pub struct Emulator {
 	cpu_memory: CpuMemory,
 	ppu_memory: PpuMemory,
 	cpu: Cpu,
 	ppu: Ppu,
+	joypad: Joypad,
 	window: Window
 }
 
@@ -20,13 +22,15 @@ impl Emulator {
 			ppu_memory: PpuMemory::new(),
 			cpu: Cpu::new(),
 			ppu: Ppu::new(),
+			joypad: Joypad::new(),
 			window: Window::new("RNES", FRAME_WIDTH, FRAME_HEIGHT, WindowOptions::default()).unwrap()
 		}
 	}
 
 	pub fn init(&mut self) {
-		self.cpu_memory.connect(&mut self.ppu);
+		self.cpu_memory.connect(&mut self.ppu, &mut self.joypad);
 		self.ppu.connect(&mut self.cpu, &mut self.ppu_memory);
+		self.joypad.connect(&self.window);
 	}
 
 	pub fn load_file(&mut self, filename: &str) {

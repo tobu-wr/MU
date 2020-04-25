@@ -1,4 +1,5 @@
 use ppu::*;
+use joypad::*;
 
 pub const NMI_VECTOR_ADDRESS: u16 = 0xfffa;
 pub const RESET_VECTOR_ADDRESS: u16 = 0xfffc;
@@ -18,6 +19,8 @@ const PRG_ROM_END: u16 = 0xffff;
 
 const APU_STATUS_ADDRESS: u16 = 0x4015;
 
+const JOY1_ADDRESS: u16 = 0x4016;
+
 const PPUCTRL_ADDRESS: u16 = 0x2000;
 const PPUMASK_ADDRESS: u16 = 0x2001;
 const PPUSTATUS_ADDRESS: u16 = 0x2002;
@@ -29,7 +32,8 @@ pub struct CpuMemory {
 	ram: [u8; RAM_SIZE as _],
 	//prg_ram: 
 	prg_rom: Vec<u8>,
-	ppu: *mut Ppu
+	ppu: *mut Ppu,
+	joypad: *mut Joypad
 }
 
 impl CpuMemory {
@@ -38,12 +42,14 @@ impl CpuMemory {
 			ram: [0; RAM_SIZE as _],
 			//prg_ram: 
 			prg_rom: Vec::new(),
-			ppu: std::ptr::null_mut()
+			ppu: std::ptr::null_mut(),
+			joypad: std::ptr::null_mut()
 		}
 	}
 
-	pub fn connect(&mut self, ppu: *mut Ppu) {
+	pub fn connect(&mut self, ppu: *mut Ppu, joypad: *mut Joypad) {
 		self.ppu = ppu;
+		self.joypad = joypad;
 	}
 
 	pub fn load_prg_rom(&mut self, prg_rom: &[u8]) {
@@ -67,9 +73,8 @@ impl CpuMemory {
 				println!("[DEBUG] [CPU] Read from an APU register");
 				0
 			},
-			0x4016 => {
-				println!("[DEBUG] [CPU] Read from JOY1");
-				0
+			JOY1_ADDRESS => unsafe {
+				(*self.joypad).read()
 			},
 			PRG_ROM_START ..= PRG_ROM_END => {
 				let mut effective_address = (address - PRG_ROM_START) as usize;
@@ -160,8 +165,8 @@ impl CpuMemory {
 			0x4000 | 0x4001 | 0x4002 | 0x4003 | 0x4004 | 0x4005 | 0x4006 | 0x4007 | 0x4008 | 0x4009 | 0x400a | 0x400b | 0x400c | 0x400d | 0x400e | 0x400f | 0x4010 | 0x4011 | 0x4012 | 0x4013 | 0x4017 | APU_STATUS_ADDRESS => {
 				println!("[DEBUG] [CPU] Write to an APU register");
 			},
-			0x4016 => {
-				println!("[DEBUG] [CPU] Write to JOY1 {:02X}", value);
+			JOY1_ADDRESS => unsafe {
+				(*self.joypad).write(value);
 			},
 			_ => {
 				println!("[ERROR] [CPU] Unhandled write to {:04X}", address);
