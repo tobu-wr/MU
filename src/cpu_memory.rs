@@ -64,11 +64,11 @@ impl CpuMemory {
 			},
 			PPUSTATUS_ADDRESS => self.read_ppu(Register::Ppustatus),
 			0x4000 | 0x4001 | 0x4002 | 0x4003 | 0x4004 | 0x4005 | 0x4006 | 0x4007 | 0x4008 | 0x4009 | 0x400a | 0x400b | 0x400c | 0x400d | 0x400e | 0x400f | 0x4010 | 0x4011 | 0x4012 | 0x4013 | 0x4017 | APU_STATUS_ADDRESS => {
-				println!("[DEBUG] Read from an APU register");
+				println!("[DEBUG] [CPU] Read from an APU register");
 				0
 			},
 			0x4016 => {
-				println!("[DEBUG] Read from JOY1");
+				println!("[DEBUG] [CPU] Read from JOY1");
 				0
 			},
 			PRG_ROM_START ..= PRG_ROM_END => {
@@ -80,7 +80,7 @@ impl CpuMemory {
 				self.prg_rom[effective_address]
 			},
 			_ => {
-				println!("[ERROR] Unhandled read8 from {:04X}", address);
+				println!("[ERROR] [CPU] Unhandled read8 from {:04X}", address);
 				std::process::exit(1);
 			}
 		}
@@ -125,7 +125,7 @@ impl CpuMemory {
 				(high_byte << 8) | low_byte
 			},
 			_ => {
-				println!("[ERROR] Unhandled read16 from {:04X}", address);
+				println!("[ERROR] [CPU] Unhandled read16 from {:04X}", address);
 				std::process::exit(1);
 			}
 		}
@@ -144,53 +144,29 @@ impl CpuMemory {
 				self.ram[effective_address] = value;
 			},
 			PRG_RAM_START ..= PRG_RAM_END => {
-				println!("[DEBUG] Write to PRG RAM {:02X}", value);
+				println!("[DEBUG] [CPU] Write to PRG RAM {:02X}", value);
 			},
 			PPUCTRL_ADDRESS => self.write_ppu(Register::Ppuctrl, value),
 			PPUMASK_ADDRESS => self.write_ppu(Register::Ppumask, value),
 			0x2003 => {
-				println!("[DEBUG] Write to OAMADDR {:02X}", value);
+				println!("[DEBUG] [CPU] Write to OAMADDR {:02X}", value);
 			},
 			0x2004 => {
-				println!("[DEBUG] Write to OAMDATA {:02X}", value);
+				println!("[DEBUG] [CPU] Write to OAMDATA {:02X}", value);
 			},
 			PPUSCROLL_ADDRESS => self.write_ppu(Register::Ppuscroll, value),
 			PPUADDR_ADDRESS => self.write_ppu(Register::Ppuaddr, value),
 			PPUDATA_ADDRESS => self.write_ppu(Register::Ppudata, value),
 			0x4000 | 0x4001 | 0x4002 | 0x4003 | 0x4004 | 0x4005 | 0x4006 | 0x4007 | 0x4008 | 0x4009 | 0x400a | 0x400b | 0x400c | 0x400d | 0x400e | 0x400f | 0x4010 | 0x4011 | 0x4012 | 0x4013 | 0x4017 | APU_STATUS_ADDRESS => {
-				println!("[DEBUG] Write to an APU register");
+				println!("[DEBUG] [CPU] Write to an APU register");
 			},
 			0x4016 => {
-				println!("[DEBUG] Write to JOY1 {:02X}", value);
+				println!("[DEBUG] [CPU] Write to JOY1 {:02X}", value);
 			},
 			_ => {
-				println!("[ERROR] Unhandled write to {:04X}", address);
+				println!("[ERROR] [CPU] Unhandled write to {:04X}", address);
 				std::process::exit(1);
 			}
 		}
 	}
-
-	/*pub fn write16(&mut self, address: u16, value: u16) {
-		match address {
-			RAM_START ..= RAM_END => {
-				let effective_address = address as usize % RAM_SIZE as usize;
-				self.ram[effective_address] = value as u8;
-				self.ram[effective_address + 1] = (value >> 8) as u8;
-
-				if cfg!(feature = "nestest") && (effective_address == 0x02 || effective_address == 0x03) && self.ram[effective_address] != 0 {
-					println!("[ERROR] Failure code: {:x}", value);
-					std::process::exit(1);
-				}
-
-				if cfg!(feature = "nestest") && ((effective_address + 1) == 0x02 || (effective_address + 1) == 0x03) && self.ram[effective_address + 1] != 0 {
-					println!("[ERROR] Failure code: {:x}", value);
-					std::process::exit(1);
-				}
-			},
-			_ => {
-				println!("[ERROR] Unhandled write at 0x{:x}", address);
-				std::process::exit(1);
-			}
-		}
-	}*/
 }
