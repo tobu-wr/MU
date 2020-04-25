@@ -25,7 +25,7 @@ impl Joypad {
 
     fn is_key_down(&self, key: Key) -> u8 {
         unsafe {
-            (*self.window).is_key_down(key)
+            (*self.window).is_key_down(key) as u8
         }
     }
 
@@ -46,17 +46,15 @@ impl Joypad {
             self.polling = true;
             self.index = 0;
         } else {
-            unsafe {
-                self.buttons[0] = self.is_key_down(Key::A);
-                self.buttons[1] = self.is_key_down(Key::B);
-                self.buttons[2] = self.is_key_down(Key::Space);
-                self.buttons[3] = self.is_key_down(Key::Enter);
-                self.buttons[4] = self.is_key_down(Key::Up);
-                self.buttons[5] = self.is_key_down(Key::Down);
-                self.buttons[6] = self.is_key_down(Key::Left);
-                self.buttons[7] = self.is_key_down(Key::Right);
-            }
             self.polling = false;
+            self.buttons[0] = self.is_key_down(Key::A);
+            self.buttons[1] = self.is_key_down(Key::B);
+            self.buttons[2] = self.is_key_down(Key::Space);
+            self.buttons[3] = self.is_key_down(Key::Enter);
+            self.buttons[4] = self.is_key_down(Key::Up);
+            self.buttons[5] = self.is_key_down(Key::Down);
+            self.buttons[6] = self.is_key_down(Key::Left);
+            self.buttons[7] = self.is_key_down(Key::Right);
         }
     }
 }
