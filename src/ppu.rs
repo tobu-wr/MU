@@ -166,7 +166,7 @@ impl Ppu {
 							let attribute_row = tile_row / 4;
 							let attribute_column = tile_column / 4;
 							let attribute = self.read_memory(attribute_table_address + attribute_row * 8 + attribute_column);
-							let color_set = ((attribute >> (4 * (tile_row % 2))) >> (2 * (tile_column % 2))) & 0b11;
+							let color_set = ((attribute >> (4 * ((tile_row / 2) % 2))) >> (2 * ((tile_column / 2) % 2))) & 0b11;
 							let palette_number = 4 * color_set;
 							for pixel_row in 0..8 {
 								let low_byte = self.read_memory(pattern_address + (tile_number as u16) * 16 + pixel_row);
