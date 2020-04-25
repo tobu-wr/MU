@@ -17,6 +17,8 @@ const PRG_RAM_END: u16 = 0x7fff;
 const PRG_ROM_START: u16 = 0x8000;
 const PRG_ROM_END: u16 = 0xffff;
 
+const OAMDMA_ADDRESS: u16 = 0x4014;
+
 const APU_STATUS_ADDRESS: u16 = 0x4015;
 
 const JOY1_ADDRESS: u16 = 0x4016;
@@ -164,6 +166,9 @@ impl CpuMemory {
 			PPUDATA_ADDRESS => self.write_ppu(Register::Ppudata, value),
 			0x4000 | 0x4001 | 0x4002 | 0x4003 | 0x4004 | 0x4005 | 0x4006 | 0x4007 | 0x4008 | 0x4009 | 0x400a | 0x400b | 0x400c | 0x400d | 0x400e | 0x400f | 0x4010 | 0x4011 | 0x4012 | 0x4013 | 0x4017 | APU_STATUS_ADDRESS => {
 				println!("[DEBUG] [CPU] Write to an APU register");
+			},
+			OAMDMA_ADDRESS => {
+				println!("[DEBUG] [CPU] Write to OAMDMA {:02X}", value);
 			},
 			JOY1_ADDRESS => unsafe {
 				(*self.joypad).write(value);
