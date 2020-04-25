@@ -52,7 +52,7 @@ impl CpuMemory {
 
 	fn read_ppu(&self, register: Register) -> u8 {
 		unsafe {
-			(*self.ppu).read(register)
+			(*self.ppu).read_register(register)
 		}
 	}
 
@@ -89,7 +89,7 @@ impl CpuMemory {
 	#[cfg(feature = "log")]
 	fn read_ppu_debug(&self, register: Register) -> u8 {
 		unsafe {
-			(*self.ppu).read_debug(register)
+			(*self.ppu).read_register_debug(register)
 		}
 	}
 
@@ -133,7 +133,7 @@ impl CpuMemory {
 
 	fn write_ppu(&self, register: Register, value: u8) {
 		unsafe {
-			(*self.ppu).write(register, value);
+			(*self.ppu).write_register(register, value);
 		}
 	}
 
