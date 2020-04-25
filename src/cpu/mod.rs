@@ -231,11 +231,11 @@ impl Cpu {
 		self.and_address(memory, address);
 	}
 
-	fn aac(&mut self, memory: &CpuMemory) {
+	/*fn aac(&mut self, memory: &CpuMemory) {
 		self.and(memory, AddressingMode::Immediate);
 		let n = self.get_flag(Flag::N);
 		self.set_flag(Flag::C, n);
-	}
+	}*/
 
 	fn ora_address(&mut self, memory: &CpuMemory, address: u16) {
 		self.a |= memory.read8(address);
