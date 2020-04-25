@@ -157,6 +157,7 @@ impl Ppu {
 				self.check_for_nmi();
 				if (self.ppumask & 0x08) != 0 {
 					let nametable_address = 0x2000 + 0x400 * (self.ppuctrl & 0b11) as u16;
+					let attribute_table_address = nametable_address + 0x3c0;
 					let pattern_address = 0x1000 * ((self.ppuctrl >> 4) & 1) as u16;
 					for tile_row in 0..30 {
 						for tile_column in 0..32 {
@@ -164,7 +165,7 @@ impl Ppu {
 							let tile_number = self.read_memory(tile_number_address);
 							let attribute_row = tile_row / 4;
 							let attribute_column = tile_column / 4;
-							let attribute = self.read_memory(0x23c0 + attribute_row * 8 + attribute_column);
+							let attribute = self.read_memory(attribute_table_address + attribute_row * 8 + attribute_column);
 							let color_set = ((attribute >> (4 * (tile_row % 2))) >> (2 * (tile_column % 2))) & 0b11;
 							let palette_number = 4 * color_set;
 							for pixel_row in 0..8 {
