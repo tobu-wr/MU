@@ -11,12 +11,12 @@ pub struct Joypad {
 
 impl Joypad {
     pub fn new() -> Self {
-		Self {
+        Self {
             window: std::ptr::null(),
             buttons: [0; BUTTON_COUNT],
             polling: false,
             index: 0
-		}
+        }
     }
 
     pub fn connect(&mut self, window: *const Window) {
@@ -43,10 +43,12 @@ impl Joypad {
 
     pub fn write(&mut self, value: u8) {
         if (value & 1) == 1 {
+             // start polling
             self.polling = true;
-            self.index = 0;
-        } else {
+        } else if self.polling {
+             // end polling
             self.polling = false;
+            self.index = 0;
             self.buttons[0] = self.is_key_down(Key::A);
             self.buttons[1] = self.is_key_down(Key::B);
             self.buttons[2] = self.is_key_down(Key::Space);
