@@ -1,21 +1,25 @@
-const TABLES_SIZE: usize = 0x3000;
-const TABLES_START: usize = 0x0000;
-const TABLES_END: usize = TABLES_START + TABLES_SIZE - 1;
+const TABLES_SIZE: u16 = 0x3000;
+const TABLES_START: u16 = 0x0000;
+const TABLES_END: u16 = TABLES_START + TABLES_SIZE - 1;
 
-const PALETTES_SIZE: usize = 0x20;
-const PALETTES_START: usize = 0x3f00;
-const PALETTES_END: usize = PALETTES_START + PALETTES_SIZE - 1;
+const TABLES_MIRRORS_OFFSET: u16 = 0x1000;
+const TABLES_MIRRORS_START: u16 = 0x3000;
+const TABLES_MIRRORS_END: u16 = 0x3eff;
+
+const PALETTES_SIZE: u16 = 0x20;
+const PALETTES_START: u16 = 0x3f00;
+const PALETTES_END: u16 = 0x3fff;
 
 pub struct PpuMemory {
-	tables: [u8; TABLES_SIZE],
-	palettes: [u8; PALETTES_SIZE]
+	tables: [u8; TABLES_SIZE as _],
+	palettes: [u8; PALETTES_SIZE as _]
 }
 
 impl PpuMemory {
 	pub fn new() -> Self {
 		Self {
-			tables: [0; TABLES_SIZE],
-			palettes: [0; PALETTES_SIZE]
+			tables: [0; TABLES_SIZE as _],
+			palettes: [0; PALETTES_SIZE as _]
 		}
 	}
 
@@ -24,22 +28,24 @@ impl PpuMemory {
 	}
 
 	pub fn read(&self, address: u16) -> u8 {
-		match address as usize {
+		match address {
 			TABLES_START ..= TABLES_END => self.tables[address as usize],
-			PALETTES_START ..= PALETTES_END => self.palettes[(address as usize) - PALETTES_START],
+			TABLES_MIRRORS_START ..= TABLES_MIRRORS_END => self.tables[(address - TABLES_MIRRORS_OFFSET) as usize],
+			PALETTES_START ..= PALETTES_END => self.palettes[(address % PALETTES_SIZE) as usize],
 			_ => {
-				println!("[ERROR] [PPU] Unhandled read from {:04X}", address);
+				println!("[ERROR] [PPU] Read from {:04X}", address);
 				std::process::exit(1);
 			}
 		}
 	}
 
 	pub fn write(&mut self, address: u16, value: u8) {
-		match address as usize {
+		match address {
 			TABLES_START ..= TABLES_END => self.tables[address as usize] = value,
-			PALETTES_START ..= PALETTES_END => self.palettes[(address as usize) - PALETTES_START] = value,
+			TABLES_MIRRORS_START ..= TABLES_MIRRORS_END => self.tables[(address - TABLES_MIRRORS_OFFSET) as usize] = value,
+			PALETTES_START ..= PALETTES_END => self.palettes[(address % PALETTES_SIZE) as usize] = value,
 			_ => {
-				println!("[ERROR] [PPU] Unhandled write to {:04X}", address);
+				println!("[ERROR] [PPU] Write to {:04X}", address);
 				std::process::exit(1);
 			}
 		}

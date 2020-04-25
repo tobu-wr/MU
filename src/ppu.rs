@@ -155,6 +155,7 @@ impl Ppu {
 							let attribute_column = tile_column / 4;
 							let attribute = self.read_memory(0x23c0 + attribute_row * 8 + attribute_column);
 							let color_set = ((attribute >> (4 * (tile_row % 2))) >> (2 * (tile_column))) & 0b11;
+							let palette_number = 4 * color_set;
 							for pixel_row in 0..8 {
 								let low_byte = self.read_memory(0x0000 + (tile_number as u16) * 16 + pixel_row);
 								let high_byte = self.read_memory(0x0000 + (tile_number as u16) * 16 + pixel_row + 8);
@@ -162,7 +163,7 @@ impl Ppu {
 									let low_bit = (low_byte >> (7 - pixel_column)) & 1;
 									let high_bit = (high_byte >> (7 - pixel_column)) & 1;
 									let color_number = (high_bit << 1) | low_bit;
-									let color = self.read_memory(0x3f00 + 4 * (color_set as u16) + color_number as u16);
+									let color = self.read_memory(0x3f00 + palette_number as u16 + color_number as u16);
 									self.frame_buffer[(tile_row * 256 * 8 + pixel_row * 256 + tile_column * 8 + pixel_column) as usize] = match color {
 										0x0f => 0x00_00_00_00,
 										0x33 => 0x00_d4_b2_ec,
