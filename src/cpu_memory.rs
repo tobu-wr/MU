@@ -71,6 +71,7 @@ impl CpuMemory {
 				self.ram[effective_address]
 			},
 			PPUSTATUS_ADDRESS => self.read_ppu(Register::Ppustatus),
+			PPUDATA_ADDRESS => self.read_ppu(Register::Ppudata),
 			0x4000 | 0x4001 | 0x4002 | 0x4003 | 0x4004 | 0x4005 | 0x4006 | 0x4007 | 0x4008 | 0x4009 | 0x400a | 0x400b | 0x400c | 0x400d | 0x400e | 0x400f | 0x4010 | 0x4011 | 0x4012 | 0x4013 | 0x4017 | APU_STATUS_ADDRESS => {
 				println!("[DEBUG] [CPU] Read from an APU register");
 				0

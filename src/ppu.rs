@@ -75,6 +75,11 @@ impl Ppu {
 				self.flipflop = false;
 				value
 			},
+			Register::Ppudata => {
+				let value = self.read_memory(self.ppuaddr);
+				self.increment_ppuaddr();
+				value
+			},
 			_ => {
 				println!("[ERROR] [PPU] Unhandled PPU register read");
 				std::process::exit(1);
@@ -90,7 +95,7 @@ impl Ppu {
 			Register::Ppustatus => self.ppustatus,
 			Register::Ppuscroll => self.read16_register_debug(self.ppuscroll),
 			Register::Ppuaddr => self.read16_register_debug(self.ppuaddr),
-			Register::Ppudata => self.memory.read(self.ppuaddr)
+			Register::Ppudata => self.read_memory(self.ppuaddr)
 		}
 	}
 
@@ -120,11 +125,7 @@ impl Ppu {
 				unsafe {
 					(*self.memory).write(self.ppuaddr, value);
 				}
-				self.ppuaddr += if (self.ppuctrl & 0x04) == 0 {
-					1
-				} else {
-					32
-				};
+				self.increment_ppuaddr();
 			}
 		}
 	}
@@ -136,6 +137,14 @@ impl Ppu {
 		} else {
 			(register & 0xff00) | (value as u16)
 		}
+	}
+
+	fn increment_ppuaddr(&mut self) {
+		self.ppuaddr += if (self.ppuctrl & 0x04) == 0 {
+			1
+		} else {
+			32
+		};
 	}
 
 	pub fn do_cycle(&mut self, window: &mut Window) {
