@@ -31,6 +31,7 @@ impl Emulator {
 		self.cpu_memory.connect(&mut self.ppu, &mut self.joypad);
 		self.ppu.connect(&mut self.cpu, &mut self.ppu_memory);
 		self.joypad.connect(&self.window);
+		self.window.limit_update_rate(Some(std::time::Duration::from_nanos(1_000_000_000 / 60)));
 	}
 
 	pub fn load_file(&mut self, filename: &str) {
