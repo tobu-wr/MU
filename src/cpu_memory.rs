@@ -26,6 +26,7 @@ const JOY1_ADDRESS: u16 = 0x4016;
 const PPUCTRL_ADDRESS: u16 = 0x2000;
 const PPUMASK_ADDRESS: u16 = 0x2001;
 const PPUSTATUS_ADDRESS: u16 = 0x2002;
+const OAMADDR_ADDRESS: u16 = 0x2003;
 const PPUSCROLL_ADDRESS: u16 = 0x2005;
 const PPUADDR_ADDRESS: u16 = 0x2006;
 const PPUDATA_ADDRESS: u16 = 0x2007;
@@ -156,9 +157,7 @@ impl CpuMemory {
 			},
 			PPUCTRL_ADDRESS => self.write_ppu(Register::Ppuctrl, value),
 			PPUMASK_ADDRESS => self.write_ppu(Register::Ppumask, value),
-			0x2003 => {
-				println!("[DEBUG] [CPU] Write to OAMADDR {:02X}", value);
-			},
+			OAMADDR_ADDRESS => self.write_ppu(Register::Oamaddr, value),
 			0x2004 => {
 				println!("[DEBUG] [CPU] Write to OAMDATA {:02X}", value);
 			},

@@ -7,11 +7,13 @@ pub const FRAME_WIDTH: usize = 256;
 pub const FRAME_HEIGHT: usize = 240;
 
 const FRAME_BUFFER_SIZE: usize = FRAME_WIDTH * FRAME_HEIGHT;
+const OAM_SIZE: usize = 256;
 
 pub enum Register {
 	Ppuctrl,
 	Ppumask,
 	Ppustatus,
+	Oamaddr,
 	Ppuscroll,
 	Ppuaddr,
 	Ppudata
@@ -21,12 +23,14 @@ pub struct Ppu {
 	ppuctrl: u8,
 	ppumask: u8,
 	ppustatus: u8,
+	oamaddr: u8,
 	ppuscroll: u16,
 	ppuaddr: u16,
 	flipflop: bool,
 	cycle_counter: u8,
 	scanline_counter: u16,
 	frame_buffer: [u32; FRAME_BUFFER_SIZE],
+	oam: [u8; OAM_SIZE],
 	memory: *mut PpuMemory,
 	cpu: *mut Cpu
 }
@@ -37,12 +41,14 @@ impl Ppu {
 			ppuctrl: 0,
 			ppumask: 0,
 			ppustatus: 0,
+			oamaddr: 0,
 			ppuscroll: 0,
 			ppuaddr: 0,
 			flipflop: false,
 			cycle_counter: 0,
 			scanline_counter: 0,
 			frame_buffer: [0; FRAME_BUFFER_SIZE],
+			oam: [0; OAM_SIZE],
 			memory: std::ptr::null_mut(),
 			cpu: std::ptr::null_mut()
 		}
@@ -118,6 +124,9 @@ impl Ppu {
 			Register::Ppustatus => {
 				println!("[ERROR] [PPU] Write to PPUSTATUS");
 				std::process::exit(1);
+			},
+			Register::Oamaddr => {
+				self.oamaddr = value;
 			},
 			Register::Ppuscroll => self.ppuscroll = self.write16_register(self.ppuscroll, value),
 			Register::Ppuaddr => self.ppuaddr = self.write16_register(self.ppuaddr, value),
