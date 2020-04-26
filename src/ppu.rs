@@ -5,9 +5,9 @@ use cpu::*;
 
 pub const FRAME_WIDTH: usize = 256;
 pub const FRAME_HEIGHT: usize = 240;
+pub const OAM_SIZE: usize = 256;
 
 const FRAME_BUFFER_SIZE: usize = FRAME_WIDTH * FRAME_HEIGHT;
-const OAM_SIZE: usize = 256;
 
 pub enum Register {
 	Ppuctrl,
@@ -114,6 +114,13 @@ impl Ppu {
 		}) as _
 	}
 
+	pub fn write_oam(&mut self, data: &[u8]) {
+		for value in data {
+			self.oam[self.oamaddr as usize] = *value;
+			self.oamaddr = self.oamaddr.wrapping_add(1);
+		}
+	}
+
 	pub fn write_register(&mut self, register: Register, value: u8) {
 		match register {
 			Register::Ppuctrl => {
@@ -125,9 +132,7 @@ impl Ppu {
 				println!("[ERROR] [PPU] Write to PPUSTATUS");
 				std::process::exit(1);
 			},
-			Register::Oamaddr => {
-				self.oamaddr = value;
-			},
+			Register::Oamaddr => self.oamaddr = value,
 			Register::Ppuscroll => self.ppuscroll = self.write16_register(self.ppuscroll, value),
 			Register::Ppuaddr => self.ppuaddr = self.write16_register(self.ppuaddr, value),
 			Register::Ppudata => {

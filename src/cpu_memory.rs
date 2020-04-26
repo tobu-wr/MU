@@ -9,7 +9,7 @@ pub const STACK_ADDRESS: u16 = 0x100;
 
 const RAM_START: u16 = 0;
 const RAM_END: u16 = 0x1fff;
-const RAM_SIZE: u16 = 0x800;
+const RAM_SIZE: usize = 0x800;
 
 const PRG_RAM_START: u16 = 0x6000;
 const PRG_RAM_END: u16 = 0x7fff;
@@ -32,8 +32,7 @@ const PPUADDR_ADDRESS: u16 = 0x2006;
 const PPUDATA_ADDRESS: u16 = 0x2007;
 
 pub struct CpuMemory {
-	ram: [u8; RAM_SIZE as _],
-	//prg_ram: 
+	ram: [u8; RAM_SIZE],
 	prg_rom: Vec<u8>,
 	ppu: *mut Ppu,
 	joypad: *mut Joypad
@@ -42,8 +41,7 @@ pub struct CpuMemory {
 impl CpuMemory {
 	pub fn new() -> Self {
 		Self {
-			ram: [0; RAM_SIZE as _],
-			//prg_ram: 
+			ram: [0; RAM_SIZE],
 			prg_rom: Vec::new(),
 			ppu: std::ptr::null_mut(),
 			joypad: std::ptr::null_mut()
@@ -68,7 +66,7 @@ impl CpuMemory {
 	pub fn read8(&self, address: u16) -> u8 {
 		match address {
 			RAM_START ..= RAM_END => {
-				let effective_address = address as usize % RAM_SIZE as usize;
+				let effective_address = address as usize % RAM_SIZE;
 				self.ram[effective_address]
 			},
 			PPUSTATUS_ADDRESS => self.read_ppu(Register::Ppustatus),
@@ -118,7 +116,7 @@ impl CpuMemory {
 	pub fn read16(&self, address: u16) -> u16 {
 		match address {
 			RAM_START ..= RAM_END => {
-				let effective_address = address as usize % RAM_SIZE as usize;
+				let effective_address = address as usize % RAM_SIZE;
 				let low_byte = self.ram[effective_address] as u16;
 				let high_byte = self.ram[effective_address.wrapping_add(1)] as u16;
 				(high_byte << 8) | low_byte
@@ -149,7 +147,7 @@ impl CpuMemory {
 	pub fn write8(&mut self, address: u16, value: u8) {
 		match address {
 			RAM_START ..= RAM_END => {
-				let effective_address = address as usize % RAM_SIZE as usize;
+				let effective_address = address as usize % RAM_SIZE;
 				self.ram[effective_address] = value;
 			},
 			PRG_RAM_START ..= PRG_RAM_END => {
@@ -168,7 +166,12 @@ impl CpuMemory {
 				println!("[DEBUG] [CPU] Write to an APU register");
 			},
 			OAMDMA_ADDRESS => {
-				println!("[DEBUG] [CPU] Write to OAMDMA {:02X}", value);
+				let start_address = (value as usize) << 8;
+				let end_address = start_address + OAM_SIZE;
+				let data = &self.ram[start_address..end_address];
+				unsafe {
+					(*self.ppu).write_oam(data);
+				}
 			},
 			JOY1_ADDRESS => unsafe {
 				(*self.joypad).write(value);
