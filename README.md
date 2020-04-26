@@ -1,8 +1,8 @@
 # RNES
 
 <p align="center">
-  <img src="donkey-kong.png"/>
-  <img src="balloon-fight.png"/>
+  <img src="screenshots/donkey-kong.png"/>
+  <img src="screenshots/balloon-fight.png"/>
 </p>
 
 ## Resources
