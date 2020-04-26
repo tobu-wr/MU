@@ -49,8 +49,8 @@ impl Joypad {
              // end polling
             self.polling = false;
             self.index = 0;
-            self.buttons[0] = self.is_key_down(Key::A);
-            self.buttons[1] = self.is_key_down(Key::B);
+            self.buttons[0] = self.is_key_down(Key::Q);
+            self.buttons[1] = self.is_key_down(Key::W);
             self.buttons[2] = self.is_key_down(Key::Space);
             self.buttons[3] = self.is_key_down(Key::Enter);
             self.buttons[4] = self.is_key_down(Key::Up);
