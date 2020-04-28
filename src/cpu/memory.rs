@@ -33,7 +33,7 @@ pub fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 			println!("[DEBUG] [CPU] Read from an APU register");
 			0
 		},
-		JOY1_ADDRESS => Joypad::read(emulator),
+		JOY1_ADDRESS => emulator.joypad.read(&emulator.window),
 		PRG_ROM_START ..= PRG_ROM_END => emulator.prg_rom[((address - PRG_ROM_START) as usize) % emulator.prg_rom.len()],
 		_ => {
 			println!("[ERROR] [CPU] Unhandled read from {:04X}", address);
@@ -77,7 +77,7 @@ pub fn write8(emulator: &mut Emulator, address: u16, value: u8) {
 				let end = start + OAM_SIZE;
 				emulator.ppu.write_oam(&emulator.ram[start..end]);
 		},
-		JOY1_ADDRESS => Joypad::write(emulator, value),
+		JOY1_ADDRESS => emulator.joypad.write(&emulator.window, value),
 		_ => {
 			println!("[ERROR] [CPU] Unhandled write to {:04X}", address);
 			std::process::exit(1);
