@@ -1,7 +1,9 @@
+pub mod cpu_memory;
+
 #[cfg(feature = "log")]
 mod logger;
 
-use cpu_memory::*;
+use self::cpu_memory::*;
 
 #[cfg(feature = "log")]
 use self::logger::*;

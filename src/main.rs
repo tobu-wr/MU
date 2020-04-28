@@ -1,7 +1,6 @@
 extern crate minifb;
 
 mod emulator;
-mod cpu_memory;
 mod cpu;
 mod ppu_memory;
 mod ppu;

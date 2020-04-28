@@ -114,9 +114,7 @@ impl CpuMemory {
 			PPUCTRL_ADDRESS => self.write_ppu(Register::Ppuctrl, value),
 			PPUMASK_ADDRESS => self.write_ppu(Register::Ppumask, value),
 			OAMADDR_ADDRESS => self.write_ppu(Register::Oamaddr, value),
-			OAMDATA_ADDRESS => {
-				println!("[DEBUG] [CPU] Write to OAMDATA {:02X}", value);
-			},
+			OAMDATA_ADDRESS => println!("[DEBUG] [CPU] Write to OAMDATA {:02X}", value),
 			PPUSCROLL_ADDRESS => self.write_ppu(Register::Ppuscroll, value),
 			PPUADDR_ADDRESS => self.write_ppu(Register::Ppuaddr, value),
 			PPUDATA_ADDRESS => self.write_ppu(Register::Ppudata, value),

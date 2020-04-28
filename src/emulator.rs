@@ -1,6 +1,6 @@
 use minifb::{Window, WindowOptions};
 
-use cpu_memory::*;
+use cpu::cpu_memory::*;
 use ppu_memory::*;
 use cpu::*;
 use ppu::*;
