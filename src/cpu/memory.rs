@@ -35,7 +35,7 @@ pub fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 		JOY1_ADDRESS => emulator.joypad.read(&emulator.window),
 		PRG_ROM_START ..= PRG_ROM_END => emulator.prg_rom[((address - PRG_ROM_START) as usize) % emulator.prg_rom.len()],
 		_ => {
-			println!("[ERROR] [CPU] Unhandled read from {:04X}", address);
+			println!("[ERROR] [CPU] Read from {:04X}", address);
 			std::process::exit(1);
 		}
 	}
@@ -78,7 +78,7 @@ pub fn write8(emulator: &mut Emulator, address: u16, value: u8) {
 		},
 		JOY1_ADDRESS => emulator.joypad.write(&emulator.window, value),
 		_ => {
-			println!("[ERROR] [CPU] Unhandled write to {:04X}", address);
+			println!("[ERROR] [CPU] Write to {:04X}", address);
 			std::process::exit(1);
 		}
 	}
