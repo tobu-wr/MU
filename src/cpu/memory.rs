@@ -26,8 +26,8 @@ const PRG_ROM_END: u16 = 0xffff;
 pub fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 	match address {
 		RAM_START ..= RAM_END => emulator.ram[(address % RAM_SIZE) as usize],
-		PPUSTATUS_ADDRESS => emulator.ppu.read_register(Register::Ppustatus),
-		PPUDATA_ADDRESS => emulator.ppu.read_register(Register::Ppudata),
+		PPUSTATUS_ADDRESS => emulator.ppu.read_register(&emulator.ppu_memory, Register::Ppustatus),
+		PPUDATA_ADDRESS => emulator.ppu.read_register(&emulator.ppu_memory, Register::Ppudata),
 		0x4000 ..= 0x4013 | 0x4015 | 0x4017 => {
 			println!("[DEBUG] [CPU] Read from an APU register");
 			0
@@ -44,12 +44,12 @@ pub fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 #[cfg(feature = "log")]
 pub fn read8_debug(emulator: &mut Emulator, address: u16) -> u8 {
 	match address {
-		PPUCTRL_ADDRESS => emulator.ppu.read_register_debug(Register::Ppuctrl),
-		PPUMASK_ADDRESS => emulator.ppu.read_register_debug(Register::Ppumask),
-		PPUSTATUS_ADDRESS => emulator.ppu.read_register_debug(Register::Ppustatus),
-		PPUSCROLL_ADDRESS => emulator.ppu.read_register_debug(Register::Ppuscroll),
-		PPUADDR_ADDRESS => emulator.ppu.read_register_debug(Register::Ppuaddr),
-		PPUDATA_ADDRESS => emulator.ppu.read_register_debug(Register::Ppudata),
+		PPUCTRL_ADDRESS => emulator.ppu.read_register_debug(&emulator.ppu_memory, Register::Ppuctrl),
+		PPUMASK_ADDRESS => emulator.ppu.read_register_debug(&emulator.ppu_memory, Register::Ppumask),
+		PPUSTATUS_ADDRESS => emulator.ppu.read_register_debug(&emulator.ppu_memory, Register::Ppustatus),
+		PPUSCROLL_ADDRESS => emulator.ppu.read_register_debug(&emulator.ppu_memory, Register::Ppuscroll),
+		PPUADDR_ADDRESS => emulator.ppu.read_register_debug(&emulator.ppu_memory, Register::Ppuaddr),
+		PPUDATA_ADDRESS => emulator.ppu.read_register_debug(&emulator.ppu_memory, Register::Ppudata),
 		_ => read8(emulator, address)
 	}
 }
@@ -63,13 +63,13 @@ pub fn read16(emulator: &mut Emulator, address: u16) -> u16 {
 pub fn write8(emulator: &mut Emulator, address: u16, value: u8) {
 	match address {
 		RAM_START ..= RAM_END => emulator.ram[(address % RAM_SIZE) as usize] = value,
-		PPUCTRL_ADDRESS => emulator.ppu.write_register(Register::Ppuctrl, value),
-		PPUMASK_ADDRESS => emulator.ppu.write_register(Register::Ppumask, value),
-		OAMADDR_ADDRESS => emulator.ppu.write_register(Register::Oamaddr, value),
+		PPUCTRL_ADDRESS => emulator.ppu.write_register(&mut emulator.ppu_memory, Register::Ppuctrl, value),
+		PPUMASK_ADDRESS => emulator.ppu.write_register(&mut emulator.ppu_memory, Register::Ppumask, value),
+		OAMADDR_ADDRESS => emulator.ppu.write_register(&mut emulator.ppu_memory, Register::Oamaddr, value),
 		OAMDATA_ADDRESS => println!("[DEBUG] [CPU] Write to OAMDATA {:02X}", value),
-		PPUSCROLL_ADDRESS => emulator.ppu.write_register(Register::Ppuscroll, value),
-		PPUADDR_ADDRESS => emulator.ppu.write_register(Register::Ppuaddr, value),
-		PPUDATA_ADDRESS => emulator.ppu.write_register(Register::Ppudata, value),
+		PPUSCROLL_ADDRESS => emulator.ppu.write_register(&mut emulator.ppu_memory, Register::Ppuscroll, value),
+		PPUADDR_ADDRESS => emulator.ppu.write_register(&mut emulator.ppu_memory, Register::Ppuaddr, value),
+		PPUDATA_ADDRESS => emulator.ppu.write_register(&mut emulator.ppu_memory, Register::Ppudata, value),
 		0x4000 ..= 0x4013 | 0x4015 | 0x4017 => println!("[DEBUG] [CPU] Write to an APU register"),
 		OAMDMA_ADDRESS => {
 				let start = (value as usize) << 8;
