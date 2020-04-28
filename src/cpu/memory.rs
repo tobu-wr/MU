@@ -1,5 +1,6 @@
 use emulator::*;
 use ppu::*;
+use joypad::*;
 
 pub const STACK_ADDRESS: u16 = 0x100;
 pub const NMI_VECTOR_ADDRESS: u16 = 0xfffa;
@@ -32,7 +33,7 @@ pub fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 			println!("[DEBUG] [CPU] Read from an APU register");
 			0
 		},
-		JOY1_ADDRESS => emulator.joypad.read(),
+		JOY1_ADDRESS => Joypad::read(emulator),
 		PRG_ROM_START ..= PRG_ROM_END => emulator.prg_rom[((address - PRG_ROM_START) as usize) % emulator.prg_rom.len()],
 		_ => {
 			println!("[ERROR] [CPU] Unhandled read from {:04X}", address);
@@ -72,12 +73,11 @@ pub fn write8(emulator: &mut Emulator, address: u16, value: u8) {
 		PPUDATA_ADDRESS => emulator.ppu.write_register(Register::Ppudata, value),
 		0x4000 ..= 0x4013 | 0x4015 | 0x4017 => println!("[DEBUG] [CPU] Write to an APU register"),
 		OAMDMA_ADDRESS => {
-				let start_address = (value as usize) << 8;
-				let end_address = start_address + OAM_SIZE;
-				let data = &emulator.ram[start_address..end_address];
-				emulator.ppu.write_oam(data);
+				let start = (value as usize) << 8;
+				let end = start + OAM_SIZE;
+				emulator.ppu.write_oam(&emulator.ram[start..end]);
 		},
-		JOY1_ADDRESS => emulator.joypad.write(value),
+		JOY1_ADDRESS => Joypad::write(emulator, value),
 		_ => {
 			println!("[ERROR] [CPU] Unhandled write to {:04X}", address);
 			std::process::exit(1);
