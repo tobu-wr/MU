@@ -1,7 +1,6 @@
-use minifb::Window;
-
-use ppu_memory::*;
+use emulator::*;
 use cpu::*;
+use ppu_memory::*;
 
 pub const FRAME_WIDTH: usize = 256;
 pub const FRAME_HEIGHT: usize = 240;
@@ -30,9 +29,7 @@ pub struct Ppu {
 	cycle_counter: u8,
 	scanline_counter: u16,
 	frame_buffer: [u32; FRAME_BUFFER_SIZE],
-	oam: [u8; OAM_SIZE],
-	memory: *mut PpuMemory,
-	cpu: *mut Cpu
+	oam: [u8; OAM_SIZE]
 }
 
 impl Ppu {
@@ -48,32 +45,11 @@ impl Ppu {
 			cycle_counter: 0,
 			scanline_counter: 0,
 			frame_buffer: [0; FRAME_BUFFER_SIZE],
-			oam: [0; OAM_SIZE],
-			memory: std::ptr::null_mut(),
-			cpu: std::ptr::null_mut()
+			oam: [0; OAM_SIZE]
 		}
 	}
 
-	pub fn connect(&mut self, cpu: *mut Cpu, memory: *mut PpuMemory) {
-		self.cpu = cpu;
-		self.memory = memory;
-	}
-
-	fn check_for_nmi(&self) {
-		if (self.ppuctrl & self.ppustatus & 0x80) != 0 {
-			unsafe {
-				(*self.cpu).request_interrupt(Interrupt::Nmi);
-			}
-		}
-	}
-
-	fn read_memory(&self, address: u16) -> u8 {
-		unsafe {
-			(*self.memory).read(address)
-		}
-	}
-
-	pub fn read_register(&mut self, register: Register) -> u8 {
+	pub fn read(&mut self, memory: &PpuMemory, register: Register) -> u8 {
 		match register {
 			Register::Ppustatus => {
 				let value = self.ppustatus;
@@ -82,7 +58,7 @@ impl Ppu {
 				value
 			},
 			Register::Ppudata => {
-				let value = self.read_memory(self.ppuaddr);
+				let value = memory.read(self.ppuaddr);
 				self.increment_ppuaddr();
 				value
 			},
@@ -94,19 +70,19 @@ impl Ppu {
 	}
 
 	#[cfg(feature = "log")]
-	pub fn read_register_debug(&self, register: Register) -> u8 {
+	pub fn read_debug(&self, memory: &PpuMemory, register: Register) -> u8 {
 		match register {
 			Register::Ppuctrl => self.ppuctrl,
 			Register::Ppumask => self.ppumask,
 			Register::Ppustatus => self.ppustatus,
-			Register::Ppuscroll => self.read16_register_debug(self.ppuscroll),
-			Register::Ppuaddr => self.read16_register_debug(self.ppuaddr),
-			Register::Ppudata => self.read_memory(self.ppuaddr)
+			Register::Ppuscroll => self.read16_debug(self.ppuscroll),
+			Register::Ppuaddr => self.read16_debug(self.ppuaddr),
+			Register::Ppudata => memory.read(self.ppuaddr)
 		}
 	}
 
 	#[cfg(feature = "log")]
-	fn read16_register_debug(&self, register: u16) -> u8 {
+	fn read16_debug(&self, register: u16) -> u8 {
 		(if self.flipflop {
 			register
 		} else {
@@ -114,18 +90,11 @@ impl Ppu {
 		}) as _
 	}
 
-	pub fn write_oam(&mut self, data: &[u8]) {
-		for value in data {
-			self.oam[self.oamaddr as usize] = *value;
-			self.oamaddr = self.oamaddr.wrapping_add(1);
-		}
-	}
-
-	pub fn write_register(&mut self, register: Register, value: u8) {
+	pub fn write(&mut self, memory: &mut PpuMemory, register: Register, value: u8) {
 		match register {
 			Register::Ppuctrl => {
 				self.ppuctrl = value;
-				self.check_for_nmi();
+				//	TODO: check for NMI
 			},
 			Register::Ppumask => self.ppumask = value,
 			Register::Ppustatus => {
@@ -133,18 +102,16 @@ impl Ppu {
 				std::process::exit(1);
 			},
 			Register::Oamaddr => self.oamaddr = value,
-			Register::Ppuscroll => self.ppuscroll = self.write16_register(self.ppuscroll, value),
-			Register::Ppuaddr => self.ppuaddr = self.write16_register(self.ppuaddr, value),
+			Register::Ppuscroll => self.ppuscroll = self.write16(self.ppuscroll, value),
+			Register::Ppuaddr => self.ppuaddr = self.write16(self.ppuaddr, value),
 			Register::Ppudata => {
-				unsafe {
-					(*self.memory).write(self.ppuaddr, value);
-				}
+				memory.write(self.ppuaddr, value);
 				self.increment_ppuaddr();
 			}
 		}
 	}
 
-	fn write16_register(&mut self, register: u16, value: u8) -> u16 {
+	fn write16(&mut self, register: u16, value: u8) -> u16 {
 		self.flipflop = !self.flipflop;
 		if self.flipflop {
 			(register & 0x00ff) | ((value as u16) << 8)
@@ -161,38 +128,47 @@ impl Ppu {
 		};
 	}
 
-	pub fn do_cycle(&mut self, window: &mut Window) {
-		self.cycle_counter += 1;
-		if self.cycle_counter == 113 {
-			self.cycle_counter = 0;
-			self.scanline_counter += 1;
-			if self.scanline_counter == 241 {
+	pub fn write_oam(&mut self, data: &[u8]) {
+		for value in data {
+			self.oam[self.oamaddr as usize] = *value;
+			self.oamaddr = self.oamaddr.wrapping_add(1);
+		}
+	}
+
+	pub fn do_cycle(emulator: &mut Emulator) {
+		emulator.ppu.cycle_counter += 1;
+		if emulator.ppu.cycle_counter == 113 {
+			emulator.ppu.cycle_counter = 0;
+			emulator.ppu.scanline_counter += 1;
+			if emulator.ppu.scanline_counter == 241 {
 				// start VBlank
-				self.ppustatus |= 0x80;
-				self.check_for_nmi();
+				emulator.ppu.ppustatus |= 0x80;
+				if (emulator.ppu.ppuctrl & 0x80) != 0 {
+					emulator.cpu.request_interrupt(Interrupt::Nmi);
+				}
 				// render background
-				if (self.ppumask & 0x08) != 0 {
-					let nametable_address = 0x2000 + 0x400 * (self.ppuctrl & 0b11) as u16;
+				if (emulator.ppu.ppumask & 0x08) != 0 {
+					let nametable_address = 0x2000 + 0x400 * (emulator.ppu.ppuctrl & 0b11) as u16;
 					let attribute_table_address = nametable_address + 0x3c0;
-					let pattern_address = 0x1000 * ((self.ppuctrl >> 4) & 1) as u16;
+					let pattern_address = 0x1000 * ((emulator.ppu.ppuctrl >> 4) & 1) as u16;
 					for tile_row in 0..30 {
 						for tile_column in 0..32 {
 							let tile_number_address = nametable_address + tile_row * 32 + tile_column;
-							let tile_number = self.read_memory(tile_number_address);
+							let tile_number = emulator.ppu_memory.read(tile_number_address);
 							let attribute_row = tile_row / 4;
 							let attribute_column = tile_column / 4;
-							let attribute = self.read_memory(attribute_table_address + attribute_row * 8 + attribute_column);
+							let attribute = emulator.ppu_memory.read(attribute_table_address + attribute_row * 8 + attribute_column);
 							let color_set = ((attribute >> (4 * ((tile_row / 2) % 2))) >> (2 * ((tile_column / 2) % 2))) & 0b11;
 							let palette_number = 4 * color_set;
 							for pixel_row in 0..8 {
-								let low_byte = self.read_memory(pattern_address + (tile_number as u16) * 16 + pixel_row);
-								let high_byte = self.read_memory(pattern_address + (tile_number as u16) * 16 + pixel_row + 8);
+								let low_byte = emulator.ppu_memory.read(pattern_address + (tile_number as u16) * 16 + pixel_row);
+								let high_byte = emulator.ppu_memory.read(pattern_address + (tile_number as u16) * 16 + pixel_row + 8);
 								for pixel_column in 0..8 {
 									let low_bit = (low_byte >> (7 - pixel_column)) & 1;
 									let high_bit = (high_byte >> (7 - pixel_column)) & 1;
 									let color_number = (high_bit << 1) | low_bit;
-									let color = self.read_memory(0x3f00 + palette_number as u16 + color_number as u16);
-									self.frame_buffer[(tile_row * 256 * 8 + pixel_row * 256 + tile_column * 8 + pixel_column) as usize] = match color {
+									let color = emulator.ppu_memory.read(0x3f00 + palette_number as u16 + color_number as u16);
+									emulator.ppu.frame_buffer[(tile_row * 256 * 8 + pixel_row * 256 + tile_column * 8 + pixel_column) as usize] = match color {
 										0x00 => 0x00_54_54_54,
 										0x01 => 0x00_00_1e_74,
 										0x02 => 0x00_08_10_90,
@@ -268,22 +244,22 @@ impl Ppu {
 					}
 				} 
 				// render sprites
-				if (self.ppumask & 0x10) != 0 {
+				if (emulator.ppu.ppumask & 0x10) != 0 {
 					for number in 0..64 {
-						let sprite_y = self.oam[number * 4];
-						let tile_number = self.oam[number * 4 + 1];
-						let attributes = self.oam[number * 4 + 2];
+						let sprite_y = emulator.ppu.oam[number * 4];
+						let tile_number = emulator.ppu.oam[number * 4 + 1];
+						let attributes = emulator.ppu.oam[number * 4 + 2];
 						let palette_number = (4 + (attributes & 0b11)) * 4;
 						let horizontal_flip = (attributes & 0x40) != 0;
-						let sprite_x = self.oam[number * 4 + 3];
-						let pattern_address = 0x1000 * ((self.ppuctrl >> 3) & 1) as u16;
+						let sprite_x = emulator.ppu.oam[number * 4 + 3];
+						let pattern_address = 0x1000 * ((emulator.ppu.ppuctrl >> 3) & 1) as u16;
 						for pixel_row in 0..8 {
 							let y = pixel_row + sprite_y as u16;
 							if y >= FRAME_HEIGHT as u16 {
 								break;
 							}
-							let low_byte = self.read_memory(pattern_address + (tile_number as u16) * 16 + pixel_row);
-							let high_byte = self.read_memory(pattern_address + (tile_number as u16) * 16 + pixel_row + 8);
+							let low_byte = emulator.ppu_memory.read(pattern_address + (tile_number as u16) * 16 + pixel_row);
+							let high_byte = emulator.ppu_memory.read(pattern_address + (tile_number as u16) * 16 + pixel_row + 8);
 							for pixel_column in 0..8 {
 								let x = pixel_column + sprite_x as u16;
 								if x >= FRAME_WIDTH as u16 {
@@ -301,8 +277,8 @@ impl Ppu {
 								}) & 1;
 								let color_number = (high_bit << 1) | low_bit;
 								if color_number != 0 {
-									let color = self.read_memory(0x3f00 + palette_number as u16 + color_number as u16);
-									self.frame_buffer[(y * (FRAME_WIDTH as u16) + x) as usize] = match color {
+									let color = emulator.ppu_memory.read(0x3f00 + palette_number as u16 + color_number as u16);
+									emulator.ppu.frame_buffer[(y * (FRAME_WIDTH as u16) + x) as usize] = match color {
 										0x00 => 0x00_54_54_54,
 										0x01 => 0x00_00_1e_74,
 										0x02 => 0x00_08_10_90,
@@ -378,11 +354,11 @@ impl Ppu {
 					}
 				}
 				// update window
-				window.update_with_buffer(&self.frame_buffer, FRAME_WIDTH, FRAME_HEIGHT).unwrap();
-			} else if self.scanline_counter == 262 {
+				emulator.window.update_with_buffer(&emulator.ppu.frame_buffer, FRAME_WIDTH, FRAME_HEIGHT).unwrap();
+			} else if emulator.ppu.scanline_counter == 262 {
 				// end VBlank
-				self.scanline_counter = 0;
-				self.ppustatus &= 0x7f;
+				emulator.ppu.scanline_counter = 0;
+				emulator.ppu.ppustatus &= 0x7f;
 			}
 		}
 	}
