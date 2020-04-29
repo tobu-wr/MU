@@ -27,7 +27,7 @@ impl Memory {
 		self.tables[..chr_rom.len()].copy_from_slice(chr_rom);
 	}
 
-	pub fn read(&self, address: u16) -> u8 {
+	pub(super) fn read(&self, address: u16) -> u8 {
 		match address {
 			TABLES_START ..= TABLES_END => self.tables[address as usize],
 			TABLES_MIRRORS_START ..= TABLES_MIRRORS_END => self.tables[(address - TABLES_MIRRORS_OFFSET) as usize],
@@ -39,7 +39,7 @@ impl Memory {
 		}
 	}
 
-	pub fn write(&mut self, address: u16, value: u8) {
+	pub(super) fn write(&mut self, address: u16, value: u8) {
 		match address {
 			TABLES_START ..= TABLES_END => self.tables[address as usize] = value,
 			TABLES_MIRRORS_START ..= TABLES_MIRRORS_END => self.tables[(address - TABLES_MIRRORS_OFFSET) as usize] = value,

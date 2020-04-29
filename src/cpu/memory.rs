@@ -1,10 +1,10 @@
 use emulator::*;
 use ppu::*;
 
-pub const STACK_ADDRESS: u16 = 0x100;
-pub const NMI_VECTOR_ADDRESS: u16 = 0xfffa;
-pub const RESET_VECTOR_ADDRESS: u16 = 0xfffc;
-pub const IRQ_VECTOR_ADDRESS: u16 = 0xfffe;
+pub(super) const STACK_ADDRESS: u16 = 0x100;
+pub(super) const NMI_VECTOR_ADDRESS: u16 = 0xfffa;
+pub(super) const RESET_VECTOR_ADDRESS: u16 = 0xfffc;
+pub(super) const IRQ_VECTOR_ADDRESS: u16 = 0xfffe;
 
 const RAM_START: u16 = 0;
 const RAM_END: u16 = 0x1fff;
@@ -23,7 +23,7 @@ const JOY1_ADDRESS: u16 = 0x4016;
 const PRG_ROM_START: u16 = 0x8000;
 const PRG_ROM_END: u16 = 0xffff;
 
-pub fn read8(emulator: &mut Emulator, address: u16) -> u8 {
+pub(super) fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 	match address {
 		RAM_START ..= RAM_END => emulator.ram[(address % RAM_SIZE) as usize],
 		PPUSTATUS_ADDRESS => emulator.ppu.read(&emulator.ppu_memory, Register::Ppustatus),
@@ -42,7 +42,7 @@ pub fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 }
 
 #[cfg(feature = "log")]
-pub fn read8_debug(emulator: &mut Emulator, address: u16) -> u8 {
+pub(super) fn read8_debug(emulator: &mut Emulator, address: u16) -> u8 {
 	match address {
 		PPUCTRL_ADDRESS => emulator.ppu.read_debug(&emulator.ppu_memory, Register::Ppuctrl),
 		PPUMASK_ADDRESS => emulator.ppu.read_debug(&emulator.ppu_memory, Register::Ppumask),
@@ -54,13 +54,13 @@ pub fn read8_debug(emulator: &mut Emulator, address: u16) -> u8 {
 	}
 }
 
-pub fn read16(emulator: &mut Emulator, address: u16) -> u16 {
+pub(super) fn read16(emulator: &mut Emulator, address: u16) -> u16 {
 	let low_byte = read8(emulator, address) as u16;
 	let high_byte = read8(emulator, address.wrapping_add(1)) as u16;
 	(high_byte << 8) | low_byte
 }
 
-pub fn write8(emulator: &mut Emulator, address: u16, value: u8) {
+pub(super) fn write8(emulator: &mut Emulator, address: u16, value: u8) {
 	match address {
 		RAM_START ..= RAM_END => emulator.ram[(address % RAM_SIZE) as usize] = value,
 		PPUCTRL_ADDRESS => emulator.ppu.write(&mut emulator.ppu_memory, Register::Ppuctrl, value),

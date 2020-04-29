@@ -72,7 +72,7 @@ impl Cpu {
 		emulator.cpu.set_pc(value);
 	}
 
-	pub fn set_pc(&mut self, value: u16) {
+	fn set_pc(&mut self, value: u16) {
 		println!("[INFO] PC: {:04X}", value);
 		self.pc = value;
 	}
