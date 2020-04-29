@@ -10,12 +10,12 @@ const PALETTES_SIZE: u16 = 0x20;
 const PALETTES_START: u16 = 0x3f00;
 const PALETTES_END: u16 = 0x3fff;
 
-pub struct PpuMemory {
+pub struct Memory {
 	tables: [u8; TABLES_SIZE as _],
 	palettes: [u8; PALETTES_SIZE as _]
 }
 
-impl PpuMemory {
+impl Memory {
 	pub fn new() -> Self {
 		Self {
 			tables: [0; TABLES_SIZE as _],

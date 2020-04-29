@@ -1,9 +1,9 @@
-pub mod ppu_memory;
+pub mod memory;
+
+pub use self::memory::*;
 
 use emulator::*;
 use cpu::*;
-
-use self::ppu_memory::*;
 
 pub const FRAME_WIDTH: usize = 256;
 pub const FRAME_HEIGHT: usize = 240;
@@ -52,7 +52,7 @@ impl Ppu {
 		}
 	}
 
-	pub fn read(&mut self, memory: &PpuMemory, register: Register) -> u8 {
+	pub fn read(&mut self, memory: &Memory, register: Register) -> u8 {
 		match register {
 			Register::Ppustatus => {
 				let value = self.ppustatus;
@@ -73,7 +73,7 @@ impl Ppu {
 	}
 
 	#[cfg(feature = "log")]
-	pub fn read_debug(&self, memory: &PpuMemory, register: Register) -> u8 {
+	pub fn read_debug(&self, memory: &Memory, register: Register) -> u8 {
 		match register {
 			Register::Ppuctrl => self.ppuctrl,
 			Register::Ppumask => self.ppumask,
@@ -93,7 +93,7 @@ impl Ppu {
 		}) as _
 	}
 
-	pub fn write(&mut self, memory: &mut PpuMemory, register: Register, value: u8) {
+	pub fn write(&mut self, memory: &mut Memory, register: Register, value: u8) {
 		match register {
 			Register::Ppuctrl => {
 				self.ppuctrl = value;

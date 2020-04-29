@@ -4,14 +4,12 @@ use cpu::*;
 use ppu::*;
 use joypad::*;
 
-use self::ppu_memory::*;
-
 pub const RAM_SIZE: u16 = 0x800;
 
 pub struct Emulator {
 	pub ram: [u8; RAM_SIZE as _],
 	pub prg_rom: Vec<u8>,
-	pub ppu_memory: PpuMemory,
+	pub ppu_memory: Memory,
 	pub cpu: Cpu,
 	pub ppu: Ppu,
 	pub joypad: Joypad,
@@ -25,7 +23,7 @@ impl Emulator {
 		Self {
 			ram: [0; RAM_SIZE as _],
 			prg_rom: Vec::new(),
-			ppu_memory: PpuMemory::new(),
+			ppu_memory: Memory::new(),
 			cpu: Cpu::new(),
 			ppu: Ppu::new(),
 			joypad: Joypad::new(),
