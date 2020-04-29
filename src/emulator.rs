@@ -18,7 +18,8 @@ pub struct Emulator {
 
 impl Emulator {
 	pub fn new() -> Self {
-		let mut window = Window::new("RNES", FRAME_WIDTH, FRAME_HEIGHT, WindowOptions::default()).unwrap();
+		let options = WindowOptions{ resize: true, ..WindowOptions::default() };
+		let mut window = Window::new("RNES", FRAME_WIDTH, FRAME_HEIGHT, options ).unwrap();
 		window.limit_update_rate(Some(std::time::Duration::from_nanos(1_000_000_000 / 60)));
 		Self {
 			ram: [0; RAM_SIZE as _],
