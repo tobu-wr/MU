@@ -1,6 +1,9 @@
+pub mod ppu_memory;
+
 use emulator::*;
 use cpu::*;
-use ppu_memory::*;
+
+use self::ppu_memory::*;
 
 pub const FRAME_WIDTH: usize = 256;
 pub const FRAME_HEIGHT: usize = 240;
