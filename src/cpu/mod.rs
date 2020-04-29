@@ -567,7 +567,7 @@ impl Cpu {
 			0x83 => Self::sax(emulator, AddressingMode::IndirectX),
 
 			// SXA
-			/*0x9e => {
+			0x9e => {
 				let address = Self::get_address(emulator, AddressingMode::AbsoluteY);
 				write8(emulator, address, emulator.cpu.x & emulator.cpu.a);
 			},
@@ -576,7 +576,7 @@ impl Cpu {
 			0x9c => {
 				let address = Self::get_address(emulator, AddressingMode::AbsoluteX);
 				write8(emulator, address, emulator.cpu.y & emulator.cpu.a);
-			},*/
+			},
 
 			// TAX
 			0xaa => {
@@ -899,13 +899,13 @@ impl Cpu {
 			0xf0 => Self::branch(emulator, Flag::Z, true),
 
 			// BRK
-			/*0x00 => {
+			0x00 => {
 				let address = emulator.cpu.pc.wrapping_add(1);
 				Self::push16(emulator, address);
 				Self::push8(emulator, emulator.cpu.p | Flag::B as u8);
 				emulator.cpu.pc = read16(emulator, IRQ_VECTOR_ADDRESS);
 				emulator.cpu.set_flag(Flag::I, true);
-			},*/
+			},
 
 			// JSR
 			0x20 => {
