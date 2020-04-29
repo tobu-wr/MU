@@ -20,6 +20,9 @@ const PPUDATA_ADDRESS: u16 = 0x2007;
 const OAMDMA_ADDRESS: u16 = 0x4014;
 const JOY1_ADDRESS: u16 = 0x4016;
 
+const PRG_RAM_START: u16 = 0x6000;
+const PRG_RAM_END: u16 = 0x7fff;
+
 const PRG_ROM_START: u16 = 0x8000;
 const PRG_ROM_END: u16 = 0xffff;
 
@@ -77,6 +80,7 @@ pub(super) fn write8(emulator: &mut Emulator, address: u16, value: u8) {
 				emulator.ppu.write_oam(&emulator.ram[start..end]);
 		},
 		JOY1_ADDRESS => emulator.joypad.write(&emulator.window, value),
+		PRG_RAM_START ..= PRG_RAM_END => emulator.prg_ram[(address - PRG_RAM_START) as usize] = value,
 		_ => {
 			println!("[ERROR] [CPU] Write to {:04X}", address);
 			std::process::exit(1);
