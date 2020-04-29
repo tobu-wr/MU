@@ -100,16 +100,16 @@ impl Ppu {
 				//	TODO: check for NMI
 			},
 			Register::Ppumask => self.ppumask = value,
-			Register::Ppustatus => {
-				println!("[ERROR] [PPU] Write to PPUSTATUS");
-				std::process::exit(1);
-			},
 			Register::Oamaddr => self.oamaddr = value,
 			Register::Ppuscroll => self.ppuscroll = self.write16(self.ppuscroll, value),
 			Register::Ppuaddr => self.ppuaddr = self.write16(self.ppuaddr, value),
 			Register::Ppudata => {
 				memory.write(self.ppuaddr, value);
 				self.increment_ppuaddr();
+			},
+			_ => {
+				println!("[ERROR] [PPU] Unhandled PPU register write");
+				std::process::exit(1);
 			}
 		}
 	}
@@ -192,7 +192,7 @@ impl Ppu {
 				} 
 				// render sprites
 				if (emulator.ppu.ppumask & 0x10) != 0 {
-					for number in 0..64 {
+					for number in (0..64).rev() {
 						let sprite_y = emulator.ppu.oam[number * 4];
 						let tile_number = emulator.ppu.oam[number * 4 + 1];
 						let attributes = emulator.ppu.oam[number * 4 + 2];
