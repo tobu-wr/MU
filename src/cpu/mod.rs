@@ -636,11 +636,11 @@ impl Cpu {
 
 			// ARR
 			0x6b => {
-				Self::and(emulator, AddressingMode::Immediate);
-				emulator.cpu.set_flag(Flag::V, ((emulator.cpu.a >> 7) & 1) == 1);
+				emulator.cpu.a &= Self::get_operand(emulator, AddressingMode::Immediate);
 				let c = emulator.cpu.get_flag(Flag::C) as u8;
 				emulator.cpu.a = (c << 7) | (emulator.cpu.a >> 1);
 				emulator.cpu.set_flag(Flag::C, ((emulator.cpu.a >> 6) & 1) == 1);
+				emulator.cpu.set_flag(Flag::V, (((emulator.cpu.a >> 6) & 1) ^ ((emulator.cpu.a >> 5) & 1)) == 1);
 				emulator.cpu.set_n_flag(emulator.cpu.a);
 				emulator.cpu.set_z_flag(emulator.cpu.a);
 			},
