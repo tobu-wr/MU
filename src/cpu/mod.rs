@@ -239,11 +239,11 @@ impl Cpu {
 		Self::and_address(emulator, address);
 	}
 
-	/*fn aac(emulator: &mut Emulator) {
+	fn aac(emulator: &mut Emulator) {
 		Self::and(emulator, AddressingMode::Immediate);
 		let n = emulator.cpu.get_flag(Flag::N);
 		emulator.cpu.set_flag(Flag::C, n);
-	}*/
+	}
 
 	fn ora_address(emulator: &mut Emulator, address: u16) {
 		emulator.cpu.a |= read8(emulator, address);
@@ -513,7 +513,7 @@ impl Cpu {
 		match opcode {
 			// NOPs
 			0x1a | 0x3a | 0x5a | 0x7a | 0xda | 0xea | 0xfa => {},
-			0x04 | 0x14 | 0x34 | 0x44 | 0x54 | 0x64 | 0x74 | 0x80 /*| 0x82 | 0x89 | 0xc2 | 0xe2*/ | 0xd4 | 0xf4 => emulator.cpu.pc = emulator.cpu.pc.wrapping_add(1),
+			0x04 | 0x14 | 0x34 | 0x44 | 0x54 | 0x64 | 0x74 | 0x80 | 0x82 | 0x89 | 0xc2 | 0xe2 | 0xd4 | 0xf4 => emulator.cpu.pc = emulator.cpu.pc.wrapping_add(1),
 			0x0c | 0x1c | 0x3c | 0x5c | 0x7c | 0xdc | 0xfc => emulator.cpu.pc = emulator.cpu.pc.wrapping_add(2),
 
 			0xa9 => Self::lda(emulator, AddressingMode::Immediate),
@@ -537,7 +537,7 @@ impl Cpu {
 			0xac => Self::ldy(emulator, AddressingMode::Absolute),
 			0xbc => Self::ldy(emulator, AddressingMode::AbsoluteX),
 
-			//0xab => Self::lax(emulator, AddressingMode::Immediate),
+			0xab => Self::lax(emulator, AddressingMode::Immediate),
 			0xa7 => Self::lax(emulator, AddressingMode::ZeroPage),
 			0xb7 => Self::lax(emulator, AddressingMode::ZeroPageY),
 			0xaf => Self::lax(emulator, AddressingMode::Absolute),
@@ -625,7 +625,7 @@ impl Cpu {
 			0x21 => Self::and(emulator, AddressingMode::IndirectX),
 			0x31 => Self::and(emulator, AddressingMode::IndirectY),
 
-			/*0x0b => Self::aac(emulator),
+			0x0b => Self::aac(emulator),
 			0x2b => Self::aac(emulator),
 
 			// ASR
@@ -637,7 +637,12 @@ impl Cpu {
 			// ARR
 			0x6b => {
 				Self::and(emulator, AddressingMode::Immediate);
-				emulator.cpu.a = emulator.cpu.ror_value(emulator.cpu.a);
+				emulator.cpu.set_flag(Flag::V, ((emulator.cpu.a >> 7) & 1) == 1);
+				let c = emulator.cpu.get_flag(Flag::C) as u8;
+				emulator.cpu.a = (c << 7) | (emulator.cpu.a >> 1);
+				emulator.cpu.set_flag(Flag::C, ((emulator.cpu.a >> 6) & 1) == 1);
+				emulator.cpu.set_n_flag(emulator.cpu.a);
+				emulator.cpu.set_z_flag(emulator.cpu.a);
 			},
 
 			// AXS
@@ -649,7 +654,7 @@ impl Cpu {
 				emulator.cpu.x = emulator.cpu.x.wrapping_sub(operand);
 				emulator.cpu.set_n_flag(emulator.cpu.x);
 				emulator.cpu.set_z_flag(emulator.cpu.x);
-			},*/
+			},
 
 			0x09 => Self::ora(emulator, AddressingMode::Immediate),
 			0x05 => Self::ora(emulator, AddressingMode::ZeroPage),
@@ -840,7 +845,7 @@ impl Cpu {
 			0x38 => emulator.cpu.set_flag(Flag::C, true),
 
 			// CLI
-			//0x58 => emulator.cpu.set_flag(Flag::I, false),
+			0x58 => emulator.cpu.set_flag(Flag::I, false),
 
 			// SEI
 			0x78 => emulator.cpu.set_flag(Flag::I, true),
