@@ -1,5 +1,4 @@
 use minifb::{Window, WindowOptions};
-
 use cpu::*;
 use ppu::*;
 use joypad::*;
@@ -64,7 +63,7 @@ impl Emulator {
 	pub fn run(&mut self) {
 		while self.window.is_open() {
 			Cpu::execute_next_instruction(self);
-			Ppu::do_cycle(self);
+			self.ppu.do_cycle(&mut self.cpu, &mut self.window);
 		}
 	}
 }
