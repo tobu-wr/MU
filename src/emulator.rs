@@ -67,22 +67,3 @@ impl Emulator {
 		}
 	}
 }
-
-#[cfg(test)]
-mod tests {
-	use super::*;
-
-	#[test]
-	fn nestest() {
-		let mut emulator = Emulator::new();
-		emulator.cpu_memory.load_rom("tests/nestest.nes");
-		emulator.cpu.set_pc(0xc000);
-
-		for counter in 0..8992 {
-			emulator.cpu.execute_next_instruction(&mut emulator.cpu_memory);
-		}
-
-		assert_eq!(emulator.cpu_memory.read8(0x02), 0);
-		assert_eq!(emulator.cpu_memory.read8(0x03), 0);
-	}
-}
