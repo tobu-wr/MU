@@ -1,4 +1,5 @@
 # RNES
+![Build](https://github.com/WisterToub/rnes/workflows/Rust/badge.svg)
 
 <p align="center">
   <img src="screenshots/donkey-kong.png"/>
