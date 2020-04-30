@@ -4,6 +4,16 @@
 
 `cargo run --release <rom path>`
 
+## Controls
+
+| NES | Key (AZERTY) |
+| --- | --- |
+| A | A |
+| B | Z |
+| D-Pad | Arrows |
+| Start | Enter |
+| Select | Space |
+
 ## Screenshots
 <p align="center">
   <img src="screenshots/donkey-kong.png"/>
