@@ -14,18 +14,18 @@ pub trait Register {
 
     fn read(_ppu: &mut Ppu, _memory: &Memory) -> u8 {
         println!("[ERROR] [PPU] Read from {}", Self::name());
-		std::process::exit(1);
+        std::process::exit(1);
     }
 
     fn write(_ppu: &mut Ppu, _memory: &mut Memory, _value: u8) {
         println!("[ERROR] [PPU] Write to {}", Self::name());
-		std::process::exit(1);
+        std::process::exit(1);
     }
 
     #[cfg(feature = "log")]
 	fn read_debug(_ppu: &Ppu, _memory: &Memory) -> u8 {
         println!("[ERROR] [PPU] Read from {}", Self::name());
-		std::process::exit(1);
+        std::process::exit(1);
 		/*
 			Register::Ppuctrl => self.ppuctrl,
 			Register::Ppumask => self.ppumask,
@@ -44,7 +44,7 @@ impl Register for Ppuctrl {
 
     fn write(ppu: &mut Ppu, _memory: &mut Memory, value: u8) {
         ppu.ppuctrl = value;
-		//	TODO: check for NMI
+        //	TODO: check for NMI
     }
 }
 
@@ -65,9 +65,9 @@ impl Register for Ppustatus {
 
     fn read(ppu: &mut Ppu, _memory: &Memory) -> u8 {
         let value = ppu.ppustatus;
-		ppu.ppustatus &= 0x7f;
-		ppu.flipflop = false;
-		value
+        ppu.ppustatus &= 0x7f;
+        ppu.flipflop = false;
+        value
     }
 }
 
@@ -108,13 +108,13 @@ impl Register for Ppudata {
 
     fn read(ppu: &mut Ppu, memory: &Memory) -> u8 {
         let value = memory.read(ppu.ppuaddr);
-		increment_ppuaddr(ppu);
-		value
+        increment_ppuaddr(ppu);
+        value
     }
 
     fn write(ppu: &mut Ppu, memory: &mut Memory, value: u8) {
         memory.write(ppu.ppuaddr, value);
-		increment_ppuaddr(ppu);
+        increment_ppuaddr(ppu);
     }
 }
 
@@ -129,17 +129,17 @@ fn write16(ppu: &mut Ppu, register: u16, value: u8) -> u16 {
 
 fn increment_ppuaddr(ppu: &mut Ppu) {
 	ppu.ppuaddr += if (ppu.ppuctrl & 0x04) == 0 {
-		1
+        1
 	} else {
-		32
+        32
 	};
 }
 
 #[cfg(feature = "log")]
 fn read16_debug(ppu: &Ppu, register: u16) -> u8 {
 	(if ppu.flipflop {
-		register
+        register
 	} else {
-		register >> 8
+        register >> 8
 	}) as _
 }
