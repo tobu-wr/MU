@@ -37,6 +37,7 @@ pub(super) fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 			0
 		},
 		JOY1_ADDRESS => emulator.joypad.read(&emulator.window),
+		PRG_RAM_START ..= PRG_RAM_END => emulator.prg_ram[(address - PRG_RAM_START) as usize],
 		PRG_ROM_START ..= PRG_ROM_END => emulator.prg_rom[((address - PRG_ROM_START) as usize) % emulator.prg_rom.len()],
 		_ => {
 			println!("[ERROR] [CPU] Read from {:04X}", address);
