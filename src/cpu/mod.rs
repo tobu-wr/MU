@@ -1,10 +1,12 @@
 mod memory;
+mod addressing_mode;
 
 #[cfg(feature = "log")]
 mod logger;
 
 use emulator::*;
 use self::memory::*;
+use self::addressing_mode::*;
 
 #[cfg(feature = "log")]
 use self::logger::*;
@@ -17,19 +19,6 @@ enum Flag {
 	B = 1 << 4,
 	V = 1 << 6,
 	N = 1 << 7
-}
-
-#[derive(Clone, Copy)]
-enum AddressingMode {
-	Immediate,
-	ZeroPage,
-	ZeroPageX,
-	ZeroPageY,
-	Absolute,
-	AbsoluteX,
-	AbsoluteY,
-	IndirectX,
-	IndirectY
 }
 
 #[derive(PartialEq)]
@@ -97,183 +86,6 @@ impl Cpu {
 		self.set_flag(Flag::Z, value == 0);
 	}
 
-	fn push8(emulator: &mut Emulator, value: u8) {
-		write8(emulator, STACK_ADDRESS + emulator.cpu.s as u16, value);
-		emulator.cpu.s = emulator.cpu.s.wrapping_sub(1);
-	}
-
-	fn push16(emulator: &mut Emulator, value: u16) {
-		Self::push8(emulator, (value >> 8) as _);
-		Self::push8(emulator, value as _);
-	}
-
-	fn pull8(emulator: &mut Emulator) -> u8 {
-		emulator.cpu.s = emulator.cpu.s.wrapping_add(1);
-		read8(emulator, STACK_ADDRESS + emulator.cpu.s as u16)
-	}
-
-	fn pull16(emulator: &mut Emulator) -> u16 {
-		let low_byte = Self::pull8(emulator) as u16;
-		let high_byte = Self::pull8(emulator) as u16;
-		(high_byte << 8) | low_byte
-	}
-
-	fn plp(emulator: &mut Emulator) {
-		let value = Self::pull8(emulator);
-		emulator.cpu.p = (value | 0b0010_0000) & !(Flag::B as u8);
-	}
-
-	fn get_address(emulator: &mut Emulator, addressing_mode: AddressingMode) -> u16 {
-		match addressing_mode {
-			AddressingMode::Immediate => {
-				let address = emulator.cpu.pc;
-				emulator.cpu.pc = emulator.cpu.pc.wrapping_add(1);
-				address
-			},
-			AddressingMode::ZeroPage => {
-				let address = read8(emulator, emulator.cpu.pc);
-				emulator.cpu.pc = emulator.cpu.pc.wrapping_add(1);
-				address as _
-			},
-			AddressingMode::ZeroPageX => {
-				let address = read8(emulator, emulator.cpu.pc).wrapping_add(emulator.cpu.x);
-				emulator.cpu.pc = emulator.cpu.pc.wrapping_add(1);
-				address as _
-			},
-			AddressingMode::ZeroPageY => {
-				let address = read8(emulator, emulator.cpu.pc).wrapping_add(emulator.cpu.y);
-				emulator.cpu.pc = emulator.cpu.pc.wrapping_add(1);
-				address as _
-			},
-			AddressingMode::Absolute => {
-				let address = read16(emulator, emulator.cpu.pc);
-				emulator.cpu.pc = emulator.cpu.pc.wrapping_add(2);
-				address
-			},
-			AddressingMode::AbsoluteX => {
-				let address = read16(emulator, emulator.cpu.pc).wrapping_add(emulator.cpu.x as _);
-				emulator.cpu.pc = emulator.cpu.pc.wrapping_add(2);
-				address
-			},
-			AddressingMode::AbsoluteY => {
-				let address = read16(emulator, emulator.cpu.pc).wrapping_add(emulator.cpu.y as _);
-				emulator.cpu.pc = emulator.cpu.pc.wrapping_add(2);
-				address
-			},
-			AddressingMode::IndirectX => {
-				let address = read8(emulator, emulator.cpu.pc).wrapping_add(emulator.cpu.x);
-				emulator.cpu.pc = emulator.cpu.pc.wrapping_add(1);
-				let low_byte = read8(emulator, address as _) as u16;
-				let high_byte = read8(emulator, address.wrapping_add(1) as _) as u16;
-				(high_byte << 8) | low_byte
-			},
-			AddressingMode::IndirectY => {
-				let address = read8(emulator, emulator.cpu.pc);
-				emulator.cpu.pc = emulator.cpu.pc.wrapping_add(1);
-				let low_byte = read8(emulator, address as _) as u16;
-				let high_byte = read8(emulator, address.wrapping_add(1) as _) as u16;
-				let value = (high_byte << 8) | low_byte;
-				value.wrapping_add(emulator.cpu.y as _)
-			}
-		}
-	}
-
-	fn get_operand(emulator: &mut Emulator, addressing_mode: AddressingMode) -> u8 {
-		let address = Self::get_address(emulator, addressing_mode);
-		read8(emulator, address)
-	}
-
-	fn lda(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		emulator.cpu.a = Self::get_operand(emulator, addressing_mode);
-		emulator.cpu.set_n_flag(emulator.cpu.a);
-		emulator.cpu.set_z_flag(emulator.cpu.a);
-	}
-
-	fn ldx(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		emulator.cpu.x = Self::get_operand(emulator, addressing_mode);
-		emulator.cpu.set_n_flag(emulator.cpu.x);
-		emulator.cpu.set_z_flag(emulator.cpu.x);
-	}
-
-	fn ldy(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		emulator.cpu.y = Self::get_operand(emulator, addressing_mode);
-		emulator.cpu.set_n_flag(emulator.cpu.y);
-		emulator.cpu.set_z_flag(emulator.cpu.y);
-	}
-
-	fn lax(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		emulator.cpu.a = Self::get_operand(emulator, addressing_mode);
-		emulator.cpu.x = emulator.cpu.a;
-		emulator.cpu.set_n_flag(emulator.cpu.x);
-		emulator.cpu.set_z_flag(emulator.cpu.x);
-	}
-
-	fn sta(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let address = Self::get_address(emulator, addressing_mode);
-		write8(emulator, address, emulator.cpu.a);
-	}
-
-	fn stx(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let address = Self::get_address(emulator, addressing_mode);
-		write8(emulator, address, emulator.cpu.x);
-	}
-
-	fn sty(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let address = Self::get_address(emulator, addressing_mode);
-		write8(emulator, address, emulator.cpu.y);
-	}
-
-	fn sax(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let address = Self::get_address(emulator, addressing_mode);
-		write8(emulator, address, emulator.cpu.a & emulator.cpu.x);
-	}
-
-	fn and_address(emulator: &mut Emulator, address: u16) {
-		emulator.cpu.a &= read8(emulator, address);
-		emulator.cpu.set_n_flag(emulator.cpu.a);
-		emulator.cpu.set_z_flag(emulator.cpu.a);
-	}
-
-	fn and(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let address = Self::get_address(emulator, addressing_mode);
-		Self::and_address(emulator, address);
-	}
-
-	fn aac(emulator: &mut Emulator) {
-		Self::and(emulator, AddressingMode::Immediate);
-		let n = emulator.cpu.get_flag(Flag::N);
-		emulator.cpu.set_flag(Flag::C, n);
-	}
-
-	fn ora_address(emulator: &mut Emulator, address: u16) {
-		emulator.cpu.a |= read8(emulator, address);
-		emulator.cpu.set_n_flag(emulator.cpu.a);
-		emulator.cpu.set_z_flag(emulator.cpu.a);
-	}
-
-	fn ora(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let address = Self::get_address(emulator, addressing_mode);
-		Self::ora_address(emulator, address);
-	}
-
-	fn eor_address(emulator: &mut Emulator, address: u16) {
-		emulator.cpu.a ^= read8(emulator, address);
-		emulator.cpu.set_n_flag(emulator.cpu.a);
-		emulator.cpu.set_z_flag(emulator.cpu.a);
-	}
-
-	fn eor(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let address = Self::get_address(emulator, addressing_mode);
-		Self::eor_address(emulator, address);
-	}
-
-	fn bit(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let operand = Self::get_operand(emulator, addressing_mode);
-		emulator.cpu.set_z_flag(operand & emulator.cpu.a);
-		emulator.cpu.set_n_flag(operand);
-		emulator.cpu.set_flag(Flag::V, ((operand >> 6) & 1) == 1);
-	}
-
 	fn lsr_value(&mut self, mut value: u8) -> u8 {
 		self.set_flag(Flag::C, (value & 1) == 1);
 		value >>= 1;
@@ -282,46 +94,12 @@ impl Cpu {
 		value
 	}
 
-	fn lsr_address(emulator: &mut Emulator, address: u16) {
-		let operand = read8(emulator, address);
-		let result = emulator.cpu.lsr_value(operand);
-		write8(emulator, address, result);
-	}
-
-	fn lsr(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let address = Self::get_address(emulator, addressing_mode);
-		Self::lsr_address(emulator, address);
-	}
-
-	fn sre(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let address = Self::get_address(emulator, addressing_mode);
-		Self::lsr_address(emulator, address);
-		Self::eor_address(emulator, address);
-	}
-
 	fn asl_value(&mut self, mut value: u8) -> u8 {
 		self.set_flag(Flag::C, (value >> 7) == 1);
 		value <<= 1;
 		self.set_n_flag(value);
 		self.set_z_flag(value);
 		value
-	}
-
-	fn asl_address(emulator: &mut Emulator, address: u16) {
-		let operand = read8(emulator, address);
-		let result = emulator.cpu.asl_value(operand);
-		write8(emulator, address, result);
-	}
-
-	fn asl(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let address = Self::get_address(emulator, addressing_mode);
-		Self::asl_address(emulator, address);
-	}
-
-	fn slo(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let address = Self::get_address(emulator, addressing_mode);
-		Self::asl_address(emulator, address);
-		Self::ora_address(emulator, address);
 	}
 
 	fn ror_value(&mut self, mut value: u8) -> u8 {
@@ -333,23 +111,6 @@ impl Cpu {
 		value
 	}
 
-	fn ror_address(emulator: &mut Emulator, address: u16) {
-		let operand = read8(emulator, address);
-		let result = emulator.cpu.ror_value(operand);
-		write8(emulator, address, result);
-	}
-
-	fn ror(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let address = Self::get_address(emulator, addressing_mode);
-		Self::ror_address(emulator, address);
-	}
-
-	fn rra(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let address = Self::get_address(emulator, addressing_mode);
-		Self::ror_address(emulator, address);
-		Self::adc_address(emulator, address);
-	}
-
 	fn rol_value(&mut self, mut value: u8) -> u8 {
 		let c = self.get_flag(Flag::C) as u8;
 		self.set_flag(Flag::C, (value >> 7) == 1);
@@ -357,23 +118,6 @@ impl Cpu {
 		self.set_n_flag(value);
 		self.set_z_flag(value);
 		value
-	}
-
-	fn rol_address(emulator: &mut Emulator, address: u16) {
-		let operand = read8(emulator, address);
-		let result = emulator.cpu.rol_value(operand);
-		write8(emulator, address, result);
-	}
-
-	fn rol(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let address = Self::get_address(emulator, addressing_mode);
-		Self::rol_address(emulator, address);
-	}
-
-	fn rla(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let address = Self::get_address(emulator, addressing_mode);
-		Self::rol_address(emulator, address);
-		Self::and_address(emulator, address);
 	}
 
 	fn adc_value(&mut self, value: u8) {
@@ -387,103 +131,6 @@ impl Cpu {
 		self.set_z_flag(self.a);
 	}
 
-	fn adc_address(emulator: &mut Emulator, address: u16) {
-		let operand = read8(emulator, address);
-		emulator.cpu.adc_value(operand);
-	}
-
-	fn adc(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let operand = Self::get_operand(emulator, addressing_mode);
-		emulator.cpu.adc_value(operand);
-	}
-
-	fn sbc_address(emulator: &mut Emulator, address: u16) {
-		let operand = read8(emulator, address);
-		emulator.cpu.adc_value(!operand);
-	}
-
-	fn sbc(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let operand = Self::get_operand(emulator, addressing_mode);
-		emulator.cpu.adc_value(!operand);
-	}
-
-	fn inc_address(emulator: &mut Emulator, address: u16) {
-		let result = read8(emulator, address).wrapping_add(1);
-		write8(emulator, address, result);
-		emulator.cpu.set_z_flag(result);
-		emulator.cpu.set_n_flag(result);
-	}
-
-	fn inc(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let address = Self::get_address(emulator, addressing_mode);
-		Self::inc_address(emulator, address);
-	}
-
-	fn isb(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let address = Self::get_address(emulator, addressing_mode);
-		Self::inc_address(emulator, address);
-		Self::sbc_address(emulator, address);
-	}
-
-	fn dec_address(emulator: &mut Emulator, address: u16) {
-		let result = read8(emulator, address).wrapping_sub(1);
-		write8(emulator, address, result);
-		emulator.cpu.set_z_flag(result);
-		emulator.cpu.set_n_flag(result);
-	}
-
-	fn dec(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let address = Self::get_address(emulator, addressing_mode);
-		Self::dec_address(emulator, address);
-	}
-
-	fn dcp(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let address = Self::get_address(emulator, addressing_mode);
-		Self::dec_address(emulator, address);
-		Self::cmp_address(emulator, address);
-	}
-
-	fn cpx(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let operand = Self::get_operand(emulator, addressing_mode);
-		emulator.cpu.set_flag(Flag::C, emulator.cpu.x >= operand);
-		let result = emulator.cpu.x.wrapping_sub(operand);
-		emulator.cpu.set_z_flag(result);
-		emulator.cpu.set_n_flag(result);
-	}
-
-	fn cpy(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let operand = Self::get_operand(emulator, addressing_mode);
-		emulator.cpu.set_flag(Flag::C, emulator.cpu.y >= operand);
-		let result = emulator.cpu.y.wrapping_sub(operand);
-		emulator.cpu.set_z_flag(result);
-		emulator.cpu.set_n_flag(result);
-	}
-
-	fn cmp_address(emulator: &mut Emulator, address: u16) {
-		let operand = read8(emulator, address);
-		emulator.cpu.set_flag(Flag::C, emulator.cpu.a >= operand);
-		let result = emulator.cpu.a.wrapping_sub(operand);
-		emulator.cpu.set_z_flag(result);
-		emulator.cpu.set_n_flag(result);
-	}
-
-	fn cmp(emulator: &mut Emulator, addressing_mode: AddressingMode) {
-		let address = Self::get_address(emulator, addressing_mode);
-		Self::cmp_address(emulator, address);
-	}
-
-	fn branch(emulator: &mut Emulator, flag: Flag, value: bool) {
-		if emulator.cpu.get_flag(flag) == value {
-			let offset = read8(emulator, emulator.cpu.pc) as i8;
-			emulator.cpu.pc = if offset > 0 {
-				emulator.cpu.pc.wrapping_add(offset as _)
-			} else {
-				emulator.cpu.pc.wrapping_sub(offset.wrapping_neg() as _)
-			};
-		}
-		emulator.cpu.pc = emulator.cpu.pc.wrapping_add(1);
-	}
-
 	pub fn request_interrupt(&mut self, interrupt: Interrupt) {
 		if self.pending_interrupt != Some(Interrupt::Nmi) {
 			self.pending_interrupt = Some(interrupt);
@@ -492,8 +139,8 @@ impl Cpu {
 
 	pub fn execute_next_instruction(emulator: &mut Emulator) {
 		if emulator.cpu.pending_interrupt == Some(Interrupt::Nmi) || (emulator.cpu.pending_interrupt == Some(Interrupt::Irq) && !emulator.cpu.get_flag(Flag::I)) {
-			Self::push16(emulator, emulator.cpu.pc);
-			Self::push8(emulator, emulator.cpu.p);
+			push16(emulator, emulator.cpu.pc);
+			push8(emulator, emulator.cpu.p);
 			let address = if emulator.cpu.pending_interrupt == Some(Interrupt::Nmi) {
 				NMI_VECTOR_ADDRESS
 			} else {
@@ -516,65 +163,65 @@ impl Cpu {
 			0x04 | 0x14 | 0x34 | 0x44 | 0x54 | 0x64 | 0x74 | 0x80 | 0x82 | 0x89 | 0xc2 | 0xe2 | 0xd4 | 0xf4 => emulator.cpu.pc = emulator.cpu.pc.wrapping_add(1),
 			0x0c | 0x1c | 0x3c | 0x5c | 0x7c | 0xdc | 0xfc => emulator.cpu.pc = emulator.cpu.pc.wrapping_add(2),
 
-			0xa9 => Self::lda(emulator, AddressingMode::Immediate),
-			0xa5 => Self::lda(emulator, AddressingMode::ZeroPage),
-			0xb5 => Self::lda(emulator, AddressingMode::ZeroPageX),
-			0xad => Self::lda(emulator, AddressingMode::Absolute),
-			0xbd => Self::lda(emulator, AddressingMode::AbsoluteX),
-			0xb9 => Self::lda(emulator, AddressingMode::AbsoluteY),
-			0xa1 => Self::lda(emulator, AddressingMode::IndirectX),
-			0xb1 => Self::lda(emulator, AddressingMode::IndirectY),
+			0xa9 => lda::<Immediate>(emulator),
+			0xa5 => lda::<ZeroPage>(emulator),
+			0xb5 => lda::<ZeroPageX>(emulator),
+			0xad => lda::<Absolute>(emulator),
+			0xbd => lda::<AbsoluteX>(emulator),
+			0xb9 => lda::<AbsoluteY>(emulator),
+			0xa1 => lda::<IndirectX>(emulator),
+			0xb1 => lda::<IndirectY>(emulator),
 
-			0xa2 => Self::ldx(emulator, AddressingMode::Immediate),
-			0xa6 => Self::ldx(emulator, AddressingMode::ZeroPage),
-			0xb6 => Self::ldx(emulator, AddressingMode::ZeroPageY),
-			0xae => Self::ldx(emulator, AddressingMode::Absolute),
-			0xbe => Self::ldx(emulator, AddressingMode::AbsoluteY),
+			0xa2 => ldx::<Immediate>(emulator),
+			0xa6 => ldx::<ZeroPage>(emulator),
+			0xb6 => ldx::<ZeroPageY>(emulator),
+			0xae => ldx::<Absolute>(emulator),
+			0xbe => ldx::<AbsoluteY>(emulator),
 
-			0xa0 => Self::ldy(emulator, AddressingMode::Immediate),
-			0xa4 => Self::ldy(emulator, AddressingMode::ZeroPage),
-			0xb4 => Self::ldy(emulator, AddressingMode::ZeroPageX),
-			0xac => Self::ldy(emulator, AddressingMode::Absolute),
-			0xbc => Self::ldy(emulator, AddressingMode::AbsoluteX),
+			0xa0 => ldy::<Immediate>(emulator),
+			0xa4 => ldy::<ZeroPage>(emulator),
+			0xb4 => ldy::<ZeroPageX>(emulator),
+			0xac => ldy::<Absolute>(emulator),
+			0xbc => ldy::<AbsoluteX>(emulator),
 
-			0xab => Self::lax(emulator, AddressingMode::Immediate),
-			0xa7 => Self::lax(emulator, AddressingMode::ZeroPage),
-			0xb7 => Self::lax(emulator, AddressingMode::ZeroPageY),
-			0xaf => Self::lax(emulator, AddressingMode::Absolute),
-			0xbf => Self::lax(emulator, AddressingMode::AbsoluteY),
-			0xa3 => Self::lax(emulator, AddressingMode::IndirectX),
-			0xb3 => Self::lax(emulator, AddressingMode::IndirectY),
+			0xab => lax::<Immediate>(emulator),
+			0xa7 => lax::<ZeroPage>(emulator),
+			0xb7 => lax::<ZeroPageY>(emulator),
+			0xaf => lax::<Absolute>(emulator),
+			0xbf => lax::<AbsoluteY>(emulator),
+			0xa3 => lax::<IndirectX>(emulator),
+			0xb3 => lax::<IndirectY>(emulator),
 
-			0x85 => Self::sta(emulator, AddressingMode::ZeroPage),
-			0x95 => Self::sta(emulator, AddressingMode::ZeroPageX),
-			0x8d => Self::sta(emulator, AddressingMode::Absolute),
-			0x9d => Self::sta(emulator, AddressingMode::AbsoluteX),
-			0x99 => Self::sta(emulator, AddressingMode::AbsoluteY),
-			0x81 => Self::sta(emulator, AddressingMode::IndirectX),
-			0x91 => Self::sta(emulator, AddressingMode::IndirectY),
+			0x85 => sta::<ZeroPage>(emulator),
+			0x95 => sta::<ZeroPageX>(emulator),
+			0x8d => sta::<Absolute>(emulator),
+			0x9d => sta::<AbsoluteX>(emulator),
+			0x99 => sta::<AbsoluteY>(emulator),
+			0x81 => sta::<IndirectX>(emulator),
+			0x91 => sta::<IndirectY>(emulator),
 
-			0x86 => Self::stx(emulator, AddressingMode::ZeroPage),
-			0x96 => Self::stx(emulator, AddressingMode::ZeroPageY),
-			0x8e => Self::stx(emulator, AddressingMode::Absolute),
+			0x86 => stx::<ZeroPage>(emulator),
+			0x96 => stx::<ZeroPageY>(emulator),
+			0x8e => stx::<Absolute>(emulator),
 
-			0x84 => Self::sty(emulator, AddressingMode::ZeroPage),
-			0x94 => Self::sty(emulator, AddressingMode::ZeroPageX),
-			0x8c => Self::sty(emulator, AddressingMode::Absolute),
+			0x84 => sty::<ZeroPage>(emulator),
+			0x94 => sty::<ZeroPageX>(emulator),
+			0x8c => sty::<Absolute>(emulator),
 
-			0x87 => Self::sax(emulator, AddressingMode::ZeroPage),
-			0x97 => Self::sax(emulator, AddressingMode::ZeroPageY),
-			0x8f => Self::sax(emulator, AddressingMode::Absolute),
-			0x83 => Self::sax(emulator, AddressingMode::IndirectX),
+			0x87 => sax::<ZeroPage>(emulator),
+			0x97 => sax::<ZeroPageY>(emulator),
+			0x8f => sax::<Absolute>(emulator),
+			0x83 => sax::<IndirectX>(emulator),
 
 			// SXA
 			0x9e => {
-				let address = Self::get_address(emulator, AddressingMode::AbsoluteY);
+				let address = AbsoluteY::get_address(emulator);
 				write8(emulator, address, emulator.cpu.x & emulator.cpu.a);
 			},
 
 			// SYA
 			0x9c => {
-				let address = Self::get_address(emulator, AddressingMode::AbsoluteX);
+				let address = AbsoluteX::get_address(emulator);
 				write8(emulator, address, emulator.cpu.y & emulator.cpu.a);
 			},
 
@@ -616,27 +263,27 @@ impl Cpu {
 			// TXS
 			0x9a => emulator.cpu.s = emulator.cpu.x,
 
-			0x29 => Self::and(emulator, AddressingMode::Immediate),
-			0x25 => Self::and(emulator, AddressingMode::ZeroPage),
-			0x35 => Self::and(emulator, AddressingMode::ZeroPageX),
-			0x2d => Self::and(emulator, AddressingMode::Absolute),
-			0x3d => Self::and(emulator, AddressingMode::AbsoluteX),
-			0x39 => Self::and(emulator, AddressingMode::AbsoluteY),
-			0x21 => Self::and(emulator, AddressingMode::IndirectX),
-			0x31 => Self::and(emulator, AddressingMode::IndirectY),
+			0x29 => and::<Immediate>(emulator),
+			0x25 => and::<ZeroPage>(emulator),
+			0x35 => and::<ZeroPageX>(emulator),
+			0x2d => and::<Absolute>(emulator),
+			0x3d => and::<AbsoluteX>(emulator),
+			0x39 => and::<AbsoluteY>(emulator),
+			0x21 => and::<IndirectX>(emulator),
+			0x31 => and::<IndirectY>(emulator),
 
-			0x0b => Self::aac(emulator),
-			0x2b => Self::aac(emulator),
+			0x0b => aac(emulator),
+			0x2b => aac(emulator),
 
 			// ASR
 			0x4b => {
-				Self::and(emulator, AddressingMode::Immediate);
+				and::<Immediate>(emulator);
 				emulator.cpu.a = emulator.cpu.lsr_value(emulator.cpu.a);
 			},
 
 			// ARR
 			0x6b => {
-				emulator.cpu.a &= Self::get_operand(emulator, AddressingMode::Immediate);
+				emulator.cpu.a &= get_operand::<Immediate>(emulator);
 				let c = emulator.cpu.get_flag(Flag::C) as u8;
 				emulator.cpu.a = (c << 7) | (emulator.cpu.a >> 1);
 				emulator.cpu.set_flag(Flag::C, ((emulator.cpu.a >> 6) & 1) == 1);
@@ -656,101 +303,101 @@ impl Cpu {
 				emulator.cpu.set_z_flag(emulator.cpu.x);
 			},
 
-			0x09 => Self::ora(emulator, AddressingMode::Immediate),
-			0x05 => Self::ora(emulator, AddressingMode::ZeroPage),
-			0x15 => Self::ora(emulator, AddressingMode::ZeroPageX),
-			0x0d => Self::ora(emulator, AddressingMode::Absolute),
-			0x1d => Self::ora(emulator, AddressingMode::AbsoluteX),
-			0x19 => Self::ora(emulator, AddressingMode::AbsoluteY),
-			0x01 => Self::ora(emulator, AddressingMode::IndirectX),
-			0x11 => Self::ora(emulator, AddressingMode::IndirectY),
+			0x09 => ora::<Immediate>(emulator),
+			0x05 => ora::<ZeroPage>(emulator),
+			0x15 => ora::<ZeroPageX>(emulator),
+			0x0d => ora::<Absolute>(emulator),
+			0x1d => ora::<AbsoluteX>(emulator),
+			0x19 => ora::<AbsoluteY>(emulator),
+			0x01 => ora::<IndirectX>(emulator),
+			0x11 => ora::<IndirectY>(emulator),
 
-			0x49 => Self::eor(emulator, AddressingMode::Immediate),
-			0x45 => Self::eor(emulator, AddressingMode::ZeroPage),
-			0x55 => Self::eor(emulator, AddressingMode::ZeroPageX),
-			0x4d => Self::eor(emulator, AddressingMode::Absolute),
-			0x5d => Self::eor(emulator, AddressingMode::AbsoluteX),
-			0x59 => Self::eor(emulator, AddressingMode::AbsoluteY),
-			0x41 => Self::eor(emulator, AddressingMode::IndirectX),
-			0x51 => Self::eor(emulator, AddressingMode::IndirectY),
+			0x49 => eor::<Immediate>(emulator),
+			0x45 => eor::<ZeroPage>(emulator),
+			0x55 => eor::<ZeroPageX>(emulator),
+			0x4d => eor::<Absolute>(emulator),
+			0x5d => eor::<AbsoluteX>(emulator),
+			0x59 => eor::<AbsoluteY>(emulator),
+			0x41 => eor::<IndirectX>(emulator),
+			0x51 => eor::<IndirectY>(emulator),
 
-			0x24 => Self::bit(emulator, AddressingMode::ZeroPage),
-			0x2c => Self::bit(emulator, AddressingMode::Absolute),
+			0x24 => bit::<ZeroPage>(emulator),
+			0x2c => bit::<Absolute>(emulator),
 
 			0x4a => emulator.cpu.a = emulator.cpu.lsr_value(emulator.cpu.a),
-			0x46 => Self::lsr(emulator, AddressingMode::ZeroPage),
-			0x56 => Self::lsr(emulator, AddressingMode::ZeroPageX),
-			0x4e => Self::lsr(emulator, AddressingMode::Absolute),
-			0x5e => Self::lsr(emulator, AddressingMode::AbsoluteX),
+			0x46 => lsr::<ZeroPage>(emulator),
+			0x56 => lsr::<ZeroPageX>(emulator),
+			0x4e => lsr::<Absolute>(emulator),
+			0x5e => lsr::<AbsoluteX>(emulator),
 
-			0x47 => Self::sre(emulator, AddressingMode::ZeroPage),
-			0x57 => Self::sre(emulator, AddressingMode::ZeroPageX),
-			0x4f => Self::sre(emulator, AddressingMode::Absolute),
-			0x5f => Self::sre(emulator, AddressingMode::AbsoluteX),
-			0x5b => Self::sre(emulator, AddressingMode::AbsoluteY),
-			0x43 => Self::sre(emulator, AddressingMode::IndirectX),
-			0x53 => Self::sre(emulator, AddressingMode::IndirectY),
+			0x47 => sre::<ZeroPage>(emulator),
+			0x57 => sre::<ZeroPageX>(emulator),
+			0x4f => sre::<Absolute>(emulator),
+			0x5f => sre::<AbsoluteX>(emulator),
+			0x5b => sre::<AbsoluteY>(emulator),
+			0x43 => sre::<IndirectX>(emulator),
+			0x53 => sre::<IndirectY>(emulator),
 
 			0x0a => emulator.cpu.a = emulator.cpu.asl_value(emulator.cpu.a),
-			0x06 => Self::asl(emulator, AddressingMode::ZeroPage),
-			0x16 => Self::asl(emulator, AddressingMode::ZeroPageX),
-			0x0e => Self::asl(emulator, AddressingMode::Absolute),
-			0x1e => Self::asl(emulator, AddressingMode::AbsoluteX),
+			0x06 => asl::<ZeroPage>(emulator),
+			0x16 => asl::<ZeroPageX>(emulator),
+			0x0e => asl::<Absolute>(emulator),
+			0x1e => asl::<AbsoluteX>(emulator),
 
-			0x07 => Self::slo(emulator, AddressingMode::ZeroPage),
-			0x17 => Self::slo(emulator, AddressingMode::ZeroPageX),
-			0x0f => Self::slo(emulator, AddressingMode::Absolute),
-			0x1f => Self::slo(emulator, AddressingMode::AbsoluteX),
-			0x1b => Self::slo(emulator, AddressingMode::AbsoluteY),
-			0x03 => Self::slo(emulator, AddressingMode::IndirectX),
-			0x13 => Self::slo(emulator, AddressingMode::IndirectY),
+			0x07 => slo::<ZeroPage>(emulator),
+			0x17 => slo::<ZeroPageX>(emulator),
+			0x0f => slo::<Absolute>(emulator),
+			0x1f => slo::<AbsoluteX>(emulator),
+			0x1b => slo::<AbsoluteY>(emulator),
+			0x03 => slo::<IndirectX>(emulator),
+			0x13 => slo::<IndirectY>(emulator),
 
 			0x6a => emulator.cpu.a = emulator.cpu.ror_value(emulator.cpu.a),
-			0x66 => Self::ror(emulator, AddressingMode::ZeroPage),
-			0x76 => Self::ror(emulator, AddressingMode::ZeroPageX),
-			0x6e => Self::ror(emulator, AddressingMode::Absolute),
-			0x7e => Self::ror(emulator, AddressingMode::AbsoluteX),
+			0x66 => ror::<ZeroPage>(emulator),
+			0x76 => ror::<ZeroPageX>(emulator),
+			0x6e => ror::<Absolute>(emulator),
+			0x7e => ror::<AbsoluteX>(emulator),
 
-			0x67 => Self::rra(emulator, AddressingMode::ZeroPage),
-			0x77 => Self::rra(emulator, AddressingMode::ZeroPageX),
-			0x6f => Self::rra(emulator, AddressingMode::Absolute),
-			0x7f => Self::rra(emulator, AddressingMode::AbsoluteX),
-			0x7b => Self::rra(emulator, AddressingMode::AbsoluteY),
-			0x63 => Self::rra(emulator, AddressingMode::IndirectX),
-			0x73 => Self::rra(emulator, AddressingMode::IndirectY),
+			0x67 => rra::<ZeroPage>(emulator),
+			0x77 => rra::<ZeroPageX>(emulator),
+			0x6f => rra::<Absolute>(emulator),
+			0x7f => rra::<AbsoluteX>(emulator),
+			0x7b => rra::<AbsoluteY>(emulator),
+			0x63 => rra::<IndirectX>(emulator),
+			0x73 => rra::<IndirectY>(emulator),
 
 			0x2a => emulator.cpu.a = emulator.cpu.rol_value(emulator.cpu.a),
-			0x26 => Self::rol(emulator, AddressingMode::ZeroPage),
-			0x36 => Self::rol(emulator, AddressingMode::ZeroPageX),
-			0x2e => Self::rol(emulator, AddressingMode::Absolute),
-			0x3e => Self::rol(emulator, AddressingMode::AbsoluteX),
+			0x26 => rol::<ZeroPage>(emulator),
+			0x36 => rol::<ZeroPageX>(emulator),
+			0x2e => rol::<Absolute>(emulator),
+			0x3e => rol::<AbsoluteX>(emulator),
 
-			0x27 => Self::rla(emulator, AddressingMode::ZeroPage),
-			0x37 => Self::rla(emulator, AddressingMode::ZeroPageX),
-			0x2f => Self::rla(emulator, AddressingMode::Absolute),
-			0x3f => Self::rla(emulator, AddressingMode::AbsoluteX),
-			0x3b => Self::rla(emulator, AddressingMode::AbsoluteY),
-			0x23 => Self::rla(emulator, AddressingMode::IndirectX),
-			0x33 => Self::rla(emulator, AddressingMode::IndirectY),
+			0x27 => rla::<ZeroPage>(emulator),
+			0x37 => rla::<ZeroPageX>(emulator),
+			0x2f => rla::<Absolute>(emulator),
+			0x3f => rla::<AbsoluteX>(emulator),
+			0x3b => rla::<AbsoluteY>(emulator),
+			0x23 => rla::<IndirectX>(emulator),
+			0x33 => rla::<IndirectY>(emulator),
 
-			0x69 => Self::adc(emulator, AddressingMode::Immediate),
-			0x65 => Self::adc(emulator, AddressingMode::ZeroPage),
-			0x75 => Self::adc(emulator, AddressingMode::ZeroPageX),
-			0x6d => Self::adc(emulator, AddressingMode::Absolute),
-			0x7d => Self::adc(emulator, AddressingMode::AbsoluteX),
-			0x79 => Self::adc(emulator, AddressingMode::AbsoluteY),
-			0x61 => Self::adc(emulator, AddressingMode::IndirectX),
-			0x71 => Self::adc(emulator, AddressingMode::IndirectY),
+			0x69 => adc::<Immediate>(emulator),
+			0x65 => adc::<ZeroPage>(emulator),
+			0x75 => adc::<ZeroPageX>(emulator),
+			0x6d => adc::<Absolute>(emulator),
+			0x7d => adc::<AbsoluteX>(emulator),
+			0x79 => adc::<AbsoluteY>(emulator),
+			0x61 => adc::<IndirectX>(emulator),
+			0x71 => adc::<IndirectY>(emulator),
 
-			0xe9 => Self::sbc(emulator, AddressingMode::Immediate),
-			0xeb => Self::sbc(emulator, AddressingMode::Immediate),
-			0xe5 => Self::sbc(emulator, AddressingMode::ZeroPage),
-			0xf5 => Self::sbc(emulator, AddressingMode::ZeroPageX),
-			0xed => Self::sbc(emulator, AddressingMode::Absolute),
-			0xfd => Self::sbc(emulator, AddressingMode::AbsoluteX),
-			0xf9 => Self::sbc(emulator, AddressingMode::AbsoluteY),
-			0xe1 => Self::sbc(emulator, AddressingMode::IndirectX),
-			0xf1 => Self::sbc(emulator, AddressingMode::IndirectY),
+			0xe9 => sbc::<Immediate>(emulator),
+			0xeb => sbc::<Immediate>(emulator),
+			0xe5 => sbc::<ZeroPage>(emulator),
+			0xf5 => sbc::<ZeroPageX>(emulator),
+			0xed => sbc::<Absolute>(emulator),
+			0xfd => sbc::<AbsoluteX>(emulator),
+			0xf9 => sbc::<AbsoluteY>(emulator),
+			0xe1 => sbc::<IndirectX>(emulator),
+			0xf1 => sbc::<IndirectY>(emulator),
 			
 			// INX
 			0xe8 => {
@@ -766,18 +413,18 @@ impl Cpu {
 				emulator.cpu.set_n_flag(emulator.cpu.y);
 			},
 
-			0xe6 => Self::inc(emulator, AddressingMode::ZeroPage),
-			0xf6 => Self::inc(emulator, AddressingMode::ZeroPageX),
-			0xee => Self::inc(emulator, AddressingMode::Absolute),
-			0xfe => Self::inc(emulator, AddressingMode::AbsoluteX),
+			0xe6 => inc::<ZeroPage>(emulator),
+			0xf6 => inc::<ZeroPageX>(emulator),
+			0xee => inc::<Absolute>(emulator),
+			0xfe => inc::<AbsoluteX>(emulator),
 
-			0xe7 => Self::isb(emulator, AddressingMode::ZeroPage),
-			0xf7 => Self::isb(emulator, AddressingMode::ZeroPageX),
-			0xef => Self::isb(emulator, AddressingMode::Absolute),
-			0xff => Self::isb(emulator, AddressingMode::AbsoluteX),
-			0xfb => Self::isb(emulator, AddressingMode::AbsoluteY),
-			0xe3 => Self::isb(emulator, AddressingMode::IndirectX),
-			0xf3 => Self::isb(emulator, AddressingMode::IndirectY),
+			0xe7 => isb::<ZeroPage>(emulator),
+			0xf7 => isb::<ZeroPageX>(emulator),
+			0xef => isb::<Absolute>(emulator),
+			0xff => isb::<AbsoluteX>(emulator),
+			0xfb => isb::<AbsoluteY>(emulator),
+			0xe3 => isb::<IndirectX>(emulator),
+			0xf3 => isb::<IndirectY>(emulator),
 
 			// DEX
 			0xca => {
@@ -793,50 +440,50 @@ impl Cpu {
 				emulator.cpu.set_z_flag(emulator.cpu.y);
 			},
 
-			0xc6 => Self::dec(emulator, AddressingMode::ZeroPage),
-			0xd6 => Self::dec(emulator, AddressingMode::ZeroPageX),
-			0xce => Self::dec(emulator, AddressingMode::Absolute),
-			0xde => Self::dec(emulator, AddressingMode::AbsoluteX),
+			0xc6 => dec::<ZeroPage>(emulator),
+			0xd6 => dec::<ZeroPageX>(emulator),
+			0xce => dec::<Absolute>(emulator),
+			0xde => dec::<AbsoluteX>(emulator),
 
-			0xc7 => Self::dcp(emulator, AddressingMode::ZeroPage),
-			0xd7 => Self::dcp(emulator, AddressingMode::ZeroPageX),
-			0xcf => Self::dcp(emulator, AddressingMode::Absolute),
-			0xdf => Self::dcp(emulator, AddressingMode::AbsoluteX),
-			0xdb => Self::dcp(emulator, AddressingMode::AbsoluteY),
-			0xc3 => Self::dcp(emulator, AddressingMode::IndirectX),
-			0xd3 => Self::dcp(emulator, AddressingMode::IndirectY),
+			0xc7 => dcp::<ZeroPage>(emulator),
+			0xd7 => dcp::<ZeroPageX>(emulator),
+			0xcf => dcp::<Absolute>(emulator),
+			0xdf => dcp::<AbsoluteX>(emulator),
+			0xdb => dcp::<AbsoluteY>(emulator),
+			0xc3 => dcp::<IndirectX>(emulator),
+			0xd3 => dcp::<IndirectY>(emulator),
 
-			0xe0 => Self::cpx(emulator, AddressingMode::Immediate),
-			0xe4 => Self::cpx(emulator, AddressingMode::ZeroPage),
-			0xec => Self::cpx(emulator, AddressingMode::Absolute),
+			0xe0 => cpx::<Immediate>(emulator),
+			0xe4 => cpx::<ZeroPage>(emulator),
+			0xec => cpx::<Absolute>(emulator),
 
-			0xc0 => Self::cpy(emulator, AddressingMode::Immediate),
-			0xc4 => Self::cpy(emulator, AddressingMode::ZeroPage),
-			0xcc => Self::cpy(emulator, AddressingMode::Absolute),
+			0xc0 => cpy::<Immediate>(emulator),
+			0xc4 => cpy::<ZeroPage>(emulator),
+			0xcc => cpy::<Absolute>(emulator),
 
-			0xc9 => Self::cmp(emulator, AddressingMode::Immediate),
-			0xc5 => Self::cmp(emulator, AddressingMode::ZeroPage),
-			0xd5 => Self::cmp(emulator, AddressingMode::ZeroPageX),
-			0xcd => Self::cmp(emulator, AddressingMode::Absolute),
-			0xdd => Self::cmp(emulator, AddressingMode::AbsoluteX),
-			0xd9 => Self::cmp(emulator, AddressingMode::AbsoluteY),
-			0xc1 => Self::cmp(emulator, AddressingMode::IndirectX),
-			0xd1 => Self::cmp(emulator, AddressingMode::IndirectY),
+			0xc9 => cmp::<Immediate>(emulator),
+			0xc5 => cmp::<ZeroPage>(emulator),
+			0xd5 => cmp::<ZeroPageX>(emulator),
+			0xcd => cmp::<Absolute>(emulator),
+			0xdd => cmp::<AbsoluteX>(emulator),
+			0xd9 => cmp::<AbsoluteY>(emulator),
+			0xc1 => cmp::<IndirectX>(emulator),
+			0xd1 => cmp::<IndirectY>(emulator),
 
 			// PHA
-			0x48 => Self::push8(emulator, emulator.cpu.a),
+			0x48 => push8(emulator, emulator.cpu.a),
 
 			// PLA
 			0x68 => {
-				emulator.cpu.a = Self::pull8(emulator);
+				emulator.cpu.a = pull8(emulator);
 				emulator.cpu.set_n_flag(emulator.cpu.a);
 				emulator.cpu.set_z_flag(emulator.cpu.a);
 			},
 
 			// PHP
-			0x08 => Self::push8(emulator, emulator.cpu.p | Flag::B as u8),
+			0x08 => push8(emulator, emulator.cpu.p | Flag::B as u8),
 
-			0x28 => Self::plp(emulator),
+			0x28 => plp(emulator),
 
 			// CLC
 			0x18 => emulator.cpu.set_flag(Flag::C, false),
@@ -875,34 +522,34 @@ impl Cpu {
 			},
 
 			// BPL
-			0x10 => Self::branch(emulator, Flag::N, false),
+			0x10 => branch(emulator, Flag::N, false),
 
 			// BMI
-			0x30 => Self::branch(emulator, Flag::N, true),
+			0x30 => branch(emulator, Flag::N, true),
 
 			// BVC
-			0x50 => Self::branch(emulator, Flag::V, false),
+			0x50 => branch(emulator, Flag::V, false),
 
 			// BVS
-			0x70 => Self::branch(emulator, Flag::V, true),
+			0x70 => branch(emulator, Flag::V, true),
 
 			// BCC
-			0x90 => Self::branch(emulator, Flag::C, false),
+			0x90 => branch(emulator, Flag::C, false),
 
 			// BCS
-			0xb0 => Self::branch(emulator, Flag::C, true),
+			0xb0 => branch(emulator, Flag::C, true),
 
 			// BNE
-			0xd0 => Self::branch(emulator, Flag::Z, false),
+			0xd0 => branch(emulator, Flag::Z, false),
 
 			// BEQ
-			0xf0 => Self::branch(emulator, Flag::Z, true),
+			0xf0 => branch(emulator, Flag::Z, true),
 
 			// BRK
 			0x00 => {
 				let address = emulator.cpu.pc.wrapping_add(1);
-				Self::push16(emulator, address);
-				Self::push8(emulator, emulator.cpu.p | Flag::B as u8);
+				push16(emulator, address);
+				push8(emulator, emulator.cpu.p | Flag::B as u8);
 				emulator.cpu.pc = read16(emulator, IRQ_VECTOR_ADDRESS);
 				emulator.cpu.set_flag(Flag::I, true);
 			},
@@ -910,18 +557,18 @@ impl Cpu {
 			// JSR
 			0x20 => {
 				let address = emulator.cpu.pc.wrapping_add(1);
-				Self::push16(emulator, address);
+				push16(emulator, address);
 				emulator.cpu.pc = read16(emulator, emulator.cpu.pc);
 			},
 
 			// RTI
 			0x40 => {
-				Self::plp(emulator);
-				emulator.cpu.pc = Self::pull16(emulator);
+				plp(emulator);
+				emulator.cpu.pc = pull16(emulator);
 			},
 
 			// RTS
-			0x60 => emulator.cpu.pc = Self::pull16(emulator).wrapping_add(1),
+			0x60 => emulator.cpu.pc = pull16(emulator).wrapping_add(1),
 
 			_ => {
 				println!("[ERROR] Unknown opcode {:02X} at {:04X}", opcode, emulator.cpu.pc.wrapping_sub(1));
@@ -929,4 +576,291 @@ impl Cpu {
 			}
 		}
 	}
+}
+
+fn push8(emulator: &mut Emulator, value: u8) {
+	write8(emulator, STACK_ADDRESS + emulator.cpu.s as u16, value);
+	emulator.cpu.s = emulator.cpu.s.wrapping_sub(1);
+}
+
+fn push16(emulator: &mut Emulator, value: u16) {
+	push8(emulator, (value >> 8) as _);
+	push8(emulator, value as _);
+}
+
+fn pull8(emulator: &mut Emulator) -> u8 {
+	emulator.cpu.s = emulator.cpu.s.wrapping_add(1);
+	read8(emulator, STACK_ADDRESS + emulator.cpu.s as u16)
+}
+
+fn pull16(emulator: &mut Emulator) -> u16 {
+	let low_byte = pull8(emulator) as u16;
+	let high_byte = pull8(emulator) as u16;
+	(high_byte << 8) | low_byte
+}
+
+fn get_operand<T: AddressingMode>(emulator: &mut Emulator) -> u8 {
+	let address = T::get_address(emulator);
+	read8(emulator, address)
+}
+
+fn lda<T: AddressingMode>(emulator: &mut Emulator) {
+	emulator.cpu.a = get_operand::<T>(emulator);
+	emulator.cpu.set_n_flag(emulator.cpu.a);
+	emulator.cpu.set_z_flag(emulator.cpu.a);
+}
+
+fn ldx<T: AddressingMode>(emulator: &mut Emulator) {
+	emulator.cpu.x = get_operand::<T>(emulator);
+	emulator.cpu.set_n_flag(emulator.cpu.x);
+	emulator.cpu.set_z_flag(emulator.cpu.x);
+}
+
+fn ldy<T: AddressingMode>(emulator: &mut Emulator) {
+	emulator.cpu.y = get_operand::<T>(emulator);
+	emulator.cpu.set_n_flag(emulator.cpu.y);
+	emulator.cpu.set_z_flag(emulator.cpu.y);
+}
+
+fn lax<T: AddressingMode>(emulator: &mut Emulator) {
+	emulator.cpu.a = get_operand::<T>(emulator);
+	emulator.cpu.x = emulator.cpu.a;
+	emulator.cpu.set_n_flag(emulator.cpu.x);
+	emulator.cpu.set_z_flag(emulator.cpu.x);
+}
+
+fn sta<T: AddressingMode>(emulator: &mut Emulator) {
+	let address = T::get_address(emulator);
+	write8(emulator, address, emulator.cpu.a);
+}
+
+fn stx<T: AddressingMode>(emulator: &mut Emulator) {
+	let address = T::get_address(emulator);
+	write8(emulator, address, emulator.cpu.x);
+}
+
+fn sty<T: AddressingMode>(emulator: &mut Emulator) {
+	let address = T::get_address(emulator);
+	write8(emulator, address, emulator.cpu.y);
+}
+
+fn sax<T: AddressingMode>(emulator: &mut Emulator) {
+	let address = T::get_address(emulator);
+	write8(emulator, address, emulator.cpu.a & emulator.cpu.x);
+}
+
+fn and_address(emulator: &mut Emulator, address: u16) {
+	emulator.cpu.a &= read8(emulator, address);
+	emulator.cpu.set_n_flag(emulator.cpu.a);
+	emulator.cpu.set_z_flag(emulator.cpu.a);
+}
+
+fn and<T: AddressingMode>(emulator: &mut Emulator) {
+	let address = T::get_address(emulator);
+	and_address(emulator, address);
+}
+
+fn aac(emulator: &mut Emulator) {
+	and::<Immediate>(emulator);
+	let n = emulator.cpu.get_flag(Flag::N);
+	emulator.cpu.set_flag(Flag::C, n);
+}
+
+fn ora_address(emulator: &mut Emulator, address: u16) {
+	emulator.cpu.a |= read8(emulator, address);
+	emulator.cpu.set_n_flag(emulator.cpu.a);
+	emulator.cpu.set_z_flag(emulator.cpu.a);
+}
+
+fn ora<T: AddressingMode>(emulator: &mut Emulator) {
+	let address = T::get_address(emulator);
+	ora_address(emulator, address);
+}
+
+fn eor_address(emulator: &mut Emulator, address: u16) {
+	emulator.cpu.a ^= read8(emulator, address);
+	emulator.cpu.set_n_flag(emulator.cpu.a);
+	emulator.cpu.set_z_flag(emulator.cpu.a);
+}
+
+fn eor<T: AddressingMode>(emulator: &mut Emulator) {
+	let address = T::get_address(emulator);
+	eor_address(emulator, address);
+}
+
+fn bit<T: AddressingMode>(emulator: &mut Emulator) {
+	let operand = get_operand::<T>(emulator);
+	emulator.cpu.set_z_flag(operand & emulator.cpu.a);
+	emulator.cpu.set_n_flag(operand);
+	emulator.cpu.set_flag(Flag::V, ((operand >> 6) & 1) == 1);
+}
+
+fn lsr_address(emulator: &mut Emulator, address: u16) {
+	let operand = read8(emulator, address);
+	let result = emulator.cpu.lsr_value(operand);
+	write8(emulator, address, result);
+}
+
+fn lsr<T: AddressingMode>(emulator: &mut Emulator) {
+	let address = T::get_address(emulator);
+	lsr_address(emulator, address);
+}
+
+fn sre<T: AddressingMode>(emulator: &mut Emulator) {
+	let address = T::get_address(emulator);
+	lsr_address(emulator, address);
+	eor_address(emulator, address);
+}
+
+fn asl_address(emulator: &mut Emulator, address: u16) {
+	let operand = read8(emulator, address);
+	let result = emulator.cpu.asl_value(operand);
+	write8(emulator, address, result);
+}
+
+fn asl<T: AddressingMode>(emulator: &mut Emulator) {
+	let address = T::get_address(emulator);
+	asl_address(emulator, address);
+}
+
+fn slo<T: AddressingMode>(emulator: &mut Emulator) {
+	let address = T::get_address(emulator);
+	asl_address(emulator, address);
+	ora_address(emulator, address);
+}
+
+fn ror_address(emulator: &mut Emulator, address: u16) {
+	let operand = read8(emulator, address);
+	let result = emulator.cpu.ror_value(operand);
+	write8(emulator, address, result);
+}
+
+fn ror<T: AddressingMode>(emulator: &mut Emulator) {
+	let address = T::get_address(emulator);
+	ror_address(emulator, address);
+}
+
+fn rra<T: AddressingMode>(emulator: &mut Emulator) {
+	let address = T::get_address(emulator);
+	ror_address(emulator, address);
+	adc_address(emulator, address);
+}
+
+fn rol_address(emulator: &mut Emulator, address: u16) {
+	let operand = read8(emulator, address);
+	let result = emulator.cpu.rol_value(operand);
+	write8(emulator, address, result);
+}
+
+fn rol<T: AddressingMode>(emulator: &mut Emulator) {
+	let address = T::get_address(emulator);
+	rol_address(emulator, address);
+}
+
+fn rla<T: AddressingMode>(emulator: &mut Emulator) {
+	let address = T::get_address(emulator);
+	rol_address(emulator, address);
+	and_address(emulator, address);
+}
+
+fn adc_address(emulator: &mut Emulator, address: u16) {
+	let operand = read8(emulator, address);
+	emulator.cpu.adc_value(operand);
+}
+
+fn adc<T: AddressingMode>(emulator: &mut Emulator) {
+	let operand = get_operand::<T>(emulator);
+	emulator.cpu.adc_value(operand);
+}
+
+fn sbc_address(emulator: &mut Emulator, address: u16) {
+	let operand = read8(emulator, address);
+	emulator.cpu.adc_value(!operand);
+}
+
+fn sbc<T: AddressingMode>(emulator: &mut Emulator) {
+	let operand = get_operand::<T>(emulator);
+	emulator.cpu.adc_value(!operand);
+}
+
+fn inc_address(emulator: &mut Emulator, address: u16) {
+	let result = read8(emulator, address).wrapping_add(1);
+	write8(emulator, address, result);
+	emulator.cpu.set_z_flag(result);
+	emulator.cpu.set_n_flag(result);
+}
+
+fn inc<T: AddressingMode>(emulator: &mut Emulator) {
+	let address = T::get_address(emulator);
+	inc_address(emulator, address);
+}
+
+fn isb<T: AddressingMode>(emulator: &mut Emulator) {
+	let address = T::get_address(emulator);
+	inc_address(emulator, address);
+	sbc_address(emulator, address);
+}
+
+fn dec_address(emulator: &mut Emulator, address: u16) {
+	let result = read8(emulator, address).wrapping_sub(1);
+	write8(emulator, address, result);
+	emulator.cpu.set_z_flag(result);
+	emulator.cpu.set_n_flag(result);
+}
+
+fn dec<T: AddressingMode>(emulator: &mut Emulator) {
+	let address = T::get_address(emulator);
+	dec_address(emulator, address);
+}
+
+fn dcp<T: AddressingMode>(emulator: &mut Emulator) {
+	let address = T::get_address(emulator);
+	dec_address(emulator, address);
+	cmp_address(emulator, address);
+}
+
+fn cpx<T: AddressingMode>(emulator: &mut Emulator) {
+	let operand = get_operand::<T>(emulator);
+	emulator.cpu.set_flag(Flag::C, emulator.cpu.x >= operand);
+	let result = emulator.cpu.x.wrapping_sub(operand);
+	emulator.cpu.set_z_flag(result);
+	emulator.cpu.set_n_flag(result);
+}
+
+fn cpy<T: AddressingMode>(emulator: &mut Emulator) {
+	let operand = get_operand::<T>(emulator);
+	emulator.cpu.set_flag(Flag::C, emulator.cpu.y >= operand);
+	let result = emulator.cpu.y.wrapping_sub(operand);
+	emulator.cpu.set_z_flag(result);
+	emulator.cpu.set_n_flag(result);
+}
+
+fn cmp_address(emulator: &mut Emulator, address: u16) {
+	let operand = read8(emulator, address);
+	emulator.cpu.set_flag(Flag::C, emulator.cpu.a >= operand);
+	let result = emulator.cpu.a.wrapping_sub(operand);
+	emulator.cpu.set_z_flag(result);
+	emulator.cpu.set_n_flag(result);
+}
+
+fn cmp<T: AddressingMode>(emulator: &mut Emulator) {
+	let address = T::get_address(emulator);
+	cmp_address(emulator, address);
+}
+
+fn branch(emulator: &mut Emulator, flag: Flag, value: bool) {
+	if emulator.cpu.get_flag(flag) == value {
+		let offset = read8(emulator, emulator.cpu.pc) as i8;
+		emulator.cpu.pc = if offset > 0 {
+			emulator.cpu.pc.wrapping_add(offset as _)
+		} else {
+			emulator.cpu.pc.wrapping_sub(offset.wrapping_neg() as _)
+		};
+	}
+	emulator.cpu.pc = emulator.cpu.pc.wrapping_add(1);
+}
+
+fn plp(emulator: &mut Emulator) {
+	let value = pull8(emulator);
+	emulator.cpu.p = (value | 0b0010_0000) & !(Flag::B as u8);
 }
