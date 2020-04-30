@@ -1,5 +1,4 @@
 use ppu::*;
-use super::memory::*;
 
 pub struct Ppuctrl;
 pub struct Ppumask;
@@ -12,18 +11,18 @@ pub struct Ppudata;
 pub trait Register {
     fn name() -> String;
 
-    fn read(_ppu: &mut Ppu, _memory: &Memory) -> u8 {
+    fn read(_ppu: &mut Ppu) -> u8 {
         println!("[ERROR] [PPU] Read from {}", Self::name());
         std::process::exit(1);
     }
 
-    fn write(_ppu: &mut Ppu, _memory: &mut Memory, _value: u8) {
+    fn write(_ppu: &mut Ppu, _value: u8) {
         println!("[ERROR] [PPU] Write to {}", Self::name());
         std::process::exit(1);
     }
 
     #[cfg(feature = "log")]
-	fn read_debug(_ppu: &Ppu, _memory: &Memory) -> u8 {
+	fn read_debug(_ppu: &Ppu) -> u8 {
         println!("[ERROR] [PPU] Read from {}", Self::name());
         std::process::exit(1);
 		/*
@@ -42,7 +41,7 @@ impl Register for Ppuctrl {
         "PPUCTRL".to_string()
     }
 
-    fn write(ppu: &mut Ppu, _memory: &mut Memory, value: u8) {
+    fn write(ppu: &mut Ppu, value: u8) {
         ppu.ppuctrl = value;
         //	TODO: check for NMI
     }
@@ -53,7 +52,7 @@ impl Register for Ppumask {
         "PPUMASK".to_string()
     }
 
-    fn write(ppu: &mut Ppu, _memory: &mut Memory, value: u8) {
+    fn write(ppu: &mut Ppu, value: u8) {
         ppu.ppumask = value
     }
 }
@@ -63,7 +62,7 @@ impl Register for Ppustatus {
         "PPUSTATUS".to_string()
     }
 
-    fn read(ppu: &mut Ppu, _memory: &Memory) -> u8 {
+    fn read(ppu: &mut Ppu) -> u8 {
         let value = ppu.ppustatus;
         ppu.ppustatus &= 0x7f;
         ppu.flipflop = false;
@@ -76,7 +75,7 @@ impl Register for Oamaddr {
         "OAMADDR".to_string()
     }
 
-    fn write(ppu: &mut Ppu, _memory: &mut Memory, value: u8) {
+    fn write(ppu: &mut Ppu, value: u8) {
         ppu.oamaddr = value;
     }
 }
@@ -86,7 +85,7 @@ impl Register for Ppuscroll {
         "PPUSCROLL".to_string()
     }
 
-    fn write(ppu: &mut Ppu, _memory: &mut Memory, value: u8) {
+    fn write(ppu: &mut Ppu, value: u8) {
         ppu.ppuscroll = write16(ppu, ppu.ppuscroll, value);
     }
 }
@@ -96,7 +95,7 @@ impl Register for Ppuaddr {
         "PPUADDR".to_string()
     }
 
-    fn write(ppu: &mut Ppu, _memory: &mut Memory, value: u8) {
+    fn write(ppu: &mut Ppu, value: u8) {
         ppu.ppuaddr = write16(ppu, ppu.ppuaddr, value);
     }
 }
@@ -106,14 +105,14 @@ impl Register for Ppudata {
         "PPUDATA".to_string()
     }
 
-    fn read(ppu: &mut Ppu, memory: &Memory) -> u8 {
-        let value = memory.read(ppu.ppuaddr);
+    fn read(ppu: &mut Ppu) -> u8 {
+        let value = ppu.memory.read(ppu.ppuaddr);
         increment_ppuaddr(ppu);
         value
     }
 
-    fn write(ppu: &mut Ppu, memory: &mut Memory, value: u8) {
-        memory.write(ppu.ppuaddr, value);
+    fn write(ppu: &mut Ppu, value: u8) {
+        ppu.memory.write(ppu.ppuaddr, value);
         increment_ppuaddr(ppu);
     }
 }
