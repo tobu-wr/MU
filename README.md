@@ -1,6 +1,10 @@
 # RNES
-![Build](https://github.com/WisterToub/rnes/workflows/Rust/badge.svg)
 
+## Building and running
+
+`cargo run --release <rom path>`
+
+## Screenshots
 <p align="center">
   <img src="screenshots/donkey-kong.png"/>
   <img src="screenshots/balloon-fight.png"/>
