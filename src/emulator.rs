@@ -11,7 +11,6 @@ pub struct Emulator {
 	pub ram: [u8; RAM_SIZE as _],
 	pub prg_rom: Vec<u8>,
 	pub prg_ram: [u8; PRG_RAM_SIZE as _],
-	pub ppu_memory: Memory,
 	pub cpu: Cpu,
 	pub ppu: Ppu,
 	pub joypad: Joypad,
@@ -27,7 +26,6 @@ impl Emulator {
 			ram: [0; RAM_SIZE as _],
 			prg_rom: Vec::new(),
 			prg_ram: [0; PRG_RAM_SIZE as _],
-			ppu_memory: Memory::new(),
 			cpu: Cpu::new(),
 			ppu: Ppu::new(),
 			joypad: Joypad::new(),
@@ -55,7 +53,7 @@ impl Emulator {
 		let chr_rom_start = prg_rom_end;
 		let chr_rom_end = chr_rom_start + chr_rom_size * 1024;
 		let chr_rom = &contents[chr_rom_start..chr_rom_end];
-		self.ppu_memory.load_chr_rom(chr_rom); 
+		self.ppu.load_chr_rom(chr_rom); 
 		
 		let mapper = (contents[7] & 0xf0) | (contents[6] >> 4);
 		println!("[INFO] Mapper: {}", mapper);

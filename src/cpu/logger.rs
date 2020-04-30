@@ -3,7 +3,7 @@ use std::fs::File;
 use std::cell::RefCell;
 
 use cpu::*;
-use cpu_memory::*;
+use memory::*;
 
 pub(super) struct Logger {
 	file: RefCell<File>
