@@ -16,7 +16,7 @@ impl Logger {
 		}
 	}
 
-	pub(super) fn create_log(emulator: &mut Emulator) {
+	pub(super) fn create_log(emulator: &Emulator) {
 		let opcode = read8_debug(emulator, emulator.cpu.pc);
 		let instruction_string = match opcode {
 			0xea => format("NOP"),
@@ -267,7 +267,7 @@ impl Logger {
 			// JMP (indirect)
 			0x6c => {
 				let pc = emulator.cpu.pc.wrapping_add(1);
-				let address = read16(emulator, pc);
+				let address = read16_debug(emulator, pc);
 				let low_byte = read8_debug(emulator, address) as u16;
 				let high_byte = if (address & 0xff) == 0xff  {
 					read8_debug(emulator, address & 0xff00)
@@ -309,20 +309,20 @@ fn format_a(mnemonic: &str) -> String {
 	format!("{:>10} A", mnemonic)
 }
 
-fn format_immediate(emulator: &mut Emulator, mnemonic: &str) -> String {
+fn format_immediate(emulator: &Emulator, mnemonic: &str) -> String {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let operand = read8_debug(emulator, pc);
 	format!("{:02X}{:>8} #${:02X}", operand, mnemonic, operand)
 }
 
-fn format_zero_page(emulator: &mut Emulator, mnemonic: &str) -> String {
+fn format_zero_page(emulator: &Emulator, mnemonic: &str) -> String {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let address = read8_debug(emulator, pc);
 	let operand = read8_debug(emulator, address as _);
 	format!("{:02X}{:>8} ${:02X} = {:02X}", address, mnemonic, address, operand)
 }
 
-fn format_zero_page_x(emulator: &mut Emulator, mnemonic: &str) -> String {
+fn format_zero_page_x(emulator: &Emulator, mnemonic: &str) -> String {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let address = read8_debug(emulator, pc);
 	let effective_address = address.wrapping_add(emulator.cpu.x);
@@ -330,7 +330,7 @@ fn format_zero_page_x(emulator: &mut Emulator, mnemonic: &str) -> String {
 	format!("{:02X}{:>8} ${:02X},X @ {:02X} = {:02X}", address, mnemonic, address, effective_address, operand)
 }
 
-fn format_zero_page_y(emulator: &mut Emulator, mnemonic: &str) -> String {
+fn format_zero_page_y(emulator: &Emulator, mnemonic: &str) -> String {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let address = read8_debug(emulator, pc);
 	let effective_address = address.wrapping_add(emulator.cpu.y);
@@ -338,18 +338,18 @@ fn format_zero_page_y(emulator: &mut Emulator, mnemonic: &str) -> String {
 	format!("{:02X}{:>8} ${:02X},Y @ {:02X} = {:02X}", address, mnemonic, address, effective_address, operand)
 }
 
-fn format_absolute(emulator: &mut Emulator, mnemonic: &str) -> String {
+fn format_absolute(emulator: &Emulator, mnemonic: &str) -> String {
 	let pc = emulator.cpu.pc.wrapping_add(1);
-	let address = read16(emulator, pc);
+	let address = read16_debug(emulator, pc);
 	let low_byte = address & 0xff;
 	let high_byte = address >> 8;
 	let operand = read8_debug(emulator, address);
 	format!("{:02X} {:02X}{:>5} ${:04X} = {:02X}", low_byte, high_byte, mnemonic, address, operand)
 }
 
-fn format_absolute_x(emulator: &mut Emulator, mnemonic: &str) -> String {
+fn format_absolute_x(emulator: &Emulator, mnemonic: &str) -> String {
 	let pc = emulator.cpu.pc.wrapping_add(1);
-	let address = read16(emulator, pc);
+	let address = read16_debug(emulator, pc);
 	let low_byte = address & 0xff;
 	let high_byte = address >> 8;
 	let effective_address = address.wrapping_add(emulator.cpu.x as _);
@@ -357,9 +357,9 @@ fn format_absolute_x(emulator: &mut Emulator, mnemonic: &str) -> String {
 	format!("{:02X} {:02X}{:>5} ${:04X},X @ {:04X} = {:02X}", low_byte, high_byte, mnemonic, address, effective_address, operand)
 }
 
-fn format_absolute_y(emulator: &mut Emulator, mnemonic: &str) -> String {
+fn format_absolute_y(emulator: &Emulator, mnemonic: &str) -> String {
 	let pc = emulator.cpu.pc.wrapping_add(1);
-	let address = read16(emulator, pc);
+	let address = read16_debug(emulator, pc);
 	let low_byte = address & 0xff;
 	let high_byte = address >> 8;
 	let effective_address = address.wrapping_add(emulator.cpu.y as _);
@@ -367,7 +367,7 @@ fn format_absolute_y(emulator: &mut Emulator, mnemonic: &str) -> String {
 	format!("{:02X} {:02X}{:>5} ${:04X},Y @ {:04X} = {:02X}", low_byte, high_byte, mnemonic, address, effective_address, operand)
 }
 
-fn format_indirect_x(emulator: &mut Emulator, mnemonic: &str) -> String {
+fn format_indirect_x(emulator: &Emulator, mnemonic: &str) -> String {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let immediate = read8_debug(emulator, pc);
 	let address = immediate.wrapping_add(emulator.cpu.x);
@@ -378,7 +378,7 @@ fn format_indirect_x(emulator: &mut Emulator, mnemonic: &str) -> String {
 	format!("{:02X}{:>8} (${:02X},X) @ {:02X} = {:04X} = {:02X}", immediate, mnemonic, immediate, address, effective_address, operand)
 }
 
-fn format_indirect_y(emulator: &mut Emulator, mnemonic: &str) -> String {
+fn format_indirect_y(emulator: &Emulator, mnemonic: &str) -> String {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let immediate = read8_debug(emulator, pc);
 	let low_byte = read8_debug(emulator, immediate as _) as u16;
@@ -389,15 +389,15 @@ fn format_indirect_y(emulator: &mut Emulator, mnemonic: &str) -> String {
 	format!("{:02X}{:>8} (${:02X}),Y = {:04X} @ {:04X} = {:02X}", immediate, mnemonic, immediate, address, effective_address, operand)
 }
 
-fn format_jump_absolute(emulator: &mut Emulator, mnemonic: &str) -> String {
+fn format_jump_absolute(emulator: &Emulator, mnemonic: &str) -> String {
 	let pc = emulator.cpu.pc.wrapping_add(1);
-	let address = read16(emulator, pc);
+	let address = read16_debug(emulator, pc);
 	let low_byte = address & 0xff;
 	let high_byte = address >> 8;
 	format!("{:02X} {:02X}{:>5} ${:04X}", low_byte, high_byte, mnemonic, address)
 }
 
-fn format_jump_relative(emulator: &mut Emulator, mnemonic: &str) -> String {
+fn format_jump_relative(emulator: &Emulator, mnemonic: &str) -> String {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let offset = read8_debug(emulator, pc) as i8;
 	let address = if offset > 0 {

@@ -46,9 +46,16 @@ pub(super) fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 	}
 }
 
+pub(super) fn read16(emulator: &mut Emulator, address: u16) -> u16 {
+	let low_byte = read8(emulator, address) as u16;
+	let high_byte = read8(emulator, address.wrapping_add(1)) as u16;
+	(high_byte << 8) | low_byte
+}
+
 #[cfg(feature = "log")]
-pub(super) fn read8_debug(emulator: &mut Emulator, address: u16) -> u8 {
+pub(super) fn read8_debug(emulator: &Emulator, address: u16) -> u8 {
 	match address {
+		RAM_START ..= RAM_END => emulator.ram[(address % RAM_SIZE) as usize],
 		PPUCTRL_ADDRESS => Ppuctrl::read_debug(&emulator.ppu),
 		PPUMASK_ADDRESS => Ppumask::read_debug(&emulator.ppu),
 		PPUSTATUS_ADDRESS => Ppustatus::read_debug(&emulator.ppu),
@@ -57,13 +64,20 @@ pub(super) fn read8_debug(emulator: &mut Emulator, address: u16) -> u8 {
 		PPUSCROLL_ADDRESS => Ppuscroll::read_debug(&emulator.ppu),
 		PPUADDR_ADDRESS => Ppuaddr::read_debug(&emulator.ppu),
 		PPUDATA_ADDRESS => Ppudata::read_debug(&emulator.ppu),
-		_ => read8(emulator, address)
+		JOY1_ADDRESS => emulator.joypad.read_debug(&emulator.window),
+		0x4000 ..= 0x4013 | 0x4015 | 0x4017 => 0,
+		PRG_ROM_START ..= PRG_ROM_END => emulator.prg_rom[((address - PRG_ROM_START) as usize) % emulator.prg_rom.len()],
+		_ => {
+			println!("[ERROR] [CPU] Read from {:04X}", address);
+			std::process::exit(1);
+		}
 	}
 }
 
-pub(super) fn read16(emulator: &mut Emulator, address: u16) -> u16 {
-	let low_byte = read8(emulator, address) as u16;
-	let high_byte = read8(emulator, address.wrapping_add(1)) as u16;
+#[cfg(feature = "log")]
+pub(super) fn read16_debug(emulator: &Emulator, address: u16) -> u16 {
+	let low_byte = read8_debug(emulator, address) as u16;
+	let high_byte = read8_debug(emulator, address.wrapping_add(1)) as u16;
 	(high_byte << 8) | low_byte
 }
 
