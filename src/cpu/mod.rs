@@ -152,7 +152,7 @@ impl Cpu {
 		}
 
 		#[cfg(feature = "log")]
-		emulator.cpu.logger.create_log(emulator.cpu, emulator.memory);
+		Logger::create_log(emulator);
 		
 		let opcode = read8(emulator, emulator.cpu.pc);
 		emulator.cpu.pc = emulator.cpu.pc.wrapping_add(1);
@@ -296,8 +296,7 @@ impl Cpu {
 
 			// AXS
 			0xcb => {
-				let operand = read8(emulator, emulator.cpu.pc);
-				emulator.cpu.pc = emulator.cpu.pc.wrapping_add(1);
+				let operand = get_operand::<Immediate>(emulator);
 				emulator.cpu.x &= emulator.cpu.a;
 				emulator.cpu.set_flag(Flag::C, emulator.cpu.x >= operand);
 				emulator.cpu.x = emulator.cpu.x.wrapping_sub(operand);
