@@ -64,6 +64,7 @@ pub(super) fn read8_debug(emulator: &Emulator, address: u16) -> u8 {
 		PPUSCROLL_ADDRESS => Ppuscroll::read_debug(&emulator.ppu),
 		PPUADDR_ADDRESS => Ppuaddr::read_debug(&emulator.ppu),
 		PPUDATA_ADDRESS => Ppudata::read_debug(&emulator.ppu),
+		OAMDMA_ADDRESS => 0,
 		JOY1_ADDRESS => emulator.joypad.read_debug(&emulator.window),
 		0x4000 ..= 0x4013 | 0x4015 | 0x4017 => 0,
 		PRG_RAM_START ..= PRG_RAM_END => emulator.prg_ram[(address - PRG_RAM_START) as usize],
