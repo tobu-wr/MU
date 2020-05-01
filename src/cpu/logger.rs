@@ -292,12 +292,9 @@ impl Logger {
 			0x40 => format("RTI"),
 			0x60 => format("RTS"),
 
-			_ => {
-				println!("[ERROR] Unknown opcode {:02X} at {:04X}", opcode, emulator.cpu.pc);
-				std::process::exit(1);
-			}
+			_ => println!("[WARN] [LOGGER] Unknown opcode {:02X} at {:04X}", opcode, emulator.cpu.pc)
 		};
-	//	write!(emulator.cpu.logger.file.borrow_mut(), "{:04X}  {:02X} {:<38} A:{:02X} X:{:02X} Y:{:02X} P:{:02X} SP:{:02X}\n", emulator.cpu.pc, opcode, instruction_string, emulator.cpu.a, emulator.cpu.x, emulator.cpu.y, emulator.cpu.p, emulator.cpu.s).unwrap();
+		write!(emulator.cpu.logger.file.borrow_mut(), "{:04X}  {:02X} {:<38} A:{:02X} X:{:02X} Y:{:02X} P:{:02X} SP:{:02X}\n", emulator.cpu.pc, opcode, instruction_string, emulator.cpu.a, emulator.cpu.x, emulator.cpu.y, emulator.cpu.p, emulator.cpu.s).unwrap();
 	}
 }
 

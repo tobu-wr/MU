@@ -572,7 +572,7 @@ impl Cpu {
 			0x60 => emulator.cpu.pc = pull16(emulator).wrapping_add(1),
 
 			_ => {
-				println!("[ERROR] Unknown opcode {:02X} at {:04X}", opcode, emulator.cpu.pc.wrapping_sub(1));
+				println!("[ERROR] [CPU] Unknown opcode {:02X} at {:04X}", opcode, emulator.cpu.pc.wrapping_sub(1));
 				std::process::exit(1);
 			}
 		}
