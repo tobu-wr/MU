@@ -26,9 +26,6 @@ pub trait Register {
 	fn read_debug(_ppu: &Ppu) -> u8 {
         println!("[ERROR] [PPU] Read from {}", Self::name());
         std::process::exit(1);
-		/*
-			Register::Ppuscroll => self.read16_debug(self.ppuscroll),
-		*/
 	}
 }
 
@@ -119,6 +116,11 @@ impl Register for Ppuscroll {
 
     fn write(ppu: &mut Ppu, value: u8) {
         ppu.ppuscroll = write16(ppu, ppu.ppuscroll, value);
+    }
+
+    #[cfg(feature = "log")]
+    fn read_debug(ppu: &Ppu) -> u8 {
+        read16_debug(ppu, ppu.ppuscroll)
     }
 }
 
