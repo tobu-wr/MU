@@ -25,6 +25,7 @@ pub trait Register {
     #[cfg(feature = "log")]
 	fn read_debug(_ppu: &Ppu) -> u8 {
         println!("[WARN] [LOGGER] Read from {}", Self::name());
+        0
 	}
 }
 
@@ -36,8 +37,8 @@ impl Register for Ppuctrl {
     fn write(ppu: &mut Ppu, value: u8) {
         ppu.ppuctrl = value;
         if (ppu.ppuctrl & ppu.ppustatus & 0x80) != 0 {
-            //	TODO: trigger NMI
-            println!("[WARN] [PPU] NMI not triggered", Self::name());
+            // TODO: trigger NMI
+            println!("[WARN] [PPU] NMI not triggered");
         }
     }
 
