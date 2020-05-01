@@ -4,6 +4,7 @@ pub struct Ppuctrl;
 pub struct Ppumask;
 pub struct Ppustatus;
 pub struct Oamaddr;
+pub struct Oamdata;
 pub struct Ppuscroll;
 pub struct Ppuaddr;
 pub struct Ppudata;
@@ -26,12 +27,7 @@ pub trait Register {
         println!("[ERROR] [PPU] Read from {}", Self::name());
         std::process::exit(1);
 		/*
-			Register::Ppuctrl => self.ppuctrl,
-			Register::Ppumask => self.ppumask,
-			Register::Ppustatus => self.ppustatus,
 			Register::Ppuscroll => self.read16_debug(self.ppuscroll),
-			Register::Ppuaddr => self.read16_debug(self.ppuaddr),
-			Register::Ppudata => memory.read(self.ppuaddr)
 		*/
 	}
 }
@@ -45,6 +41,11 @@ impl Register for Ppuctrl {
         ppu.ppuctrl = value;
         //	TODO: check for NMI
     }
+
+    #[cfg(feature = "log")]
+    fn read_debug(ppu: &Ppu) -> u8 {
+        ppu.ppuctrl
+    }
 }
 
 impl Register for Ppumask {
@@ -54,6 +55,11 @@ impl Register for Ppumask {
 
     fn write(ppu: &mut Ppu, value: u8) {
         ppu.ppumask = value
+    }
+
+    #[cfg(feature = "log")]
+    fn read_debug(ppu: &Ppu) -> u8 {
+        ppu.ppumask
     }
 }
 
@@ -68,6 +74,11 @@ impl Register for Ppustatus {
         ppu.flipflop = false;
         value
     }
+
+    #[cfg(feature = "log")]
+    fn read_debug(ppu: &Ppu) -> u8 {
+        ppu.ppustatus
+    }
 }
 
 impl Register for Oamaddr {
@@ -77,6 +88,27 @@ impl Register for Oamaddr {
 
     fn write(ppu: &mut Ppu, value: u8) {
         ppu.oamaddr = value;
+    }
+
+    #[cfg(feature = "log")]
+    fn read_debug(ppu: &Ppu) -> u8 {
+        ppu.oamaddr
+    }
+}
+
+impl Register for Oamdata {
+    fn name() -> String {
+        "OAMDATA".to_string()
+    }
+
+    fn write(ppu: &mut Ppu, value: u8) {
+        ppu.oam[ppu.oamaddr as usize] = value;
+        ppu.oamaddr = ppu.oamaddr.wrapping_add(1);
+    }
+
+    #[cfg(feature = "log")]
+    fn read_debug(ppu: &Ppu) -> u8 {
+        ppu.oam[ppu.oamaddr as usize]
     }
 }
 
@@ -98,6 +130,11 @@ impl Register for Ppuaddr {
     fn write(ppu: &mut Ppu, value: u8) {
         ppu.ppuaddr = write16(ppu, ppu.ppuaddr, value);
     }
+
+    #[cfg(feature = "log")]
+    fn read_debug(ppu: &Ppu) -> u8 {
+        read16_debug(ppu, ppu.ppuaddr)
+    }
 }
 
 impl Register for Ppudata {
@@ -114,6 +151,11 @@ impl Register for Ppudata {
     fn write(ppu: &mut Ppu, value: u8) {
         ppu.memory.write(ppu.ppuaddr, value);
         increment_ppuaddr(ppu);
+    }
+
+    #[cfg(feature = "log")]
+    fn read_debug(ppu: &Ppu) -> u8 {
+        ppu.memory.read(ppu.ppuaddr)
     }
 }
 
