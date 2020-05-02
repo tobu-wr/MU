@@ -1,11 +1,9 @@
-# RNES
+# KirbyNES
 
 ## Building and running
-
 `cargo run --release <rom path>`
 
 ## Controls
-
 | NES | Key (AZERTY) |
 | --- | --- |
 | A | A |
@@ -18,6 +16,7 @@
 <p align="center">
   <img src="screenshots/donkey-kong.png"/>
   <img src="screenshots/balloon-fight.png"/>
+  <img src="screenshots/mario-bros.png"/>
 </p>
 
 ## Resources
