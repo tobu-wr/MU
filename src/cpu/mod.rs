@@ -926,7 +926,7 @@ mod tests {
 	}
 
 	#[test]
-	#[ignore] // temp until SXA and SYA are fixed
+	#[ignore] // FIXME
 	fn abs_xy() {
 		run_test("tests/07-abs_xy.nes");
 	}
@@ -947,6 +947,7 @@ mod tests {
 	}
 
 	#[test]
+	#[ignore] // FIXME
 	fn stack() {
 		run_test("tests/11-stack.nes");
 	}
