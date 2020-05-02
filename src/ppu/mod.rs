@@ -118,10 +118,15 @@ impl Ppu {
 						let attributes = self.oam[number * 4 + 2];
 						let palette_number = (4 + (attributes & 0b11)) * 4;
 						let horizontal_flip = (attributes & 0x40) != 0;
+						let vertical_flip = (attributes & 0x80) != 0;
 						let sprite_x = self.oam[number * 4 + 3];
 						let pattern_address = 0x1000 * ((self.ppuctrl >> 3) & 1) as u16;
 						for pixel_row in 0..8 {
-							let y = pixel_row + sprite_y as u16;
+							let y = (if vertical_flip {
+								7 - pixel_row
+							} else {
+								pixel_row
+							}) + sprite_y as u16;
 							if y >= FRAME_HEIGHT as u16 {
 								break;
 							}
