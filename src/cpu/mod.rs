@@ -48,7 +48,7 @@ impl Cpu {
 			y: 0,
 			pc: 0,
 			s: 0xfd,
-			p: 0x24,
+			p: 0x34,
 			pending_interrupt: None,
 
 			#[cfg(feature = "trace")]
