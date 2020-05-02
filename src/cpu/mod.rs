@@ -1,14 +1,14 @@
 mod memory;
 mod addressing_mode;
 
-#[cfg(feature = "log")]
+#[cfg(feature = "trace")]
 mod logger;
 
 use emulator::*;
 use self::memory::*;
 use self::addressing_mode::*;
 
-#[cfg(feature = "log")]
+#[cfg(feature = "trace")]
 use self::logger::*;
 
 enum Flag {
@@ -36,7 +36,7 @@ pub struct Cpu {
 	p: u8,
 	pending_interrupt: Option<Interrupt>,
 
-	#[cfg(feature = "log")]
+	#[cfg(feature = "trace")]
 	logger: Logger
 }
 
@@ -51,7 +51,7 @@ impl Cpu {
 			p: 0x24,
 			pending_interrupt: None,
 
-			#[cfg(feature = "log")]
+			#[cfg(feature = "trace")]
 			logger: Logger::new()
 		}
 	}
@@ -151,8 +151,8 @@ impl Cpu {
 			emulator.cpu.pending_interrupt = None;
 		}
 
-		#[cfg(feature = "log")]
-		Logger::create_log(emulator);
+		#[cfg(feature = "trace")]
+		Logger::create_trace(emulator);
 		
 		let opcode = read8(emulator, emulator.cpu.pc);
 		emulator.cpu.pc = emulator.cpu.pc.wrapping_add(1);

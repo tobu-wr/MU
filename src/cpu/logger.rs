@@ -12,11 +12,11 @@ pub(super) struct Logger {
 impl Logger {
 	pub(super) fn new() -> Self {
 		Self {
-			file: RefCell::new(File::create("rnes.log").unwrap())
+			file: RefCell::new(File::create("trace.log").unwrap())
 		}
 	}
 
-	pub(super) fn create_log(emulator: &Emulator) {
+	pub(super) fn create_trace(emulator: &Emulator) {
 		let opcode = read8_debug(emulator, emulator.cpu.pc);
 		let instruction_string = match opcode {
 			0xea => format("NOP"),

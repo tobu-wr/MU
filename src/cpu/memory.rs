@@ -53,7 +53,7 @@ pub(super) fn read16(emulator: &mut Emulator, address: u16) -> u16 {
 	(high_byte << 8) | low_byte
 }
 
-#[cfg(feature = "log")]
+#[cfg(feature = "trace")]
 pub(super) fn read8_debug(emulator: &Emulator, address: u16) -> u8 {
 	match address {
 		RAM_START ..= RAM_END => emulator.ram[(address % RAM_SIZE) as usize],
@@ -75,7 +75,7 @@ pub(super) fn read8_debug(emulator: &Emulator, address: u16) -> u8 {
 	}
 }
 
-#[cfg(feature = "log")]
+#[cfg(feature = "trace")]
 pub(super) fn read16_debug(emulator: &Emulator, address: u16) -> u16 {
 	let low_byte = read8_debug(emulator, address) as u16;
 	let high_byte = read8_debug(emulator, address.wrapping_add(1)) as u16;

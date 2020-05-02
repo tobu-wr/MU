@@ -22,7 +22,7 @@ pub trait Register {
         std::process::exit(1);
     }
 
-    #[cfg(feature = "log")]
+    #[cfg(feature = "trace")]
 	fn read_debug(_ppu: &Ppu) -> u8 {
         println!("[WARN] [LOGGER] Read from {}", Self::name());
         0
@@ -42,7 +42,7 @@ impl Register for Ppuctrl {
         }
     }
 
-    #[cfg(feature = "log")]
+    #[cfg(feature = "trace")]
     fn read_debug(ppu: &Ppu) -> u8 {
         ppu.ppuctrl
     }
@@ -57,7 +57,7 @@ impl Register for Ppumask {
         ppu.ppumask = value
     }
 
-    #[cfg(feature = "log")]
+    #[cfg(feature = "trace")]
     fn read_debug(ppu: &Ppu) -> u8 {
         ppu.ppumask
     }
@@ -75,7 +75,7 @@ impl Register for Ppustatus {
         value
     }
 
-    #[cfg(feature = "log")]
+    #[cfg(feature = "trace")]
     fn read_debug(ppu: &Ppu) -> u8 {
         ppu.ppustatus
     }
@@ -90,7 +90,7 @@ impl Register for Oamaddr {
         ppu.oamaddr = value;
     }
 
-    #[cfg(feature = "log")]
+    #[cfg(feature = "trace")]
     fn read_debug(ppu: &Ppu) -> u8 {
         ppu.oamaddr
     }
@@ -106,7 +106,7 @@ impl Register for Oamdata {
         ppu.oamaddr = ppu.oamaddr.wrapping_add(1);
     }
 
-    #[cfg(feature = "log")]
+    #[cfg(feature = "trace")]
     fn read_debug(ppu: &Ppu) -> u8 {
         ppu.oam[ppu.oamaddr as usize]
     }
@@ -121,7 +121,7 @@ impl Register for Ppuscroll {
         ppu.ppuscroll = write16(ppu, ppu.ppuscroll, value);
     }
 
-    #[cfg(feature = "log")]
+    #[cfg(feature = "trace")]
     fn read_debug(ppu: &Ppu) -> u8 {
         read16_debug(ppu, ppu.ppuscroll)
     }
@@ -136,7 +136,7 @@ impl Register for Ppuaddr {
         ppu.ppuaddr = write16(ppu, ppu.ppuaddr, value);
     }
 
-    #[cfg(feature = "log")]
+    #[cfg(feature = "trace")]
     fn read_debug(ppu: &Ppu) -> u8 {
         read16_debug(ppu, ppu.ppuaddr)
     }
@@ -158,7 +158,7 @@ impl Register for Ppudata {
         increment_ppuaddr(ppu);
     }
 
-    #[cfg(feature = "log")]
+    #[cfg(feature = "trace")]
     fn read_debug(ppu: &Ppu) -> u8 {
         ppu.memory.read(ppu.ppuaddr)
     }
@@ -181,7 +181,7 @@ fn increment_ppuaddr(ppu: &mut Ppu) {
 	};
 }
 
-#[cfg(feature = "log")]
+#[cfg(feature = "trace")]
 fn read16_debug(ppu: &Ppu, register: u16) -> u8 {
 	(if ppu.flipflop {
         register

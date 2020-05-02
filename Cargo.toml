@@ -6,7 +6,8 @@ edition = "2015"
 
 [features]
 default = []
-log = []
+trace = []
 
 [dependencies]
 minifb = "0.15.3"
+log = "0.4.8"
