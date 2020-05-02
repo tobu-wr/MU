@@ -150,7 +150,13 @@ impl Register for Ppudata {
     fn read(ppu: &mut Ppu) -> u8 {
         let value = ppu.memory.read(ppu.ppuaddr);
         increment_ppuaddr(ppu);
-        value
+        if ppu.ppuaddr <= 0x3eff {
+            let old = ppu.ppudata_buffer;
+            ppu.ppudata_buffer = value;
+            old
+        } else {
+            value
+        }
     }
 
     fn write(ppu: &mut Ppu, value: u8) {
@@ -160,7 +166,11 @@ impl Register for Ppudata {
 
     #[cfg(feature = "trace")]
     fn read_debug(ppu: &Ppu) -> u8 {
-        ppu.memory.read(ppu.ppuaddr)
+        if ppu.addr <= 0x3eff {
+            ppu.ppudata_buffer
+        } else {
+            ppu.memory.read(ppu.ppuaddr)
+        }
     }
 }
 
