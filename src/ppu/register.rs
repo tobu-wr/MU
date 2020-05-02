@@ -166,7 +166,7 @@ impl Register for Ppudata {
 
     #[cfg(feature = "trace")]
     fn read_debug(ppu: &Ppu) -> u8 {
-        if ppu.addr <= 0x3eff {
+        if ppu.ppuaddr <= 0x3eff {
             ppu.ppudata_buffer
         } else {
             ppu.memory.read(ppu.ppuaddr)
