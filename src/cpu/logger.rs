@@ -293,7 +293,7 @@ impl Logger {
 			0x60 => format("RTS"),
 
 			_ => {
-				println!("[WARN] [LOGGER] Unknown opcode {:02X} at {:04X}", opcode, emulator.cpu.pc);
+				warn!("Unknown opcode {:02X} at {:04X}", opcode, emulator.cpu.pc);
 				"# UNKNOWN OPCODE #".to_string()
 			}
 		};

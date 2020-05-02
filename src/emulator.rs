@@ -35,19 +35,19 @@ impl Emulator {
 	pub fn load_file(&mut self, filename: &str) {
 		let contents = std::fs::read(filename).unwrap();
 		if &contents[..4] != b"NES\x1a" {
-			println!("[ERROR] Wrong file format");
+			error!("Wrong file format");
 			std::process::exit(1);
 		}
 
 		let prg_rom_size = (contents[4] * 16) as usize;
-		println!("[INFO] PRG ROM size: {}KB", prg_rom_size);
+		info!("PRG ROM size: {}KB", prg_rom_size);
 		
 		let prg_rom_start = 16;
 		let prg_rom_end = prg_rom_start + prg_rom_size * 1024;
 		self.prg_rom = contents[prg_rom_start..prg_rom_end].to_vec();
 		
 		let chr_rom_size = (contents[5] * 8) as usize;
-		println!("[INFO] CHR ROM size: {}KB", chr_rom_size);
+		info!("CHR ROM size: {}KB", chr_rom_size);
 
 		let chr_rom_start = prg_rom_end;
 		let chr_rom_end = chr_rom_start + chr_rom_size * 1024;
@@ -55,7 +55,7 @@ impl Emulator {
 		self.ppu.load_chr_rom(chr_rom); 
 		
 		let mapper = (contents[7] & 0xf0) | (contents[6] >> 4);
-		println!("[INFO] Mapper: {}", mapper);
+		info!("Cartridge mapper: {}", mapper);
 
 		Cpu::init_pc(self);
 	}

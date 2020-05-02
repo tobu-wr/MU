@@ -13,18 +13,18 @@ pub trait Register {
     fn name() -> String;
 
     fn read(_ppu: &mut Ppu) -> u8 {
-        println!("[ERROR] [PPU] Read from {}", Self::name());
+        error!("Read from {}", Self::name());
         std::process::exit(1);
     }
 
     fn write(_ppu: &mut Ppu, _value: u8) {
-        println!("[ERROR] [PPU] Write to {}", Self::name());
+        error!("Write to {}", Self::name());
         std::process::exit(1);
     }
 
     #[cfg(feature = "trace")]
 	fn read_debug(_ppu: &Ppu) -> u8 {
-        println!("[WARN] [LOGGER] Read from {}", Self::name());
+        warn!("Read from {}", Self::name());
         0
 	}
 }
@@ -38,7 +38,7 @@ impl Register for Ppuctrl {
         ppu.ppuctrl = value;
         if (ppu.ppuctrl & ppu.ppustatus & 0x80) != 0 {
             // TODO: trigger NMI
-            println!("[WARN] [PPU] NMI not triggered");
+            warn!("NMI not triggered");
         }
     }
 

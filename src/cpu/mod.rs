@@ -62,7 +62,7 @@ impl Cpu {
 	}
 
 	fn set_pc(&mut self, value: u16) {
-		println!("[INFO] PC: {:04X}", value);
+		info!("PC: {:04X}", value);
 		self.pc = value;
 	}
 
@@ -572,7 +572,7 @@ impl Cpu {
 			0x60 => emulator.cpu.pc = pull16(emulator).wrapping_add(1),
 
 			_ => {
-				println!("[ERROR] [CPU] Unknown opcode {:02X} at {:04X}", opcode, emulator.cpu.pc.wrapping_sub(1));
+				error!("Unknown opcode {:02X} at {:04X}", opcode, emulator.cpu.pc.wrapping_sub(1));
 				std::process::exit(1);
 			}
 		}

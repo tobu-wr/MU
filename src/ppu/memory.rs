@@ -33,7 +33,7 @@ impl Memory {
 			TABLES_MIRRORS_START ..= TABLES_MIRRORS_END => self.tables[(address - TABLES_MIRRORS_OFFSET) as usize],
 			PALETTES_START ..= PALETTES_END => self.palettes[(address % PALETTES_SIZE) as usize],
 			_ => {
-				println!("[ERROR] [PPU] Read from {:04X}", address);
+				error!("Read from {:04X}", address);
 				std::process::exit(1);
 			}
 		}
@@ -45,7 +45,7 @@ impl Memory {
 			TABLES_MIRRORS_START ..= TABLES_MIRRORS_END => self.tables[(address - TABLES_MIRRORS_OFFSET) as usize] = value,
 			PALETTES_START ..= PALETTES_END => self.palettes[(address % PALETTES_SIZE) as usize] = value,
 			_ => {
-				println!("[ERROR] [PPU] Write to {:04X}", address);
+				error!("Write to {:04X}", address);
 				std::process::exit(1);
 			}
 		}

@@ -34,14 +34,14 @@ pub(super) fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 		PPUDATA_ADDRESS => Ppudata::read(&mut emulator.ppu),
 		0x4000 ..= 0x4013 | 0x4015 | 0x4017 => {
 			// TODO: implement APU registers
-			println!("[WARN] [CPU] Read from an APU register");
+			warn!("Read from an APU register");
 			0
 		},
 		JOY1_ADDRESS => emulator.joypad.read(&emulator.window),
 		PRG_RAM_START ..= PRG_RAM_END => emulator.prg_ram[(address - PRG_RAM_START) as usize],
 		PRG_ROM_START ..= PRG_ROM_END => emulator.prg_rom[((address - PRG_ROM_START) as usize) % emulator.prg_rom.len()],
 		_ => {
-			println!("[ERROR] [CPU] Read from {:04X}", address);
+			error!("Read from {:04X}", address);
 			std::process::exit(1);
 		}
 	}
@@ -69,7 +69,7 @@ pub(super) fn read8_debug(emulator: &Emulator, address: u16) -> u8 {
 		PRG_RAM_START ..= PRG_RAM_END => emulator.prg_ram[(address - PRG_RAM_START) as usize],
 		PRG_ROM_START ..= PRG_ROM_END => emulator.prg_rom[((address - PRG_ROM_START) as usize) % emulator.prg_rom.len()],
 		_ => {
-			println!("[WARN] [LOGGER] Read from {:04X}", address);
+			warn!("Read from {:04X}", address);
 			0
 		}
 	}
@@ -94,7 +94,7 @@ pub(super) fn write8(emulator: &mut Emulator, address: u16, value: u8) {
 		PPUDATA_ADDRESS => Ppudata::write(&mut emulator.ppu, value),
 		0x4000 ..= 0x4013 | 0x4015 | 0x4017 => {
 			// TODO: implement APU registers
-			println!("[WARN] [CPU] Write to an APU register");
+			warn!("Write to an APU register");
 		},
 		OAMDMA_ADDRESS => {
 				let start = (value as usize) << 8;
@@ -104,7 +104,7 @@ pub(super) fn write8(emulator: &mut Emulator, address: u16, value: u8) {
 		JOY1_ADDRESS => emulator.joypad.write(&emulator.window, value),
 		PRG_RAM_START ..= PRG_RAM_END => emulator.prg_ram[(address - PRG_RAM_START) as usize] = value,
 		_ => {
-			println!("[ERROR] [CPU] Write to {:04X}", address);
+			error!("Write to {:04X}", address);
 			std::process::exit(1);
 		}
 	}
