@@ -100,6 +100,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "kirbynes"
+version = "1.0.0"
+dependencies = [
+ "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "minifb 0.15.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "simple_logger 1.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -383,15 +392,6 @@ version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "winapi 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "rnes"
-version = "1.0.0"
-dependencies = [
- "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "minifb 0.15.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "simple_logger 1.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

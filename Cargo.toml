@@ -1,5 +1,5 @@
 [package]
-name = "KirbyNES"
+name = "kirbynes"
 version = "1.0.0"
 authors = ["Wilfried Rabouin"]
 edition = "2015"
