@@ -23,10 +23,10 @@ pub trait Register {
     }
 
     #[cfg(feature = "trace")]
-	fn read_debug(_ppu: &Ppu) -> u8 {
+    fn read_debug(_ppu: &Ppu) -> u8 {
         warn!("Read from {}", Self::name());
         0
-	}
+    }
 }
 
 impl Register for Ppuctrl {
@@ -184,18 +184,18 @@ fn write16(ppu: &mut Ppu, register: u16, value: u8) -> u16 {
 }
 
 fn increment_ppuaddr(ppu: &mut Ppu) {
-	ppu.ppuaddr += if (ppu.ppuctrl & 0x04) == 0 {
+    ppu.ppuaddr += if (ppu.ppuctrl & 0x04) == 0 {
         1
-	} else {
+    } else {
         32
-	};
+    };
 }
 
 #[cfg(feature = "trace")]
 fn read16_debug(ppu: &Ppu, register: u16) -> u8 {
-	(if ppu.flipflop {
+    (if ppu.flipflop {
         register
-	} else {
+    } else {
         register >> 8
-	}) as _
+    }) as _
 }

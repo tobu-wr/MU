@@ -31,7 +31,7 @@ impl Memory {
 		match address {
 			TABLES_START ..= TABLES_END => self.tables[address as usize],
 			TABLES_MIRRORS_START ..= TABLES_MIRRORS_END => self.tables[(address - TABLES_MIRRORS_OFFSET) as usize],
-			PALETTES_START ..= PALETTES_END => self.palettes[(address % PALETTES_SIZE) as usize],
+			PALETTES_START ..= PALETTES_END => self.palettes[((address - PALETTES_START) % PALETTES_SIZE) as usize],
 			_ => {
 				error!("Read from {:04X}", address);
 				panic!();
@@ -43,7 +43,7 @@ impl Memory {
 		match address {
 			TABLES_START ..= TABLES_END => self.tables[address as usize] = value,
 			TABLES_MIRRORS_START ..= TABLES_MIRRORS_END => self.tables[(address - TABLES_MIRRORS_OFFSET) as usize] = value,
-			PALETTES_START ..= PALETTES_END => self.palettes[(address % PALETTES_SIZE) as usize] = value,
+			PALETTES_START ..= PALETTES_END => self.palettes[((address - PALETTES_START) % PALETTES_SIZE) as usize] = value,
 			_ => {
 				error!("Write to {:04X}", address);
 				panic!();
