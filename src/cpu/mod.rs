@@ -48,7 +48,7 @@ impl Cpu {
 			y: 0,
 			pc: 0,
 			s: 0xfd,
-			p: 0x34,
+			p: 0x24,
 			pending_interrupt: None,
 
 			#[cfg(feature = "trace")]
@@ -875,7 +875,7 @@ mod tests {
 		let mut emulator = Emulator::new();
 		emulator.load_file("tests/nestest.nes");
 		emulator.cpu.set_pc(0xc000);
-		for _ in 0..8992 {
+		for _ in 0..8991 {
 			Cpu::execute_next_instruction(&mut emulator);
 		}
 		assert_eq!(read8(&mut emulator, 0x02), 0);
