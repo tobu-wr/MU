@@ -1,4 +1,5 @@
 use std::io::prelude::Write;
+use std::io::BufWriter;
 use std::fs::File;
 use std::cell::RefCell;
 
@@ -6,13 +7,13 @@ use emulator::*;
 use super::memory::*;
 
 pub(super) struct Logger {
-	file: RefCell<File>
+	file: RefCell<BufWriter<File>>
 }
 
 impl Logger {
 	pub(super) fn new() -> Self {
 		Self {
-			file: RefCell::new(File::create("trace.log").unwrap())
+			file: RefCell::new(BufWriter::new(File::create("trace.log").unwrap()))
 		}
 	}
 
