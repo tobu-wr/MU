@@ -875,7 +875,7 @@ mod tests {
 		let mut emulator = Emulator::new();
 		emulator.load_file("tests/nestest.nes");
 		emulator.cpu.set_pc(0xc000);
-		for _counter in 0..8992 {
+		for _ in 0..8992 {
 			Cpu::execute_next_instruction(&mut emulator);
 		}
 		assert_eq!(read8(&mut emulator, 0x02), 0);

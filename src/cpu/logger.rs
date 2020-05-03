@@ -1,19 +1,62 @@
 use std::io::prelude::Write;
-use std::io::BufWriter;
 use std::fs::File;
 use std::cell::RefCell;
 
 use emulator::*;
 use super::memory::*;
 
+const BUFFER_CAPACITY: usize = 9_000;
+
+struct Buffer {
+	logs: Vec::<String>,
+	index: usize
+}
+
+impl Buffer {
+	fn new() -> Self {
+		Self {
+			logs: Vec::<String>::with_capacity(BUFFER_CAPACITY),
+			index: 0
+		}
+	}
+
+	fn push(&mut self, log: String) {
+		if self.logs.len() < BUFFER_CAPACITY {
+			self.logs.push(log);
+		} else {
+			self.logs[self.index] = log;
+			self.increment_index();
+		}
+	}
+
+	fn increment_index(&mut self) {
+		if self.index == (BUFFER_CAPACITY - 1) {
+			self.index = 0;
+		} else {
+			self.index += 1;
+		}
+	}
+}
+
+impl Drop for Buffer {
+	fn drop(&mut self) {
+		let mut file = File::create("trace.log").unwrap();
+		for _ in 0..self.logs.len() {
+			file.write_all(self.logs[self.index].as_bytes()).unwrap();
+			self.increment_index();
+		}
+		file.flush().unwrap();
+	}
+}
+
 pub(super) struct Logger {
-	file: RefCell<BufWriter<File>>
+	buffer: RefCell<Buffer>
 }
 
 impl Logger {
 	pub(super) fn new() -> Self {
 		Self {
-			file: RefCell::new(BufWriter::new(File::create("trace.log").unwrap()))
+			buffer: RefCell::new(Buffer::new())
 		}
 	}
 
@@ -298,7 +341,9 @@ impl Logger {
 				"# UNKNOWN OPCODE #".to_string()
 			}
 		};
-		write!(emulator.cpu.logger.file.borrow_mut(), "{:04X}  {:02X} {:<38} A:{:02X} X:{:02X} Y:{:02X} P:{:02X} SP:{:02X}\n", emulator.cpu.pc, opcode, instruction_string, emulator.cpu.a, emulator.cpu.x, emulator.cpu.y, emulator.cpu.p, emulator.cpu.s).unwrap();
+
+		let log = format!("{:04X}  {:02X} {:<38} A:{:02X} X:{:02X} Y:{:02X} P:{:02X} SP:{:02X}\n", emulator.cpu.pc, opcode, instruction_string, emulator.cpu.a, emulator.cpu.x, emulator.cpu.y, emulator.cpu.p, emulator.cpu.s);
+		emulator.cpu.logger.buffer.borrow_mut().push(log);
 	}
 }
 
