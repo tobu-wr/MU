@@ -573,7 +573,7 @@ impl Cpu {
 
 			_ => {
 				error!("Unknown opcode {:02X} at {:04X}", opcode, emulator.cpu.pc.wrapping_sub(1));
-				std::process::exit(1);
+				panic!();
 			}
 		}
 	}

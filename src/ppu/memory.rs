@@ -34,7 +34,7 @@ impl Memory {
 			PALETTES_START ..= PALETTES_END => self.palettes[(address % PALETTES_SIZE) as usize],
 			_ => {
 				error!("Read from {:04X}", address);
-				std::process::exit(1);
+				panic!();
 			}
 		}
 	}
@@ -46,7 +46,7 @@ impl Memory {
 			PALETTES_START ..= PALETTES_END => self.palettes[(address % PALETTES_SIZE) as usize] = value,
 			_ => {
 				error!("Write to {:04X}", address);
-				std::process::exit(1);
+				panic!();
 			}
 		}
 	}

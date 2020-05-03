@@ -42,7 +42,7 @@ pub(super) fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 		PRG_ROM_START ..= PRG_ROM_END => emulator.prg_rom[((address - PRG_ROM_START) as usize) % emulator.prg_rom.len()],
 		_ => {
 			error!("Read from {:04X}", address);
-			std::process::exit(1);
+			panic!();
 		}
 	}
 }
@@ -105,7 +105,7 @@ pub(super) fn write8(emulator: &mut Emulator, address: u16, value: u8) {
 		PRG_RAM_START ..= PRG_RAM_END => emulator.prg_ram[(address - PRG_RAM_START) as usize] = value,
 		_ => {
 			error!("Write to {:04X}", address);
-			std::process::exit(1);
+			panic!();
 		}
 	}
 }

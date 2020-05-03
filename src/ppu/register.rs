@@ -14,12 +14,12 @@ pub trait Register {
 
     fn read(_ppu: &mut Ppu) -> u8 {
         error!("Read from {}", Self::name());
-        std::process::exit(1);
+        panic!();
     }
 
     fn write(_ppu: &mut Ppu, _value: u8) {
         error!("Write to {}", Self::name());
-        std::process::exit(1);
+        panic!();
     }
 
     #[cfg(feature = "trace")]
