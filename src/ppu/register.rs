@@ -133,7 +133,7 @@ impl Register for Ppuaddr {
     }
 
     fn write(ppu: &mut Ppu, value: u8) {
-        ppu.ppuaddr = write16(ppu, ppu.ppuaddr, value);
+        ppu.ppuaddr = write16(ppu, ppu.ppuaddr, value) % 0x4000;
     }
 
     #[cfg(feature = "trace")]
