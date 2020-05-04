@@ -14,6 +14,11 @@ use self::addressing_modes::*;
 #[cfg(feature = "trace")]
 use self::logger::*;
 
+const STACK_ADDRESS: u16 = 0x100;
+const NMI_VECTOR_ADDRESS: u16 = 0xfffa;
+const RESET_VECTOR_ADDRESS: u16 = 0xfffc;
+const IRQ_VECTOR_ADDRESS: u16 = 0xfffe;
+
 enum Flag {
 	C = 1 << 0,
 	Z = 1 << 1,
@@ -872,5 +877,5 @@ fn branch(emulator: &mut Emulator, flag: Flag, value: bool) {
 
 fn plp(emulator: &mut Emulator) {
 	let value = pull8(emulator);
-	emulator.cpu.p = (value | 0b0010_0000) & !(Flag::B as u8);
+	emulator.cpu.p = (value | 0x20) & !(Flag::B as u8);
 }

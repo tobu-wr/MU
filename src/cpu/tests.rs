@@ -77,7 +77,6 @@ fn branches() {
 }
 
 #[test]
-#[ignore] // FIXME
 fn stack() {
 	run_test("tests/11-stack.nes");
 }
