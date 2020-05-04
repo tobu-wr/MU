@@ -94,7 +94,7 @@ pub(super) fn write8(emulator: &mut Emulator, address: u16, value: u8) {
 		PPUDATA_ADDRESS => Ppudata::write(&mut emulator.ppu, value),
 		0x4000 ..= 0x4013 | 0x4015 | 0x4017 => {
 			// TODO: implement APU registers
-			warn!("Write {:02X} to an APU register at {:04X}", value, address);
+			warn!("Write to an APU register at {:04X}", address);
 		},
 		OAMDMA_ADDRESS => {
 				let start = (value as usize) << 8;
@@ -104,7 +104,7 @@ pub(super) fn write8(emulator: &mut Emulator, address: u16, value: u8) {
 		JOY1_ADDRESS => emulator.joypad.write(&emulator.window, value),
 		PRG_RAM_START ..= PRG_RAM_END => emulator.prg_ram[(address - PRG_RAM_START) as usize] = value,
 		_ => {
-			error!("Write {:02X} to {:04X}", value, address);
+			error!("Write to {:04X}", address);
 			panic!();
 		}
 	}
