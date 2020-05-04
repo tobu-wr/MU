@@ -1,4 +1,4 @@
-pub mod register;
+pub mod registers;
 mod memory;
 
 use minifb::Window;
