@@ -1,12 +1,12 @@
 mod memory;
-mod addressing_mode;
+mod addressing_modes;
 
 #[cfg(feature = "trace")]
 mod logger;
 
 use emulator::*;
 use self::memory::*;
-use self::addressing_mode::*;
+use self::addressing_modes::*;
 
 #[cfg(feature = "trace")]
 use self::logger::*;
