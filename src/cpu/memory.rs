@@ -29,12 +29,12 @@ const PRG_ROM_END: u16 = 0xffff;
 
 pub(super) fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 	match address {
-		RAM_START ..= RAM_END => emulator.ram[(address % RAM_SIZE) as usize],
+		RAM_START ..= RAM_END => emulator.ram[((address - RAM_START) % RAM_SIZE) as usize],
 		PPUSTATUS_ADDRESS => Ppustatus::read(&mut emulator.ppu),
 		PPUDATA_ADDRESS => Ppudata::read(&mut emulator.ppu),
 		0x4000 ..= 0x4013 | 0x4015 | 0x4017 => {
 			// TODO: implement APU registers
-			warn!("Read from an APU register");
+			warn!("Read from an APU register at {:04X}", address);
 			0
 		},
 		JOY1_ADDRESS => emulator.joypad.read(&emulator.window),
@@ -56,7 +56,7 @@ pub(super) fn read16(emulator: &mut Emulator, address: u16) -> u16 {
 #[cfg(feature = "trace")]
 pub(super) fn read8_debug(emulator: &Emulator, address: u16) -> u8 {
 	match address {
-		RAM_START ..= RAM_END => emulator.ram[(address % RAM_SIZE) as usize],
+		RAM_START ..= RAM_END => emulator.ram[((address - RAM_START) % RAM_SIZE) as usize],
 		PPUCTRL_ADDRESS => Ppuctrl::read_debug(&emulator.ppu),
 		PPUMASK_ADDRESS => Ppumask::read_debug(&emulator.ppu),
 		PPUSTATUS_ADDRESS => Ppustatus::read_debug(&emulator.ppu),
@@ -84,7 +84,7 @@ pub(super) fn read16_debug(emulator: &Emulator, address: u16) -> u16 {
 
 pub(super) fn write8(emulator: &mut Emulator, address: u16, value: u8) {
 	match address {
-		RAM_START ..= RAM_END => emulator.ram[(address % RAM_SIZE) as usize] = value,
+		RAM_START ..= RAM_END => emulator.ram[((address - RAM_START) % RAM_SIZE) as usize] = value,
 		PPUCTRL_ADDRESS => Ppuctrl::write(&mut emulator.ppu, value),
 		PPUMASK_ADDRESS => Ppumask::write(&mut emulator.ppu, value),
 		OAMADDR_ADDRESS => Oamaddr::write(&mut emulator.ppu, value),
@@ -94,7 +94,7 @@ pub(super) fn write8(emulator: &mut Emulator, address: u16, value: u8) {
 		PPUDATA_ADDRESS => Ppudata::write(&mut emulator.ppu, value),
 		0x4000 ..= 0x4013 | 0x4015 | 0x4017 => {
 			// TODO: implement APU registers
-			warn!("Write to an APU register");
+			warn!("Write {:02X} to an APU register at {:04X}", value, address);
 		},
 		OAMDMA_ADDRESS => {
 				let start = (value as usize) << 8;
@@ -104,7 +104,7 @@ pub(super) fn write8(emulator: &mut Emulator, address: u16, value: u8) {
 		JOY1_ADDRESS => emulator.joypad.write(&emulator.window, value),
 		PRG_RAM_START ..= PRG_RAM_END => emulator.prg_ram[(address - PRG_RAM_START) as usize] = value,
 		_ => {
-			error!("Write to {:04X}", address);
+			error!("Write {:02X} to {:04X}", value, address);
 			panic!();
 		}
 	}

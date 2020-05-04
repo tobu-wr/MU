@@ -4,7 +4,7 @@
 `cargo run --release <rom path>`
 
 ## Controls
-| NES | Key (AZERTY) |
+| NES | Keyboard (AZERTY) |
 | --- | --- |
 | A | A |
 | B | Z |
