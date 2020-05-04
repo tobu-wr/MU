@@ -336,6 +336,8 @@ impl Logger {
 			0x40 => format("RTI"),
 			0x60 => format("RTS"),
 
+			0x32 => format("KIL"),
+
 			_ => {
 				warn!("Unknown opcode {:02X} at {:04X}", opcode, emulator.cpu.pc);
 				"# UNKNOWN OPCODE #".to_string()

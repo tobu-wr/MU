@@ -574,6 +574,12 @@ impl Cpu {
 			// RTS
 			0x60 => emulator.cpu.pc = pull16(emulator).wrapping_add(1),
 
+			// KIL
+			0x32 => {
+				error!("KIL instruction");
+				panic!();
+			}
+
 			_ => {
 				error!("Unknown opcode {:02X} at {:04X}", opcode, emulator.cpu.pc.wrapping_sub(1));
 				panic!();
