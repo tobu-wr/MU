@@ -576,7 +576,7 @@ impl Cpu {
 
 			// KIL
 			0x32 => {
-				error!("KIL instruction");
+				error!("CPU stopped");
 				panic!();
 			}
 
