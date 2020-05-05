@@ -150,6 +150,9 @@ impl Ppu {
 								let high_bit = (high_byte >> (7 - pixel_column)) & 1;
 								let color_number = (high_bit << 1) | low_bit;
 								if color_number != 0 {
+									if number == 0 && self.frame_buffer[(y as usize) * FRAME_WIDTH + x as usize] != 0 {
+										self.ppustatus |= 0x40; // sprite 0 hit
+									}
 									let color = self.memory.read(0x3f00 + palette_number as u16 + color_number as u16);
 									self.set_pixel(x, y, color);
 								}
@@ -162,7 +165,7 @@ impl Ppu {
 			} else if self.scanline_counter == 262 {
 				// end VBlank
 				self.scanline_counter = 0;
-				self.ppustatus &= 0x7f;
+				self.ppustatus &= 0x3f;
 			}
 		}
 	}
