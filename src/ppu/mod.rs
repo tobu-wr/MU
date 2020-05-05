@@ -102,7 +102,11 @@ impl Ppu {
 									let low_bit = (low_byte >> (7 - pixel_column)) & 1;
 									let high_bit = (high_byte >> (7 - pixel_column)) & 1;
 									let color_number = (high_bit << 1) | low_bit;
-									let color = self.memory.read(0x3f00 + palette_number as u16 + color_number as u16);
+									let color = if color_number == 0 {
+										self.memory.read(0x3f00)
+									} else {
+										self.memory.read(0x3f00 + palette_number as u16 + color_number as u16)
+									};
 									let x = tile_column * 8 + pixel_column;
 									self.set_pixel(x, y, color);
 								}
