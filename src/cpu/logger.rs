@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use emulator::*;
 use super::memory::*;
 
-const BUFFER_CAPACITY: usize = 9_000;
+const BUFFER_CAPACITY: usize = 44_000;
 
 struct Buffer {
 	logs: Vec::<String>,
