@@ -92,8 +92,7 @@ impl Ppu {
 							let attribute_row = tile_row / 4;
 							let attribute_column = tile_column / 4;
 							let attribute = self.memory.read(attribute_table_address + attribute_row * 8 + attribute_column);
-							let color_set = ((attribute >> (4 * ((tile_row / 2) % 2))) >> (2 * ((tile_column / 2) % 2))) & 0b11;
-							let palette_number = 4 * color_set;
+							let palette_number = ((attribute >> (4 * ((tile_row / 2) % 2))) >> (2 * ((tile_column / 2) % 2))) & 0b11;
 							for pixel_row in 0..8 {
 								let y = tile_row * 8 + pixel_row;
 								let low_byte = self.memory.read(pattern_address + (tile_number as u16) * 16 + pixel_row);
@@ -102,11 +101,7 @@ impl Ppu {
 									let low_bit = (low_byte >> (7 - pixel_column)) & 1;
 									let high_bit = (high_byte >> (7 - pixel_column)) & 1;
 									let color_number = (high_bit << 1) | low_bit;
-									let color = if color_number == 0 {
-										self.memory.read(0x3f00)
-									} else {
-										self.memory.read(0x3f00 + palette_number as u16 + color_number as u16)
-									};
+									let color = self.memory.read(0x3f00 + 4 * palette_number as u16 + color_number as u16);
 									let x = tile_column * 8 + pixel_column;
 									self.set_pixel(x, y, color);
 								}
@@ -120,7 +115,7 @@ impl Ppu {
 						let sprite_y = self.oam[number * 4];
 						let tile_number = self.oam[number * 4 + 1];
 						let attributes = self.oam[number * 4 + 2];
-						let palette_number = (4 + (attributes & 0b11)) * 4;
+						let palette_number = 4 + (attributes & 0b11);
 						let horizontal_flip = (attributes & 0x40) != 0;
 						let vertical_flip = (attributes & 0x80) != 0;
 						let sprite_x = self.oam[number * 4 + 3];
@@ -157,7 +152,7 @@ impl Ppu {
 									if number == 0 && self.frame_buffer[(y as usize) * FRAME_WIDTH + x as usize] != 0 {
 										self.ppustatus |= 0x40; // sprite 0 hit
 									}
-									let color = self.memory.read(0x3f00 + palette_number as u16 + color_number as u16);
+									let color = self.memory.read(0x3f00 + 4 * palette_number as u16 + color_number as u16);
 									self.set_pixel(x, y, color);
 								}
 							}
