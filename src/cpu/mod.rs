@@ -517,11 +517,7 @@ impl Cpu {
 			0x6c => {
 				let address = read16(emulator, emulator.cpu.pc);
 				let low_byte = read8(emulator, address) as u16;
-				let high_byte = if (address & 0xff) == 0xff  {
-					read8(emulator, address & 0xff00)
-				} else {
-					read8(emulator, address + 1)
-				} as u16;
+				let high_byte = read8(emulator, (address & 0xff00) | (address.wrapping_add(1) & 0x00ff)) as u16;
 				emulator.cpu.pc = (high_byte << 8) | low_byte;
 			},
 
