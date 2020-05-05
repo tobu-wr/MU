@@ -146,17 +146,12 @@ impl Cpu {
 	}
 
 	pub fn execute_next_instruction(emulator: &mut Emulator) {
-		if emulator.cpu.pending_interrupt == Some(Interrupt::Nmi) || (emulator.cpu.pending_interrupt == Some(Interrupt::Irq) && !emulator.cpu.get_flag(Flag::I)) {
-			push16(emulator, emulator.cpu.pc);
-			push8(emulator, emulator.cpu.p);
-			let address = if emulator.cpu.pending_interrupt == Some(Interrupt::Nmi) {
-				NMI_VECTOR_ADDRESS
-			} else {
-				IRQ_VECTOR_ADDRESS
-			};
-			emulator.cpu.pc = read16(emulator, address);
-			emulator.cpu.set_flag(Flag::I, true);
-			emulator.cpu.pending_interrupt = None;
+		match emulator.cpu.pending_interrupt {
+			Some(Interrupt::Nmi) => perform_interrupt(emulator, NMI_VECTOR_ADDRESS),
+			Some(Interrupt::Irq) => if !emulator.cpu.get_flag(Flag::I) {
+				perform_interrupt(emulator, IRQ_VECTOR_ADDRESS);
+			},
+			None => {}
 		}
 
 		#[cfg(feature = "trace")]
@@ -591,6 +586,14 @@ impl Cpu {
 			}
 		}
 	}
+}
+
+fn perform_interrupt(emulator: &mut Emulator, address: u16) {
+	push16(emulator, emulator.cpu.pc);
+	push8(emulator, emulator.cpu.p);
+	emulator.cpu.pc = read16(emulator, address);
+	emulator.cpu.set_flag(Flag::I, true);
+	emulator.cpu.pending_interrupt = None;
 }
 
 fn push8(emulator: &mut Emulator, value: u8) {
