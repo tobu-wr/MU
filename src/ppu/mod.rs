@@ -133,20 +133,21 @@ impl Ppu {
 							let low_byte = self.memory.read(pattern_address + (tile_number as u16) * 16 + pixel_row);
 							let high_byte = self.memory.read(pattern_address + (tile_number as u16) * 16 + pixel_row + 8);
 							for pixel_column in 0..8 {
-								let x = pixel_column + sprite_x as u16;
+								let x = (if horizontal_flip {
+									7 - pixel_column
+								} else {
+									pixel_column
+								}) + sprite_x as u16;
 								if x >= FRAME_WIDTH as u16 {
-									break;
+									// sprite in leftmost 8 pixels
+									if (sprite_x < 8) && ((self.ppuctrl & 0x04) == 0) {
+										break; // hide
+									} else {
+										continue; // show
+									}
 								}
-								let low_bit = (low_byte >> if horizontal_flip {
-									pixel_column
-								} else {
-									7 - pixel_column
-								}) & 1;
-								let high_bit = (high_byte >>  if horizontal_flip {
-									pixel_column
-								} else {
-									7 - pixel_column
-								}) & 1;
+								let low_bit = (low_byte >> (7 - pixel_column)) & 1;
+								let high_bit = (high_byte >> (7 - pixel_column)) & 1;
 								let color_number = (high_bit << 1) | low_bit;
 								if color_number != 0 {
 									let color = self.memory.read(0x3f00 + palette_number as u16 + color_number as u16);
