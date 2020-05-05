@@ -101,6 +101,10 @@ impl Register for Oamdata {
         "OAMDATA".to_string()
     }
 
+    fn read(ppu: &mut Ppu) -> u8 {
+        ppu.oam[ppu.oamaddr as usize]
+    }
+
     fn write(ppu: &mut Ppu, value: u8) {
         ppu.oam[ppu.oamaddr as usize] = value;
         ppu.oamaddr = ppu.oamaddr.wrapping_add(1);

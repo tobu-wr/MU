@@ -26,6 +26,7 @@ pub(super) fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 	match address {
 		RAM_START ..= RAM_END => emulator.ram[((address - RAM_START) % RAM_SIZE) as usize],
 		PPUSTATUS_ADDRESS => Ppustatus::read(&mut emulator.ppu),
+		OAMDATA_ADDRESS => Oamdata::read(&mut emulator.ppu),
 		PPUDATA_ADDRESS => Ppudata::read(&mut emulator.ppu),
 		0x4000 ..= 0x4013 | 0x4015 | 0x4017 => {
 			// TODO: implement APU registers
