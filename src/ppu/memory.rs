@@ -12,7 +12,7 @@ const PALETTE_END: u16 = 0x3fff;
 
 const BACKGROUND_PALETTE_SIZE: u16 = 0x10;
 const BACKGROUND_PALETTE_START: u16 = 0x3f00;
-const BACKGROUND_PALETTE_END: u16 = 0x3f0f;
+const BACKGROUND_PALETTE_END: u16 = BACKGROUND_PALETTE_START + BACKGROUND_PALETTE_SIZE - 1;
 
 const BACKGROUND_PALETTE_MIRROR_ADDRESS_0: u16 = 0x3f10;
 const BACKGROUND_PALETTE_MIRROR_ADDRESS_1: u16 = 0x3f14;
@@ -21,17 +21,17 @@ const BACKGROUND_PALETTE_MIRROR_ADDRESS_3: u16 = 0x3f1c;
 
 const SPRITE_PALETTE_SIZE: usize = 12;
 
-const SPRITE_PALETTE_START_0: u16 = 0x3f11;
-const SPRITE_PALETTE_END_0: u16 = 0x3f13;
+const SPRITE_PALETTE_0_START: u16 = 0x3f11;
+const SPRITE_PALETTE_0_END: u16 = 0x3f13;
 
-const SPRITE_PALETTE_START_1: u16 = 0x3f15;
-const SPRITE_PALETTE_END_1: u16 = 0x3f17;
+const SPRITE_PALETTE_1_START: u16 = 0x3f15;
+const SPRITE_PALETTE_1_END: u16 = 0x3f17;
 
-const SPRITE_PALETTE_START_2: u16 = 0x3f19;
-const SPRITE_PALETTE_END_2: u16 = 0x3f1b;
+const SPRITE_PALETTE_2_START: u16 = 0x3f19;
+const SPRITE_PALETTE_2_END: u16 = 0x3f1b;
 
-const SPRITE_PALETTE_START_3: u16 = 0x3f1d;
-const SPRITE_PALETTE_END_3: u16 = 0x3f1f;
+const SPRITE_PALETTE_3_START: u16 = 0x3f1d;
+const SPRITE_PALETTE_3_END: u16 = 0x3f1f;
 
 pub(super) struct Memory {
 	table: [u8; TABLE_SIZE as _],
@@ -62,10 +62,10 @@ impl Memory {
 				BACKGROUND_PALETTE_MIRROR_ADDRESS_1 => self.background_palette[4],
 				BACKGROUND_PALETTE_MIRROR_ADDRESS_2 => self.background_palette[8],
 				BACKGROUND_PALETTE_MIRROR_ADDRESS_3 => self.background_palette[12],
-				SPRITE_PALETTE_START_0 ..= SPRITE_PALETTE_END_0 |
-				SPRITE_PALETTE_START_1 ..= SPRITE_PALETTE_END_1 |
-				SPRITE_PALETTE_START_2 ..= SPRITE_PALETTE_END_2 |
-				SPRITE_PALETTE_START_3 ..= SPRITE_PALETTE_END_3 => {
+				SPRITE_PALETTE_0_START ..= SPRITE_PALETTE_0_END |
+				SPRITE_PALETTE_1_START ..= SPRITE_PALETTE_1_END |
+				SPRITE_PALETTE_2_START ..= SPRITE_PALETTE_2_END |
+				SPRITE_PALETTE_3_START ..= SPRITE_PALETTE_3_END => {
 					let palette = (address >> 2) & 0b11;
 					let index = address & 0b11;
 					self.sprite_palette[(palette * 3 + index - 1) as usize]
@@ -92,10 +92,10 @@ impl Memory {
 				BACKGROUND_PALETTE_MIRROR_ADDRESS_1 => self.background_palette[4] = value,
 				BACKGROUND_PALETTE_MIRROR_ADDRESS_2 => self.background_palette[8] = value,
 				BACKGROUND_PALETTE_MIRROR_ADDRESS_3 => self.background_palette[12] = value,
-				SPRITE_PALETTE_START_0 ..= SPRITE_PALETTE_END_0 |
-				SPRITE_PALETTE_START_1 ..= SPRITE_PALETTE_END_1 |
-				SPRITE_PALETTE_START_2 ..= SPRITE_PALETTE_END_2 |
-				SPRITE_PALETTE_START_3 ..= SPRITE_PALETTE_END_3 => {
+				SPRITE_PALETTE_0_START ..= SPRITE_PALETTE_0_END |
+				SPRITE_PALETTE_1_START ..= SPRITE_PALETTE_1_END |
+				SPRITE_PALETTE_2_START ..= SPRITE_PALETTE_2_END |
+				SPRITE_PALETTE_3_START ..= SPRITE_PALETTE_3_END => {
 					let palette = (address >> 2) & 0b11;
 					let index = address & 0b11;
 					self.sprite_palette[(palette * 3 + index - 1) as usize]  = value;
