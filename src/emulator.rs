@@ -4,7 +4,7 @@ use ppu::*;
 use joypad::*;
 
 pub const RAM_SIZE: u16 = 0x800;
-pub const PRG_RAM_SIZE: u16 = 0x2000;
+const PRG_RAM_SIZE: u16 = 0x2000;
 
 pub struct Emulator {
 	pub ram: [u8; RAM_SIZE as _],
