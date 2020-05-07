@@ -2,7 +2,7 @@ mod memory;
 mod addressing_modes;
 
 #[cfg(test)]
-mod tests;
+pub mod tests;
 
 #[cfg(feature = "trace")]
 mod logger;
