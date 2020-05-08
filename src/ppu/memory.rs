@@ -56,23 +56,26 @@ impl Memory {
 		match address {
 			TABLE_START ..= TABLE_END => self.table[(address - TABLE_START) as usize],
 			TABLE_MIRROR_START ..= TABLE_MIRROR_END => self.table[(address - TABLE_MIRROR_OFFSET) as usize],
-			PALETTE_START ..= PALETTE_END => match PALETTE_START + address % PALETTE_SIZE {
-				BACKGROUND_PALETTE_START ..= BACKGROUND_PALETTE_END => self.background_palette[(address - BACKGROUND_PALETTE_START) as usize],
-				BACKGROUND_PALETTE_MIRROR_ADDRESS_0 => self.background_palette[0],
-				BACKGROUND_PALETTE_MIRROR_ADDRESS_1 => self.background_palette[4],
-				BACKGROUND_PALETTE_MIRROR_ADDRESS_2 => self.background_palette[8],
-				BACKGROUND_PALETTE_MIRROR_ADDRESS_3 => self.background_palette[12],
-				SPRITE_PALETTE_0_START ..= SPRITE_PALETTE_0_END |
-				SPRITE_PALETTE_1_START ..= SPRITE_PALETTE_1_END |
-				SPRITE_PALETTE_2_START ..= SPRITE_PALETTE_2_END |
-				SPRITE_PALETTE_3_START ..= SPRITE_PALETTE_3_END => {
-					let palette = (address >> 2) & 0b11;
-					let index = address & 0b11;
-					self.sprite_palette[(palette * 3 + index - 1) as usize]
-				},
-				_ => {
-					error!("Read from {:04X}", address);
-					panic!();
+			PALETTE_START ..= PALETTE_END => {
+				let effective_address = PALETTE_START + address % PALETTE_SIZE;
+				match effective_address {
+					BACKGROUND_PALETTE_START ..= BACKGROUND_PALETTE_END => self.background_palette[(effective_address - BACKGROUND_PALETTE_START) as usize],
+					BACKGROUND_PALETTE_MIRROR_ADDRESS_0 => self.background_palette[0],
+					BACKGROUND_PALETTE_MIRROR_ADDRESS_1 => self.background_palette[4],
+					BACKGROUND_PALETTE_MIRROR_ADDRESS_2 => self.background_palette[8],
+					BACKGROUND_PALETTE_MIRROR_ADDRESS_3 => self.background_palette[12],
+					SPRITE_PALETTE_0_START ..= SPRITE_PALETTE_0_END |
+					SPRITE_PALETTE_1_START ..= SPRITE_PALETTE_1_END |
+					SPRITE_PALETTE_2_START ..= SPRITE_PALETTE_2_END |
+					SPRITE_PALETTE_3_START ..= SPRITE_PALETTE_3_END => {
+						let palette = (effective_address >> 2) & 0b11;
+						let index = effective_address & 0b11;
+						self.sprite_palette[(palette * 3 + index - 1) as usize]
+					},
+					_ => {
+						error!("Read from {:04X}", effective_address);
+						panic!();
+					}
 				}
 			},
 			_ => {
@@ -86,23 +89,26 @@ impl Memory {
 		match address {
 			TABLE_START ..= TABLE_END => self.table[(address - TABLE_START) as usize] = value,
 			TABLE_MIRROR_START ..= TABLE_MIRROR_END => self.table[(address - TABLE_MIRROR_OFFSET) as usize] = value,
-			PALETTE_START ..= PALETTE_END => match PALETTE_START + address % PALETTE_SIZE {
-				BACKGROUND_PALETTE_START ..= BACKGROUND_PALETTE_END => self.background_palette[(address - BACKGROUND_PALETTE_START) as usize] = value,
-				BACKGROUND_PALETTE_MIRROR_ADDRESS_0 => self.background_palette[0] = value,
-				BACKGROUND_PALETTE_MIRROR_ADDRESS_1 => self.background_palette[4] = value,
-				BACKGROUND_PALETTE_MIRROR_ADDRESS_2 => self.background_palette[8] = value,
-				BACKGROUND_PALETTE_MIRROR_ADDRESS_3 => self.background_palette[12] = value,
-				SPRITE_PALETTE_0_START ..= SPRITE_PALETTE_0_END |
-				SPRITE_PALETTE_1_START ..= SPRITE_PALETTE_1_END |
-				SPRITE_PALETTE_2_START ..= SPRITE_PALETTE_2_END |
-				SPRITE_PALETTE_3_START ..= SPRITE_PALETTE_3_END => {
-					let palette = (address >> 2) & 0b11;
-					let index = address & 0b11;
-					self.sprite_palette[(palette * 3 + index - 1) as usize]  = value;
-				},
-				_ => {
-					error!("Write to {:04X}", address);
-					panic!();
+			PALETTE_START ..= PALETTE_END => {
+				let effective_address = PALETTE_START + address % PALETTE_SIZE;
+				match effective_address {
+					BACKGROUND_PALETTE_START ..= BACKGROUND_PALETTE_END => self.background_palette[(effective_address - BACKGROUND_PALETTE_START) as usize] = value,
+					BACKGROUND_PALETTE_MIRROR_ADDRESS_0 => self.background_palette[0] = value,
+					BACKGROUND_PALETTE_MIRROR_ADDRESS_1 => self.background_palette[4] = value,
+					BACKGROUND_PALETTE_MIRROR_ADDRESS_2 => self.background_palette[8] = value,
+					BACKGROUND_PALETTE_MIRROR_ADDRESS_3 => self.background_palette[12] = value,
+					SPRITE_PALETTE_0_START ..= SPRITE_PALETTE_0_END |
+					SPRITE_PALETTE_1_START ..= SPRITE_PALETTE_1_END |
+					SPRITE_PALETTE_2_START ..= SPRITE_PALETTE_2_END |
+					SPRITE_PALETTE_3_START ..= SPRITE_PALETTE_3_END => {
+						let palette = (effective_address >> 2) & 0b11;
+						let index = effective_address & 0b11;
+						self.sprite_palette[(palette * 3 + index - 1) as usize]  = value;
+					},
+					_ => {
+						error!("Write to {:04X}", effective_address);
+						panic!();
+					}
 				}
 			},
 			_ => {
