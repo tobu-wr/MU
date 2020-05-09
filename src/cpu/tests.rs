@@ -1,4 +1,4 @@
-pub use super::*;
+use super::*;
 
 pub fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 	memory::read8(emulator, address)
