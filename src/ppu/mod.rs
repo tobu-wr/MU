@@ -1,6 +1,9 @@
 pub mod registers;
 mod memory;
 
+#[cfg(test)]
+mod tests;
+
 use minifb::Window;
 use cpu::*;
 use self::memory::*;
