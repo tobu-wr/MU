@@ -2,9 +2,10 @@ use super::*;
 use emulator::*;
 use cpu::tests::*;
 
-fn run_test(filename: &str) {
+#[test]
+fn oam_read() {
 	let mut emulator = Emulator::new();
-	emulator.load_file(filename);
+	emulator.load_file("tests/ppu/oam_read.nes");
 	Cpu::init_pc(&mut emulator);
 	while read8(&mut emulator, 0x6000) != 0x80 {
 		Cpu::execute_next_instruction(&mut emulator);
@@ -15,11 +16,6 @@ fn run_test(filename: &str) {
 		emulator.ppu.do_cycle(&mut emulator.cpu, &mut emulator.window);
 	}
 	assert_eq!(read8(&mut emulator, 0x6000), 0);
-}
-
-#[test]
-fn oam_read() {
-	run_test("tests/ppu/oam_read.nes");
 }
 
 #[test]
