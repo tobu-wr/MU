@@ -74,6 +74,10 @@ impl Cpu {
 		self.pc = value;
 	}
 
+	fn increment_pc(&mut self, value: u16) {
+		self.pc = self.pc.wrapping_add(value);
+	}
+
 	fn get_flag(&self, flag: Flag) -> bool {
 		(self.p & flag as u8) != 0
 	}
@@ -158,13 +162,13 @@ impl Cpu {
 		Logger::create_trace(emulator);
 		
 		let opcode = read8(emulator, emulator.cpu.pc);
-		emulator.cpu.pc = emulator.cpu.pc.wrapping_add(1);
+		emulator.cpu.increment_pc(1);
 		
 		match opcode {
 			// NOPs
 			0x1a | 0x3a | 0x5a | 0x7a | 0xda | 0xea | 0xfa => {},
-			0x04 | 0x14 | 0x34 | 0x44 | 0x54 | 0x64 | 0x74 | 0x80 | 0x82 | 0x89 | 0xc2 | 0xe2 | 0xd4 | 0xf4 => emulator.cpu.pc = emulator.cpu.pc.wrapping_add(1),
-			0x0c | 0x1c | 0x3c | 0x5c | 0x7c | 0xdc | 0xfc => emulator.cpu.pc = emulator.cpu.pc.wrapping_add(2),
+			0x04 | 0x14 | 0x34 | 0x44 | 0x54 | 0x64 | 0x74 | 0x80 | 0x82 | 0x89 | 0xc2 | 0xe2 | 0xd4 | 0xf4 => emulator.cpu.increment_pc(1),
+			0x0c | 0x1c | 0x3c | 0x5c | 0x7c | 0xdc | 0xfc => emulator.cpu.increment_pc(2),
 
 			0xa9 => lda::<Immediate>(emulator),
 			0xa5 => lda::<ZeroPage>(emulator),
@@ -865,13 +869,9 @@ fn cmp<T: AddressingMode>(emulator: &mut Emulator) {
 fn branch(emulator: &mut Emulator, flag: Flag, value: bool) {
 	if emulator.cpu.get_flag(flag) == value {
 		let offset = read8(emulator, emulator.cpu.pc) as i8;
-		emulator.cpu.pc = if offset > 0 {
-			emulator.cpu.pc.wrapping_add(offset as _)
-		} else {
-			emulator.cpu.pc.wrapping_sub(offset.wrapping_neg() as _)
-		};
+		emulator.cpu.increment_pc(offset as _);
 	}
-	emulator.cpu.pc = emulator.cpu.pc.wrapping_add(1);
+	emulator.cpu.increment_pc(1);
 }
 
 fn plp(emulator: &mut Emulator) {
