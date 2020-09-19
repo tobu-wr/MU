@@ -221,17 +221,23 @@ impl Cpu {
 			0x83 => sax::<IndirectX>(emulator),
 
 			// SXA
-			// FIXME
 			0x9e => {
-				let address = AbsoluteY::get_address(emulator);
-				write8(emulator, address, emulator.cpu.x & emulator.cpu.a);
+				let mut address = AbsoluteY::get_address(emulator);
+				let high_byte = (address >> 8) as u8;
+				if high_byte != (address.wrapping_sub(emulator.cpu.y as _) >> 8) as u8 {
+					address &= (emulator.cpu.x as u16) << 8;
+				}
+				write8(emulator, address, emulator.cpu.x & high_byte.wrapping_add(1));
 			},
 
 			// SYA
-			// FIXME
 			0x9c => {
-				let address = AbsoluteX::get_address(emulator);
-				write8(emulator, address, emulator.cpu.y & emulator.cpu.a);
+				let mut address = AbsoluteX::get_address(emulator);
+				let high_byte = (address >> 8) as u8;
+				if high_byte != (address.wrapping_sub(emulator.cpu.x as _) >> 8) as u8 {
+					address &= (emulator.cpu.y as u16) << 8;
+				}
+				write8(emulator, address, emulator.cpu.y & high_byte.wrapping_add(1));
 			},
 
 			// TAX

@@ -60,7 +60,6 @@ fn absolute() {
 }
 
 #[test]
-#[ignore] // FIXME
 fn abs_xy() {
 	run_test("tests/cpu/07-abs_xy.nes");
 }
@@ -81,7 +80,6 @@ fn branches() {
 }
 
 #[test]
-#[ignore] // FIXME
 fn stack() {
 	run_test("tests/cpu/11-stack.nes");
 }
