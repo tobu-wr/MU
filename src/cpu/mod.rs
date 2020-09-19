@@ -227,7 +227,7 @@ impl Cpu {
 				if high_byte != (address.wrapping_sub(emulator.cpu.y as _) >> 8) as u8 {
 					address &= (emulator.cpu.x as u16) << 8;
 				}
-				write8(emulator, address, emulator.cpu.x & high_byte.wrapping_add(1));
+				write(emulator, address, emulator.cpu.x & high_byte.wrapping_add(1));
 			},
 
 			// SYA
@@ -237,7 +237,7 @@ impl Cpu {
 				if high_byte != (address.wrapping_sub(emulator.cpu.x as _) >> 8) as u8 {
 					address &= (emulator.cpu.y as u16) << 8;
 				}
-				write8(emulator, address, emulator.cpu.y & high_byte.wrapping_add(1));
+				write(emulator, address, emulator.cpu.y & high_byte.wrapping_add(1));
 			},
 
 			// TAX
@@ -591,7 +591,7 @@ fn perform_interrupt(emulator: &mut Emulator, address: u16) {
 }
 
 fn push8(emulator: &mut Emulator, value: u8) {
-	write8(emulator, STACK_ADDRESS + emulator.cpu.s as u16, value);
+	write(emulator, STACK_ADDRESS + emulator.cpu.s as u16, value);
 	emulator.cpu.s = emulator.cpu.s.wrapping_sub(1);
 }
 
@@ -639,22 +639,22 @@ fn lax<T: AddressingMode>(emulator: &mut Emulator) {
 
 fn sta<T: AddressingMode>(emulator: &mut Emulator) {
 	let address = T::get_address(emulator);
-	write8(emulator, address, emulator.cpu.a);
+	write(emulator, address, emulator.cpu.a);
 }
 
 fn stx<T: AddressingMode>(emulator: &mut Emulator) {
 	let address = T::get_address(emulator);
-	write8(emulator, address, emulator.cpu.x);
+	write(emulator, address, emulator.cpu.x);
 }
 
 fn sty<T: AddressingMode>(emulator: &mut Emulator) {
 	let address = T::get_address(emulator);
-	write8(emulator, address, emulator.cpu.y);
+	write(emulator, address, emulator.cpu.y);
 }
 
 fn sax<T: AddressingMode>(emulator: &mut Emulator) {
 	let address = T::get_address(emulator);
-	write8(emulator, address, emulator.cpu.a & emulator.cpu.x);
+	write(emulator, address, emulator.cpu.a & emulator.cpu.x);
 }
 
 fn and_address(emulator: &mut Emulator, address: u16) {
@@ -703,7 +703,7 @@ fn bit<T: AddressingMode>(emulator: &mut Emulator) {
 fn lsr_address(emulator: &mut Emulator, address: u16) {
 	let operand = read8(emulator, address);
 	let result = emulator.cpu.lsr_value(operand);
-	write8(emulator, address, result);
+	write(emulator, address, result);
 }
 
 fn lsr<T: AddressingMode>(emulator: &mut Emulator) {
@@ -720,7 +720,7 @@ fn sre<T: AddressingMode>(emulator: &mut Emulator) {
 fn asl_address(emulator: &mut Emulator, address: u16) {
 	let operand = read8(emulator, address);
 	let result = emulator.cpu.asl_value(operand);
-	write8(emulator, address, result);
+	write(emulator, address, result);
 }
 
 fn asl<T: AddressingMode>(emulator: &mut Emulator) {
@@ -737,7 +737,7 @@ fn slo<T: AddressingMode>(emulator: &mut Emulator) {
 fn ror_address(emulator: &mut Emulator, address: u16) {
 	let operand = read8(emulator, address);
 	let result = emulator.cpu.ror_value(operand);
-	write8(emulator, address, result);
+	write(emulator, address, result);
 }
 
 fn ror<T: AddressingMode>(emulator: &mut Emulator) {
@@ -754,7 +754,7 @@ fn rra<T: AddressingMode>(emulator: &mut Emulator) {
 fn rol_address(emulator: &mut Emulator, address: u16) {
 	let operand = read8(emulator, address);
 	let result = emulator.cpu.rol_value(operand);
-	write8(emulator, address, result);
+	write(emulator, address, result);
 }
 
 fn rol<T: AddressingMode>(emulator: &mut Emulator) {
@@ -790,7 +790,7 @@ fn sbc<T: AddressingMode>(emulator: &mut Emulator) {
 
 fn inc_address(emulator: &mut Emulator, address: u16) {
 	let result = read8(emulator, address).wrapping_add(1);
-	write8(emulator, address, result);
+	write(emulator, address, result);
 	emulator.cpu.set_nz_flags(result);
 }
 
@@ -807,7 +807,7 @@ fn isb<T: AddressingMode>(emulator: &mut Emulator) {
 
 fn dec_address(emulator: &mut Emulator, address: u16) {
 	let result = read8(emulator, address).wrapping_sub(1);
-	write8(emulator, address, result);
+	write(emulator, address, result);
 	emulator.cpu.set_nz_flags(result);
 }
 

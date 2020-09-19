@@ -79,7 +79,7 @@ pub(super) fn read16_debug(emulator: &Emulator, address: u16) -> u16 {
 	(high_byte << 8) | low_byte
 }
 
-pub(super) fn write8(emulator: &mut Emulator, address: u16, value: u8) {
+pub(super) fn write(emulator: &mut Emulator, address: u16, value: u8) {
 	match address {
 		RAM_START ..= RAM_END => emulator.ram[((address - RAM_START) % RAM_SIZE) as usize] = value,
 		PPUCTRL_ADDRESS => Ppuctrl::write(&mut emulator.ppu, value),
