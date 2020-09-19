@@ -98,19 +98,22 @@ impl Cpu {
 		self.set_flag(Flag::Z, value == 0);
 	}
 
+	fn set_nz_flags(&mut self, value: u8) {
+		self.set_n_flag(value);
+		self.set_z_flag(value);
+	}
+
 	fn lsr_value(&mut self, mut value: u8) -> u8 {
 		self.set_flag(Flag::C, (value & 1) == 1);
 		value >>= 1;
-		self.set_n_flag(value);
-		self.set_z_flag(value);
+		self.set_nz_flags(value);
 		value
 	}
 
 	fn asl_value(&mut self, mut value: u8) -> u8 {
 		self.set_flag(Flag::C, (value >> 7) == 1);
 		value <<= 1;
-		self.set_n_flag(value);
-		self.set_z_flag(value);
+		self.set_nz_flags(value);
 		value
 	}
 
@@ -118,8 +121,7 @@ impl Cpu {
 		let c = self.get_flag(Flag::C) as u8;
 		self.set_flag(Flag::C, (value & 1) == 1);
 		value = (c << 7) | (value >> 1);
-		self.set_n_flag(value);
-		self.set_z_flag(value);
+		self.set_nz_flags(value);
 		value
 	}
 
@@ -127,8 +129,7 @@ impl Cpu {
 		let c = self.get_flag(Flag::C) as u8;
 		self.set_flag(Flag::C, (value >> 7) == 1);
 		value = (value << 1) | c;
-		self.set_n_flag(value);
-		self.set_z_flag(value);
+		self.set_nz_flags(value);
 		value
 	}
 
@@ -139,8 +140,7 @@ impl Cpu {
 		let result = sum as u8;
 		self.set_flag(Flag::V, ((self.a ^ result) & (value ^ result) & 0x80) != 0);
 		self.a = result;
-		self.set_n_flag(self.a);
-		self.set_z_flag(self.a);
+		self.set_nz_flags(self.a);
 	}
 
 	pub fn request_interrupt(&mut self, interrupt: Interrupt) {
@@ -243,36 +243,31 @@ impl Cpu {
 			// TAX
 			0xaa => {
 				emulator.cpu.x = emulator.cpu.a;
-				emulator.cpu.set_n_flag(emulator.cpu.x);
-				emulator.cpu.set_z_flag(emulator.cpu.x);
+				emulator.cpu.set_nz_flags(emulator.cpu.x);
 			},
 
 			// TXA
 			0x8a => {
 				emulator.cpu.a = emulator.cpu.x;
-				emulator.cpu.set_n_flag(emulator.cpu.a);
-				emulator.cpu.set_z_flag(emulator.cpu.a);
+				emulator.cpu.set_nz_flags(emulator.cpu.a);
 			},
 
 			// TAY
 			0xa8 => {
 				emulator.cpu.y = emulator.cpu.a;
-				emulator.cpu.set_n_flag(emulator.cpu.y);
-				emulator.cpu.set_z_flag(emulator.cpu.y);
+				emulator.cpu.set_nz_flags(emulator.cpu.y);
 			},
 
 			// TYA
 			0x98 => {
 				emulator.cpu.a = emulator.cpu.y;
-				emulator.cpu.set_n_flag(emulator.cpu.a);
-				emulator.cpu.set_z_flag(emulator.cpu.a);
+				emulator.cpu.set_nz_flags(emulator.cpu.a);
 			},
 
 			// TSX
 			0xba => {
 				emulator.cpu.x = emulator.cpu.s;
-				emulator.cpu.set_n_flag(emulator.cpu.x);
-				emulator.cpu.set_z_flag(emulator.cpu.x);
+				emulator.cpu.set_nz_flags(emulator.cpu.x);
 			},
 
 			// TXS
@@ -303,8 +298,7 @@ impl Cpu {
 				emulator.cpu.a = (c << 7) | (emulator.cpu.a >> 1);
 				emulator.cpu.set_flag(Flag::C, ((emulator.cpu.a >> 6) & 1) == 1);
 				emulator.cpu.set_flag(Flag::V, (((emulator.cpu.a >> 6) & 1) ^ ((emulator.cpu.a >> 5) & 1)) == 1);
-				emulator.cpu.set_n_flag(emulator.cpu.a);
-				emulator.cpu.set_z_flag(emulator.cpu.a);
+				emulator.cpu.set_nz_flags(emulator.cpu.a);
 			},
 
 			// AXS
@@ -313,8 +307,7 @@ impl Cpu {
 				emulator.cpu.x &= emulator.cpu.a;
 				emulator.cpu.set_flag(Flag::C, emulator.cpu.x >= operand);
 				emulator.cpu.x = emulator.cpu.x.wrapping_sub(operand);
-				emulator.cpu.set_n_flag(emulator.cpu.x);
-				emulator.cpu.set_z_flag(emulator.cpu.x);
+				emulator.cpu.set_nz_flags(emulator.cpu.x);
 			},
 
 			0x09 => ora::<Immediate>(emulator),
@@ -416,15 +409,13 @@ impl Cpu {
 			// INX
 			0xe8 => {
 				emulator.cpu.x = emulator.cpu.x.wrapping_add(1);
-				emulator.cpu.set_z_flag(emulator.cpu.x);
-				emulator.cpu.set_n_flag(emulator.cpu.x);
+				emulator.cpu.set_nz_flags(emulator.cpu.x);
 			},
 
 			// INY
 			0xc8 => {
 				emulator.cpu.y = emulator.cpu.y.wrapping_add(1);
-				emulator.cpu.set_z_flag(emulator.cpu.y);
-				emulator.cpu.set_n_flag(emulator.cpu.y);
+				emulator.cpu.set_nz_flags(emulator.cpu.y);
 			},
 
 			0xe6 => inc::<ZeroPage>(emulator),
@@ -443,15 +434,13 @@ impl Cpu {
 			// DEX
 			0xca => {
 				emulator.cpu.x = emulator.cpu.x.wrapping_sub(1);
-				emulator.cpu.set_z_flag(emulator.cpu.x);
-				emulator.cpu.set_n_flag(emulator.cpu.x);
+				emulator.cpu.set_nz_flags(emulator.cpu.x);
 			},
 
 			// DEY
 			0x88 => {
 				emulator.cpu.y = emulator.cpu.y.wrapping_sub(1);
-				emulator.cpu.set_n_flag(emulator.cpu.y);
-				emulator.cpu.set_z_flag(emulator.cpu.y);
+				emulator.cpu.set_nz_flags(emulator.cpu.y);
 			},
 
 			0xc6 => dec::<ZeroPage>(emulator),
@@ -490,8 +479,7 @@ impl Cpu {
 			// PLA
 			0x68 => {
 				emulator.cpu.a = pull8(emulator);
-				emulator.cpu.set_n_flag(emulator.cpu.a);
-				emulator.cpu.set_z_flag(emulator.cpu.a);
+				emulator.cpu.set_nz_flags(emulator.cpu.a);
 			},
 
 			// PHP
@@ -630,27 +618,23 @@ fn get_operand<T: AddressingMode>(emulator: &mut Emulator) -> u8 {
 
 fn lda<T: AddressingMode>(emulator: &mut Emulator) {
 	emulator.cpu.a = get_operand::<T>(emulator);
-	emulator.cpu.set_n_flag(emulator.cpu.a);
-	emulator.cpu.set_z_flag(emulator.cpu.a);
+	emulator.cpu.set_nz_flags(emulator.cpu.a);
 }
 
 fn ldx<T: AddressingMode>(emulator: &mut Emulator) {
 	emulator.cpu.x = get_operand::<T>(emulator);
-	emulator.cpu.set_n_flag(emulator.cpu.x);
-	emulator.cpu.set_z_flag(emulator.cpu.x);
+	emulator.cpu.set_nz_flags(emulator.cpu.x);
 }
 
 fn ldy<T: AddressingMode>(emulator: &mut Emulator) {
 	emulator.cpu.y = get_operand::<T>(emulator);
-	emulator.cpu.set_n_flag(emulator.cpu.y);
-	emulator.cpu.set_z_flag(emulator.cpu.y);
+	emulator.cpu.set_nz_flags(emulator.cpu.y);
 }
 
 fn lax<T: AddressingMode>(emulator: &mut Emulator) {
 	emulator.cpu.a = get_operand::<T>(emulator);
 	emulator.cpu.x = emulator.cpu.a;
-	emulator.cpu.set_n_flag(emulator.cpu.x);
-	emulator.cpu.set_z_flag(emulator.cpu.x);
+	emulator.cpu.set_nz_flags(emulator.cpu.x);
 }
 
 fn sta<T: AddressingMode>(emulator: &mut Emulator) {
@@ -675,8 +659,7 @@ fn sax<T: AddressingMode>(emulator: &mut Emulator) {
 
 fn and_address(emulator: &mut Emulator, address: u16) {
 	emulator.cpu.a &= read8(emulator, address);
-	emulator.cpu.set_n_flag(emulator.cpu.a);
-	emulator.cpu.set_z_flag(emulator.cpu.a);
+	emulator.cpu.set_nz_flags(emulator.cpu.a);
 }
 
 fn and<T: AddressingMode>(emulator: &mut Emulator) {
@@ -692,8 +675,7 @@ fn aac(emulator: &mut Emulator) {
 
 fn ora_address(emulator: &mut Emulator, address: u16) {
 	emulator.cpu.a |= read8(emulator, address);
-	emulator.cpu.set_n_flag(emulator.cpu.a);
-	emulator.cpu.set_z_flag(emulator.cpu.a);
+	emulator.cpu.set_nz_flags(emulator.cpu.a);
 }
 
 fn ora<T: AddressingMode>(emulator: &mut Emulator) {
@@ -703,8 +685,7 @@ fn ora<T: AddressingMode>(emulator: &mut Emulator) {
 
 fn eor_address(emulator: &mut Emulator, address: u16) {
 	emulator.cpu.a ^= read8(emulator, address);
-	emulator.cpu.set_n_flag(emulator.cpu.a);
-	emulator.cpu.set_z_flag(emulator.cpu.a);
+	emulator.cpu.set_nz_flags(emulator.cpu.a);
 }
 
 fn eor<T: AddressingMode>(emulator: &mut Emulator) {
@@ -810,8 +791,7 @@ fn sbc<T: AddressingMode>(emulator: &mut Emulator) {
 fn inc_address(emulator: &mut Emulator, address: u16) {
 	let result = read8(emulator, address).wrapping_add(1);
 	write8(emulator, address, result);
-	emulator.cpu.set_z_flag(result);
-	emulator.cpu.set_n_flag(result);
+	emulator.cpu.set_nz_flags(result);
 }
 
 fn inc<T: AddressingMode>(emulator: &mut Emulator) {
@@ -828,8 +808,7 @@ fn isb<T: AddressingMode>(emulator: &mut Emulator) {
 fn dec_address(emulator: &mut Emulator, address: u16) {
 	let result = read8(emulator, address).wrapping_sub(1);
 	write8(emulator, address, result);
-	emulator.cpu.set_z_flag(result);
-	emulator.cpu.set_n_flag(result);
+	emulator.cpu.set_nz_flags(result);
 }
 
 fn dec<T: AddressingMode>(emulator: &mut Emulator) {
@@ -847,24 +826,21 @@ fn cpx<T: AddressingMode>(emulator: &mut Emulator) {
 	let operand = get_operand::<T>(emulator);
 	emulator.cpu.set_flag(Flag::C, emulator.cpu.x >= operand);
 	let result = emulator.cpu.x.wrapping_sub(operand);
-	emulator.cpu.set_z_flag(result);
-	emulator.cpu.set_n_flag(result);
+	emulator.cpu.set_nz_flags(result);
 }
 
 fn cpy<T: AddressingMode>(emulator: &mut Emulator) {
 	let operand = get_operand::<T>(emulator);
 	emulator.cpu.set_flag(Flag::C, emulator.cpu.y >= operand);
 	let result = emulator.cpu.y.wrapping_sub(operand);
-	emulator.cpu.set_z_flag(result);
-	emulator.cpu.set_n_flag(result);
+	emulator.cpu.set_nz_flags(result);
 }
 
 fn cmp_address(emulator: &mut Emulator, address: u16) {
 	let operand = read8(emulator, address);
 	emulator.cpu.set_flag(Flag::C, emulator.cpu.a >= operand);
 	let result = emulator.cpu.a.wrapping_sub(operand);
-	emulator.cpu.set_z_flag(result);
-	emulator.cpu.set_n_flag(result);
+	emulator.cpu.set_nz_flags(result);
 }
 
 fn cmp<T: AddressingMode>(emulator: &mut Emulator) {
