@@ -25,9 +25,18 @@ const PRG_ROM_END: u16 = 0xffff;
 pub(super) fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 	match address {
 		RAM_START ..= RAM_END => emulator.ram[((address - RAM_START) % RAM_SIZE) as usize],
+		PPUCTRL_ADDRESS => Ppuctrl::read(&mut emulator.ppu),
+		PPUMASK_ADDRESS => Ppumask::read(&mut emulator.ppu),
 		PPUSTATUS_ADDRESS => Ppustatus::read(&mut emulator.ppu),
+		OAMADDR_ADDRESS => Oamaddr::read(&mut emulator.ppu),
 		OAMDATA_ADDRESS => Oamdata::read(&mut emulator.ppu),
+		PPUSCROLL_ADDRESS => Ppuscroll::read(&mut emulator.ppu),
+		PPUADDR_ADDRESS => Ppuaddr::read(&mut emulator.ppu),
 		PPUDATA_ADDRESS => Ppudata::read(&mut emulator.ppu),
+		OAMDMA_ADDRESS => {
+			error!("Read from OAMDMA");
+			panic!();
+		},
 		0x4000 ..= 0x4013 | 0x4015 | 0x4017 => {
 			// TODO: implement APU registers
 			warn!("Read from an APU register at {:04X}", address);
