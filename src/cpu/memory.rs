@@ -93,6 +93,7 @@ pub(super) fn write(emulator: &mut Emulator, address: u16, value: u8) {
 		RAM_START ..= RAM_END => emulator.ram[((address - RAM_START) % RAM_SIZE) as usize] = value,
 		PPUCTRL_ADDRESS => Ppuctrl::write(&mut emulator.ppu, value),
 		PPUMASK_ADDRESS => Ppumask::write(&mut emulator.ppu, value),
+		PPUSTATUS_ADDRESS => Ppustatus::write(&mut emulator.ppu, value),
 		OAMADDR_ADDRESS => Oamaddr::write(&mut emulator.ppu, value),
 		OAMDATA_ADDRESS => Oamdata::write(&mut emulator.ppu, value),
 		PPUSCROLL_ADDRESS => Ppuscroll::write(&mut emulator.ppu, value),
@@ -109,6 +110,10 @@ pub(super) fn write(emulator: &mut Emulator, address: u16, value: u8) {
 		},
 		JOY1_ADDRESS => emulator.joypad.write(&emulator.window, value),
 		PRG_RAM_START ..= PRG_RAM_END => emulator.prg_ram[(address - PRG_RAM_START) as usize] = value,
+		PRG_ROM_START ..= PRG_ROM_END => {
+			error!("Write to PRG ROM");
+			panic!();
+		},
 		_ => {
 			error!("Write to {:04X}", address);
 			panic!();
