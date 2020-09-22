@@ -11,7 +11,7 @@ mod joypad;
 use emulator::*;
 
 fn main() {
-	simple_logger::init().unwrap();
+	simple_logger::SimpleLogger::new().init().unwrap();
 
 	let filename = std::env::args().nth(1).unwrap();
 	let mut emulator = Emulator::new();
