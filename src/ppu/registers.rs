@@ -8,6 +8,7 @@ pub struct Oamdata;
 pub struct Ppuscroll;
 pub struct Ppuaddr;
 pub struct Ppudata;
+pub struct Oamdma;
 
 pub trait Register {
     fn name() -> String;
@@ -175,6 +176,18 @@ impl Register for Ppudata {
         } else {
             ppu.memory.read(ppu.ppuaddr)
         }
+    }
+}
+
+impl Oamdma {
+    pub fn read() -> u8 {
+        error!("Read from OAMDMA");
+        panic!();
+    }
+
+    #[cfg(feature = "trace")]
+    fn read_debug() -> u8 {
+        0
     }
 }
 
