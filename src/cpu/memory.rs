@@ -1,5 +1,4 @@
 use emulator::*;
-use ppu::*;
 use ppu::registers::*;
 
 const RAM_START: u16 = 0;
@@ -100,11 +99,7 @@ pub(super) fn write(emulator: &mut Emulator, address: u16, value: u8) {
 			// TODO: implement APU registers
 			warn!("Write to an APU register at {:04X}", address);
 		},
-		OAMDMA_ADDRESS => {
-				let start = (value as usize) << 8;
-				let end = start + OAM_SIZE;
-				emulator.ppu.write_oam(&emulator.ram[start..end]);
-		},
+		OAMDMA_ADDRESS => Oamdma::write(emulator, value),
 		JOY1_ADDRESS => emulator.joypad.write(&emulator.window, value),
 		PRG_RAM_START ..= PRG_RAM_END => emulator.prg_ram[(address - PRG_RAM_START) as usize] = value,
 		PRG_ROM_START ..= PRG_ROM_END => {

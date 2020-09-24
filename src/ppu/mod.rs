@@ -10,9 +10,8 @@ use self::memory::*;
 
 pub const FRAME_WIDTH: usize = 256;
 pub const FRAME_HEIGHT: usize = 240;
-pub const OAM_SIZE: usize = 256;
-
 const FRAME_BUFFER_SIZE: usize = FRAME_WIDTH * FRAME_HEIGHT;
+const OAM_SIZE: usize = 256;
 
 pub struct Ppu {
 	ppuctrl: u8,
@@ -51,13 +50,6 @@ impl Ppu {
 
 	pub fn load_chr_rom(&mut self, chr_rom: &[u8]) {
 		self.memory.load_chr_rom(chr_rom);
-	}
-
-	pub fn write_oam(&mut self, data: &[u8]) {
-		for value in data {
-			self.oam[self.oamaddr as usize] = *value;
-			self.oamaddr = self.oamaddr.wrapping_add(1);
-		}
 	}
 
 	fn set_pixel(&mut self, x: u16, y: u16, color: u8) {
