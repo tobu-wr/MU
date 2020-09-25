@@ -427,7 +427,7 @@ fn format_indirect_x(emulator: &Emulator, mnemonic: &str) -> String {
 fn format_indirect_y(emulator: &Emulator, mnemonic: &str) -> String {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let immediate = read8_debug(emulator, pc);
-	let address = read16_zeropage_debug(emulator, address);
+	let address = read16_zeropage_debug(emulator, immediate);
 	let effective_address = address.wrapping_add(emulator.cpu.y as _);
 	let operand = read8_debug(emulator, effective_address);
 	format!("{:02X}{:>8} (${:02X}),Y = {:04X} @ {:04X} = {:02X}", immediate, mnemonic, immediate, address, effective_address, operand)
