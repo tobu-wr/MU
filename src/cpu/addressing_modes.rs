@@ -61,18 +61,13 @@ impl AddressingMode for AbsoluteY {
 impl AddressingMode for IndirectX {
 	fn get_address(emulator: &mut Emulator) -> u16 {
 		let address = read_next8(emulator).wrapping_add(emulator.cpu.x);
-		let low_byte = read8(emulator, address as _) as u16;
-		let high_byte = read8(emulator, address.wrapping_add(1) as _) as u16;
-		(high_byte << 8) | low_byte
+		read16_zeropage(emulator, address)
 	}
 }
 
 impl AddressingMode for IndirectY {
 	fn get_address(emulator: &mut Emulator) -> u16 {
 		let address = read_next8(emulator);
-		let low_byte = read8(emulator, address as _) as u16;
-		let high_byte = read8(emulator, address.wrapping_add(1) as _) as u16;
-		let value = (high_byte << 8) | low_byte;
-		value.wrapping_add(emulator.cpu.y as _)
+		read16_zeropage(emulator, address).wrapping_add(emulator.cpu.y as _)
 	}
 }

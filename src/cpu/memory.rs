@@ -54,6 +54,12 @@ pub(super) fn read16(emulator: &mut Emulator, address: u16) -> u16 {
 	(high_byte << 8) | low_byte
 }
 
+pub(super) fn read16_zeropage(emulator: &mut Emulator, address: u8) -> u16 {
+	let low_byte = read8(emulator, address as _) as u16;
+	let high_byte = read8(emulator, address.wrapping_add(1) as _) as u16;
+	(high_byte << 8) | low_byte
+}
+
 pub(super) fn write(emulator: &mut Emulator, address: u16, value: u8) {
 	match address {
 		RAM_START ..= RAM_END => emulator.ram[((address - RAM_START) % RAM_SIZE) as usize] = value,
