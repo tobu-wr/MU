@@ -419,9 +419,7 @@ fn format_indirect_x(emulator: &Emulator, mnemonic: &str) -> String {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let immediate = read8_debug(emulator, pc);
 	let address = immediate.wrapping_add(emulator.cpu.x);
-	let low_byte = read8_debug(emulator, address as _) as u16;
-	let high_byte = read8_debug(emulator, address.wrapping_add(1) as _) as u16;
-	let effective_address = (high_byte << 8) | low_byte;
+	let effective_address = read16_zeropage_debug(emulator, address);
 	let operand = read8_debug(emulator, effective_address);
 	format!("{:02X}{:>8} (${:02X},X) @ {:02X} = {:04X} = {:02X}", immediate, mnemonic, immediate, address, effective_address, operand)
 }
@@ -429,11 +427,9 @@ fn format_indirect_x(emulator: &Emulator, mnemonic: &str) -> String {
 fn format_indirect_y(emulator: &Emulator, mnemonic: &str) -> String {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let immediate = read8_debug(emulator, pc);
-	let low_byte = read8_debug(emulator, immediate as _) as u16;
-	let high_byte = read8_debug(emulator, immediate.wrapping_add(1) as _) as u16;
-	let address = (high_byte << 8) | low_byte;
+	let address = read16_zeropage_debug(emulator, address);
 	let effective_address = address.wrapping_add(emulator.cpu.y as _);
-	let operand = read8_debug(emulator, address);
+	let operand = read8_debug(emulator, effective_address);
 	format!("{:02X}{:>8} (${:02X}),Y = {:04X} @ {:04X} = {:02X}", immediate, mnemonic, immediate, address, effective_address, operand)
 }
 
