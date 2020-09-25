@@ -161,7 +161,7 @@ impl Cpu {
 		#[cfg(feature = "trace")]
 		Logger::create_trace(emulator);
 		
-		let opcode = get_next8(emulator);
+		let opcode = read_next8(emulator);
 		match opcode {
 			// NOPs
 			0x1a | 0x3a | 0x5a | 0x7a | 0xda | 0xea | 0xfa => {},
@@ -580,13 +580,13 @@ impl Cpu {
 	}
 }
 
-fn get_next8(emulator: &mut Emulator) -> u8 {
+fn read_next8(emulator: &mut Emulator) -> u8 {
 	let value = read8(emulator, emulator.cpu.pc);
 	emulator.cpu.increment_pc(1);
 	value
 }
 
-fn get_next16(emulator: &mut Emulator) -> u16 {
+fn read_next16(emulator: &mut Emulator) -> u16 {
 	let value = read16(emulator, emulator.cpu.pc);
 	emulator.cpu.increment_pc(2);
 	value
@@ -859,7 +859,7 @@ fn cmp<T: AddressingMode>(emulator: &mut Emulator) {
 }
 
 fn branch(emulator: &mut Emulator, flag: Flag, value: bool) {
-	let offset = get_next8(emulator);
+	let offset = read_next8(emulator);
 	if emulator.cpu.get_flag(flag) == value {
 		emulator.cpu.increment_pc(offset as i8 as _);
 	}
