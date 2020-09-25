@@ -54,6 +54,35 @@ pub(super) fn read16(emulator: &mut Emulator, address: u16) -> u16 {
 	(high_byte << 8) | low_byte
 }
 
+pub(super) fn write(emulator: &mut Emulator, address: u16, value: u8) {
+	match address {
+		RAM_START ..= RAM_END => emulator.ram[((address - RAM_START) % RAM_SIZE) as usize] = value,
+		PPUCTRL_ADDRESS => Ppuctrl::write(&mut emulator.ppu, value),
+		PPUMASK_ADDRESS => Ppumask::write(&mut emulator.ppu, value),
+		PPUSTATUS_ADDRESS => Ppustatus::write(&mut emulator.ppu, value),
+		OAMADDR_ADDRESS => Oamaddr::write(&mut emulator.ppu, value),
+		OAMDATA_ADDRESS => Oamdata::write(&mut emulator.ppu, value),
+		PPUSCROLL_ADDRESS => Ppuscroll::write(&mut emulator.ppu, value),
+		PPUADDR_ADDRESS => Ppuaddr::write(&mut emulator.ppu, value),
+		PPUDATA_ADDRESS => Ppudata::write(&mut emulator.ppu, value),
+		0x4000 ..= 0x4013 | 0x4015 | 0x4017 => {
+			// TODO: implement APU registers
+			warn!("Write to an APU register at {:04X}", address);
+		},
+		OAMDMA_ADDRESS => Oamdma::write(emulator, value),
+		JOY1_ADDRESS => emulator.joypad.write(&emulator.window, value),
+		PRG_RAM_START ..= PRG_RAM_END => emulator.prg_ram[(address - PRG_RAM_START) as usize] = value,
+		PRG_ROM_START ..= PRG_ROM_END => {
+			error!("Write to PRG ROM");
+			panic!();
+		},
+		_ => {
+			error!("Write to {:04X}", address);
+			panic!();
+		}
+	}
+}
+
 #[cfg(feature = "trace")]
 pub(super) fn read8_debug(emulator: &Emulator, address: u16) -> u8 {
 	match address {
@@ -82,33 +111,4 @@ pub(super) fn read16_debug(emulator: &Emulator, address: u16) -> u16 {
 	let low_byte = read8_debug(emulator, address) as u16;
 	let high_byte = read8_debug(emulator, address.wrapping_add(1)) as u16;
 	(high_byte << 8) | low_byte
-}
-
-pub(super) fn write(emulator: &mut Emulator, address: u16, value: u8) {
-	match address {
-		RAM_START ..= RAM_END => emulator.ram[((address - RAM_START) % RAM_SIZE) as usize] = value,
-		PPUCTRL_ADDRESS => Ppuctrl::write(&mut emulator.ppu, value),
-		PPUMASK_ADDRESS => Ppumask::write(&mut emulator.ppu, value),
-		PPUSTATUS_ADDRESS => Ppustatus::write(&mut emulator.ppu, value),
-		OAMADDR_ADDRESS => Oamaddr::write(&mut emulator.ppu, value),
-		OAMDATA_ADDRESS => Oamdata::write(&mut emulator.ppu, value),
-		PPUSCROLL_ADDRESS => Ppuscroll::write(&mut emulator.ppu, value),
-		PPUADDR_ADDRESS => Ppuaddr::write(&mut emulator.ppu, value),
-		PPUDATA_ADDRESS => Ppudata::write(&mut emulator.ppu, value),
-		0x4000 ..= 0x4013 | 0x4015 | 0x4017 => {
-			// TODO: implement APU registers
-			warn!("Write to an APU register at {:04X}", address);
-		},
-		OAMDMA_ADDRESS => Oamdma::write(emulator, value),
-		JOY1_ADDRESS => emulator.joypad.write(&emulator.window, value),
-		PRG_RAM_START ..= PRG_RAM_END => emulator.prg_ram[(address - PRG_RAM_START) as usize] = value,
-		PRG_ROM_START ..= PRG_ROM_END => {
-			error!("Write to PRG ROM");
-			panic!();
-		},
-		_ => {
-			error!("Write to {:04X}", address);
-			panic!();
-		}
-	}
 }

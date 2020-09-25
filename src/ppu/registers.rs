@@ -190,9 +190,9 @@ impl Oamdma {
         let start = (value as usize) << 8;
         let end = start + OAM_SIZE;
         for value in &emulator.ram[start..end] {
-			emulator.ppu.oam[emulator.ppu.oamaddr as usize] = *value;
-			emulator.ppu.oamaddr = emulator.ppu.oamaddr.wrapping_add(1);
-		}
+            emulator.ppu.oam[emulator.ppu.oamaddr as usize] = *value;
+            emulator.ppu.oamaddr = emulator.ppu.oamaddr.wrapping_add(1);
+        }
     }
 
     #[cfg(feature = "trace")]
