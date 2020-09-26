@@ -74,10 +74,6 @@ impl Cpu {
 		self.pc = value;
 	}
 
-	fn increment_pc(&mut self, value: u16) {
-		self.pc = self.pc.wrapping_add(value);
-	}
-
 	fn get_flag(&self, flag: Flag) -> bool {
 		(self.p & flag as u8) != 0
 	}
@@ -165,8 +161,8 @@ impl Cpu {
 		match opcode {
 			// NOPs
 			0x1a | 0x3a | 0x5a | 0x7a | 0xda | 0xea | 0xfa => {},
-			0x04 | 0x14 | 0x34 | 0x44 | 0x54 | 0x64 | 0x74 | 0x80 | 0x82 | 0x89 | 0xc2 | 0xe2 | 0xd4 | 0xf4 => emulator.cpu.increment_pc(1),
-			0x0c | 0x1c | 0x3c | 0x5c | 0x7c | 0xdc | 0xfc => emulator.cpu.increment_pc(2),
+			0x04 | 0x14 | 0x34 | 0x44 | 0x54 | 0x64 | 0x74 | 0x80 | 0x82 | 0x89 | 0xc2 | 0xe2 | 0xd4 | 0xf4 => emulator.cpu.pc = emulator.cpu.pc.wrapping_add(1),
+			0x0c | 0x1c | 0x3c | 0x5c | 0x7c | 0xdc | 0xfc => emulator.cpu.pc = emulator.cpu.pc.wrapping_add(2),
 
 			0xa9 => lda::<Immediate>(emulator),
 			0xa5 => lda::<ZeroPage>(emulator),
@@ -582,13 +578,13 @@ impl Cpu {
 
 fn read_next8(emulator: &mut Emulator) -> u8 {
 	let value = read8(emulator, emulator.cpu.pc);
-	emulator.cpu.increment_pc(1);
+	emulator.cpu.pc = emulator.cpu.pc.wrapping_add(1);
 	value
 }
 
 fn read_next16(emulator: &mut Emulator) -> u16 {
 	let value = read16(emulator, emulator.cpu.pc);
-	emulator.cpu.increment_pc(2);
+	emulator.cpu.pc = emulator.cpu.pc.wrapping_add(2);
 	value
 }
 
@@ -861,7 +857,7 @@ fn cmp<T: AddressingMode>(emulator: &mut Emulator) {
 fn branch(emulator: &mut Emulator, flag: Flag, value: bool) {
 	let offset = read_next8(emulator);
 	if emulator.cpu.get_flag(flag) == value {
-		emulator.cpu.increment_pc(offset as i8 as _);
+		emulator.cpu.pc = emulator.cpu.pc.wrapping_add(offset as i8 as _);
 	}
 }
 

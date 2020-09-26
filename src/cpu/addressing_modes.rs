@@ -17,7 +17,7 @@ pub(super) trait AddressingMode {
 impl AddressingMode for Immediate {
 	fn get_address(emulator: &mut Emulator) -> u16 {
 		let address = emulator.cpu.pc;
-		emulator.cpu.increment_pc(1);
+		emulator.cpu.pc = emulator.cpu.pc.wrapping_add(1);
 		address
 	}
 }
