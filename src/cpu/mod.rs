@@ -134,6 +134,18 @@ impl Cpu {
 		self.set_nz_flags(self.a);
 	}
 
+	fn inc_value(&mut self, mut value: u8) -> u8 {
+		value = value.wrapping_add(1);
+		self.set_nz_flags(value);
+		value
+	}
+
+	fn dec_value(&mut self, mut value: u8) -> u8 {
+		value = value.wrapping_sub(1);
+		self.set_nz_flags(value);
+		value
+	}
+
 	pub fn request_interrupt(&mut self, interrupt: Interrupt) {
 		if self.pending_interrupt != Some(Interrupt::Nmi) {
 			self.pending_interrupt = Some(interrupt);
@@ -396,16 +408,10 @@ impl Cpu {
 			0xf1 => sbc::<IndirectY>(emulator),
 			
 			// INX
-			0xe8 => {
-				emulator.cpu.x = emulator.cpu.x.wrapping_add(1);
-				emulator.cpu.set_nz_flags(emulator.cpu.x);
-			},
+			0xe8 => emulator.cpu.x = emulator.cpu.inc_value(emulator.cpu.x),
 
 			// INY
-			0xc8 => {
-				emulator.cpu.y = emulator.cpu.y.wrapping_add(1);
-				emulator.cpu.set_nz_flags(emulator.cpu.y);
-			},
+			0xc8 => emulator.cpu.y = emulator.cpu.inc_value(emulator.cpu.y),
 
 			0xe6 => inc::<ZeroPage>(emulator),
 			0xf6 => inc::<ZeroPageX>(emulator),
@@ -421,16 +427,10 @@ impl Cpu {
 			0xf3 => isb::<IndirectY>(emulator),
 
 			// DEX
-			0xca => {
-				emulator.cpu.x = emulator.cpu.x.wrapping_sub(1);
-				emulator.cpu.set_nz_flags(emulator.cpu.x);
-			},
+			0xca => emulator.cpu.x = emulator.cpu.dec_value(emulator.cpu.x),
 
 			// DEY
-			0x88 => {
-				emulator.cpu.y = emulator.cpu.y.wrapping_sub(1);
-				emulator.cpu.set_nz_flags(emulator.cpu.y);
-			},
+			0x88 => emulator.cpu.y = emulator.cpu.dec_value(emulator.cpu.y),
 
 			0xc6 => dec::<ZeroPage>(emulator),
 			0xd6 => dec::<ZeroPageX>(emulator),
@@ -790,9 +790,9 @@ fn sbc<T: AddressingMode>(emulator: &mut Emulator) {
 }
 
 fn inc_address(emulator: &mut Emulator, address: u16) {
-	let result = read8(emulator, address).wrapping_add(1);
+	let operand = read8(emulator, address);
+	let result = emulator.cpu.inc_value(operand);
 	write(emulator, address, result);
-	emulator.cpu.set_nz_flags(result);
 }
 
 fn inc<T: AddressingMode>(emulator: &mut Emulator) {
@@ -807,9 +807,9 @@ fn isb<T: AddressingMode>(emulator: &mut Emulator) {
 }
 
 fn dec_address(emulator: &mut Emulator, address: u16) {
-	let result = read8(emulator, address).wrapping_sub(1);
+	let operand = read8(emulator, address);
+	let result = emulator.cpu.dec_value(operand);
 	write(emulator, address, result);
-	emulator.cpu.set_nz_flags(result);
 }
 
 fn dec<T: AddressingMode>(emulator: &mut Emulator) {
