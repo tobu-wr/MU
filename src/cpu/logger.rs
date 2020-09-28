@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use emulator::*;
 use super::memory::*;
 
-const BUFFER_CAPACITY: usize = 44_000;
+const MAX_LOGS: usize = 44_000;
 
 struct Buffer {
 	logs: Vec::<String>,
@@ -15,25 +15,17 @@ struct Buffer {
 impl Buffer {
 	fn new() -> Self {
 		Self {
-			logs: Vec::<String>::with_capacity(BUFFER_CAPACITY),
+			logs: Vec::<String>::with_capacity(MAX_LOGS),
 			index: 0
 		}
 	}
 
 	fn push(&mut self, log: String) {
-		if self.logs.len() < BUFFER_CAPACITY {
+		if self.logs.len() < MAX_LOGS {
 			self.logs.push(log);
 		} else {
 			self.logs[self.index] = log;
-			self.increment_index();
-		}
-	}
-
-	fn increment_index(&mut self) {
-		if self.index == (BUFFER_CAPACITY - 1) {
-			self.index = 0;
-		} else {
-			self.index += 1;
+			self.index = (self.index + 1) % MAX_LOGS;
 		}
 	}
 }
@@ -41,9 +33,9 @@ impl Buffer {
 impl Drop for Buffer {
 	fn drop(&mut self) {
 		let mut file = File::create("trace.log").unwrap();
-		for _ in 0..self.logs.len() {
-			file.write_all(self.logs[self.index].as_bytes()).unwrap();
-			self.increment_index();
+		for i in 0..self.logs.len() {
+			let index = (self.index + i) % MAX_LOGS;
+			file.write_all(self.logs[index].as_bytes()).unwrap();
 		}
 		file.flush().unwrap();
 	}
