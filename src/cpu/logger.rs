@@ -305,11 +305,7 @@ impl Logger {
 				let pc = emulator.cpu.pc.wrapping_add(1);
 				let address = read16_debug(emulator, pc);
 				let low_byte = read8_debug(emulator, address) as u16;
-				let high_byte = if (address & 0xff) == 0xff  {
-					read8_debug(emulator, address & 0xff00)
-				} else {
-					read8_debug(emulator, address + 1)
-				} as u16;
+				let high_byte = read8_debug(emulator, (address & 0xff00) | (address.wrapping_add(1) & 0x00ff)) as u16;
 				let effective_address = (high_byte << 8) | low_byte;
 				format!("{:02X} {:02X}  JMP (${:04X}) = {:04X}", low_byte, high_byte, address, effective_address)
 			},
