@@ -443,11 +443,7 @@ fn format_jump_absolute(emulator: &Emulator, mnemonic: &str) -> String {
 
 fn format_jump_relative(emulator: &Emulator, mnemonic: &str) -> String {
 	let pc = emulator.cpu.pc.wrapping_add(1);
-	let offset = read8_debug(emulator, pc) as i8;
-	let address = if offset > 0 {
-		pc.wrapping_add(offset as _)
-	} else {
-		pc.wrapping_sub(offset.wrapping_neg() as _)
-	}.wrapping_add(1);
+	let offset = read8_debug(emulator, pc);
+	let address = pc.wrapping_add(offset as i8 as _).wrapping_add(1);
 	format!("{:02X}{:>8} ${:04X}", offset, mnemonic, address)
 }
