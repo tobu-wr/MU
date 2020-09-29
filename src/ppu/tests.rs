@@ -21,7 +21,7 @@ fn oam_read() {
 #[test]
 fn palette_ram() {
 	let mut emulator = Emulator::new();
-	emulator.load_file("tests/ppu/palette_ram.nes");
+	emulator.load_file("tests/ppu/blargg_ppu_tests/palette_ram.nes");
 	Cpu::init_pc(&mut emulator);
 	// TODO
 	/*while  {
@@ -33,7 +33,7 @@ fn palette_ram() {
 #[test]
 fn sprite_ram() {
 	let mut emulator = Emulator::new();
-	emulator.load_file("tests/ppu/sprite_ram.nes");
+	emulator.load_file("tests/ppu/blargg_ppu_tests/sprite_ram.nes");
 	Cpu::init_pc(&mut emulator);
 	// TODO
 	/*while  {

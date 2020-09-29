@@ -31,80 +31,90 @@ fn run_test(filename: &str) {
 
 #[test]
 fn basics() {
-	run_test("tests/cpu/01-basics.nes");
+	run_test("tests/cpu/instr_test_v5/01-basics.nes");
 }
 
 #[test]
 fn implied() {
-	run_test("tests/cpu/02-implied.nes");
+	run_test("tests/cpu/instr_test_v5/02-implied.nes");
 }
 
 #[test]
 fn immediate() {
-	run_test("tests/cpu/03-immediate.nes");
+	run_test("tests/cpu/instr_test_v5/03-immediate.nes");
 }
 
 #[test]
 fn zero_page() {
-	run_test("tests/cpu/04-zero_page.nes");
+	run_test("tests/cpu/instr_test_v5/04-zero_page.nes");
 }
 
 #[test]
 fn zp_xy() {
-	run_test("tests/cpu/05-zp_xy.nes");
+	run_test("tests/cpu/instr_test_v5/05-zp_xy.nes");
 }
 
 #[test]
 fn absolute() {
-	run_test("tests/cpu/06-absolute.nes");
+	run_test("tests/cpu/instr_test_v5/06-absolute.nes");
 }
 
 #[test]
 fn abs_xy() {
-	run_test("tests/cpu/07-abs_xy.nes");
+	run_test("tests/cpu/instr_test_v5/07-abs_xy.nes");
 }
 
 #[test]
 fn ind_x() {
-	run_test("tests/cpu/08-ind_x.nes");
+	run_test("tests/cpu/instr_test_v5/08-ind_x.nes");
 }
 
 #[test]
 fn ind_y() {
-	run_test("tests/cpu/09-ind_y.nes");
+	run_test("tests/cpu/instr_test_v5/09-ind_y.nes");
 }
 
 #[test]
 fn branches() {
-	run_test("tests/cpu/10-branches.nes");
+	run_test("tests/cpu/instr_test_v5/10-branches.nes");
 }
 
 #[test]
 fn stack() {
-	run_test("tests/cpu/11-stack.nes");
+	run_test("tests/cpu/instr_test_v5/11-stack.nes");
 }
 
 #[test]
 fn jmp_jsr() {
-	run_test("tests/cpu/12-jmp_jsr.nes");
+	run_test("tests/cpu/instr_test_v5/12-jmp_jsr.nes");
 }
 
 #[test]
 fn rts() {
-	run_test("tests/cpu/13-rts.nes");
+	run_test("tests/cpu/instr_test_v5/13-rts.nes");
 }
 
 #[test]
 fn rti() {
-	run_test("tests/cpu/14-rti.nes");
+	run_test("tests/cpu/instr_test_v5/14-rti.nes");
 }
 
 #[test]
 fn brk() {
-	run_test("tests/cpu/15-brk.nes");
+	run_test("tests/cpu/instr_test_v5/15-brk.nes");
 }
 
 #[test]
 fn special() {
-	run_test("tests/cpu/16-special.nes");
+	run_test("tests/cpu/instr_test_v5/16-special.nes");
+}
+
+#[test]
+fn abs_x_wrap() {
+	run_test("tests/cpu/instr_misc/01-abs_x_wrap.nes");
+}
+
+#[test]
+fn branch_wrap() {
+	run_test("tests/cpu/instr_misc/02-branch_wrap.nes");
 }
