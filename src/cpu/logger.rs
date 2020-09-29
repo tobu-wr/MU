@@ -132,9 +132,7 @@ impl Logger {
 			0x21 => format_indirect_x(emulator, "AND"),
 			0x31 => format_indirect_y(emulator, "AND"),
 
-			0x0b => format_immediate(emulator, "AAC"),
-			0x2b => format_immediate(emulator, "AAC"),
-
+			0x0b | 0x2b => format_immediate(emulator, "AAC"),
 			0x4b => format_immediate(emulator, "ASR"),
 			0x6b => format_immediate(emulator, "ARR"),
 			0xcb => format_immediate(emulator, "AXS"),

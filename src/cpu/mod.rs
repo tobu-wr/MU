@@ -283,8 +283,12 @@ impl Cpu {
 			0x21 => and::<IndirectX>(emulator),
 			0x31 => and::<IndirectY>(emulator),
 
-			0x0b => aac(emulator),
-			0x2b => aac(emulator),
+			// AAC
+			0x0b | 0x2b => {
+				and::<Immediate>(emulator);
+				let n = emulator.cpu.get_flag(Flag::N);
+				emulator.cpu.set_flag(Flag::C, n);
+			},
 
 			// ASR
 			0x4b => {
@@ -397,8 +401,7 @@ impl Cpu {
 			0x61 => adc::<IndirectX>(emulator),
 			0x71 => adc::<IndirectY>(emulator),
 
-			0xe9 => sbc::<Immediate>(emulator),
-			0xeb => sbc::<Immediate>(emulator),
+			0xe9 | 0xeb => sbc::<Immediate>(emulator),
 			0xe5 => sbc::<ZeroPage>(emulator),
 			0xf5 => sbc::<ZeroPageX>(emulator),
 			0xed => sbc::<Absolute>(emulator),
@@ -666,12 +669,6 @@ fn and_address(emulator: &mut Emulator, address: u16) {
 fn and<T: AddressingMode>(emulator: &mut Emulator) {
 	let address = T::get_address(emulator);
 	and_address(emulator, address);
-}
-
-fn aac(emulator: &mut Emulator) {
-	and::<Immediate>(emulator);
-	let n = emulator.cpu.get_flag(Flag::N);
-	emulator.cpu.set_flag(Flag::C, n);
 }
 
 fn ora_address(emulator: &mut Emulator, address: u16) {
