@@ -110,7 +110,7 @@ impl Ppu {
 							self.set_pixel(x as _, y as _, color);
 						}
 					}
-				} 
+				}
 				// render sprites
 				if (self.ppumask & 0x10) != 0 {
 					for number in (0..64).rev() {
