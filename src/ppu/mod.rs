@@ -18,7 +18,8 @@ pub struct Ppu {
 	ppumask: u8,
 	ppustatus: u8,
 	oamaddr: u8,
-	ppuscroll: u16,
+	scroll_x: u8,
+	scroll_y: u8,
 	ppuaddr: u16,
 	ppudata_buffer: u8,
 	flipflop: bool,
@@ -36,7 +37,8 @@ impl Ppu {
 			ppumask: 0,
 			ppustatus: 0,
 			oamaddr: 0,
-			ppuscroll: 0,
+			scroll_x: 0,
+			scroll_y: 0,
 			ppuaddr: 0,
 			ppudata_buffer: 0,
 			flipflop: false,
@@ -80,32 +82,32 @@ impl Ppu {
 					let nametable_address = 0x2000 + 0x400 * (self.ppuctrl & 0b11) as u16;
 					let attribute_table_address = nametable_address + 0x3c0;
 					let pattern_address = 0x1000 * ((self.ppuctrl >> 4) & 1) as u16;
-					for tile_row in 0..30 {
-						for tile_column in 0..32 {
-							let tile_number_address = nametable_address + tile_row * 32 + tile_column;
-							let tile_number = self.memory.read(tile_number_address);
-							let attribute_row = tile_row / 4;
+					for y in 0..FRAME_HEIGHT as u16 {
+						let yy = y + self.scroll_y as u16;
+						let tile_row = yy / 8;
+						let pixel_row = yy % 8;
+						let attribute_row = tile_row / 4;
+						for x in 0..FRAME_WIDTH as u16 {
+							let xx = x + self.scroll_x as u16;
+							let tile_column = xx / 8;
+							let pixel_column = xx % 8;
 							let attribute_column = tile_column / 4;
 							let attribute = self.memory.read(attribute_table_address + attribute_row * 8 + attribute_column);
 							let palette_number = ((attribute >> (4 * ((tile_row / 2) % 2))) >> (2 * ((tile_column / 2) % 2))) & 0b11;
-							for pixel_row in 0..8 {
-								let y = tile_row * 8 + pixel_row;
-								let low_byte = self.memory.read(pattern_address + (tile_number as u16) * 16 + pixel_row);
-								let high_byte = self.memory.read(pattern_address + (tile_number as u16) * 16 + pixel_row + 8);
-								for pixel_column in 0..8 {
-									let low_bit = (low_byte >> (7 - pixel_column)) & 1;
-									let high_bit = (high_byte >> (7 - pixel_column)) & 1;
-									let color_number = (high_bit << 1) | low_bit;
-									let color_address = if color_number == 0 {
-										0 // backdrop color
-									} else {
-										4 * palette_number as u16 + color_number as u16
-									} + 0x3f00;
-									let color = self.memory.read(color_address);
-									let x = tile_column * 8 + pixel_column;
-									self.set_pixel(x, y, color);
-								}
-							}
+							let tile_number_address = nametable_address + tile_row * 32 + tile_column;
+							let tile_number = self.memory.read(tile_number_address);
+							let low_byte = self.memory.read(pattern_address + (tile_number as u16) * 16 + pixel_row);
+							let high_byte = self.memory.read(pattern_address + (tile_number as u16) * 16 + pixel_row + 8);
+							let low_bit = (low_byte >> (7 - pixel_column)) & 1;
+							let high_bit = (high_byte >> (7 - pixel_column)) & 1;
+							let color_number = (high_bit << 1) | low_bit;
+							let color_address = if color_number == 0 {
+								0 // backdrop color
+							} else {
+								4 * palette_number as u16 + color_number as u16
+							} + 0x3f00;
+							let color = self.memory.read(color_address);
+							self.set_pixel(x as _, y as _, color);
 						}
 					}
 				} 

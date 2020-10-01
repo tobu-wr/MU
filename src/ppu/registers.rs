@@ -55,6 +55,10 @@ impl Register for Ppumask {
         "PPUMASK".to_string()
     }
 
+    fn read(ppu: &mut Ppu) -> u8 {
+        0 // TODO: implement open bus behavior
+    }
+
     fn write(ppu: &mut Ppu, value: u8) {
         ppu.ppumask = value
     }
@@ -124,7 +128,12 @@ impl Register for Ppuscroll {
     }
 
     fn write(ppu: &mut Ppu, value: u8) {
-        ppu.ppuscroll = write16(ppu, ppu.ppuscroll, value);
+        if ppu.flipflop {
+            ppu.scroll_y = value
+        } else {
+            ppu.scroll_x = value
+        };
+        ppu.flipflop = !ppu.flipflop;
     }
 
     #[cfg(feature = "trace")]
@@ -139,7 +148,12 @@ impl Register for Ppuaddr {
     }
 
     fn write(ppu: &mut Ppu, value: u8) {
-        ppu.ppuaddr = write16(ppu, ppu.ppuaddr, value) % 0x4000;
+        ppu.ppuaddr = if ppu.flipflop {
+            (ppu.ppuaddr & 0xff00) | (value as u16)
+        } else {
+            (ppu.ppuaddr & 0x00ff) | ((value as u16) << 8)
+        } % 0x4000;
+        ppu.flipflop = !ppu.flipflop;
     }
 
     #[cfg(feature = "trace")]
@@ -154,14 +168,13 @@ impl Register for Ppudata {
     }
 
     fn read(ppu: &mut Ppu) -> u8 {
-        let value = ppu.memory.read(ppu.ppuaddr);
+        let old_value = ppu.ppudata_buffer;
+        ppu.ppudata_buffer = ppu.memory.read(ppu.ppuaddr);
         increment_ppuaddr(ppu);
         if ppu.ppuaddr <= 0x3eff {
-            let old = ppu.ppudata_buffer;
-            ppu.ppudata_buffer = value;
-            old
+            old_value
         } else {
-            value
+            ppu.ppudata_buffer
         }
     }
 
@@ -198,15 +211,6 @@ impl Oamdma {
     #[cfg(feature = "trace")]
     pub fn read_debug() -> u8 {
         0
-    }
-}
-
-fn write16(ppu: &mut Ppu, register: u16, value: u8) -> u16 {
-    ppu.flipflop = !ppu.flipflop;
-    if ppu.flipflop {
-        (register & 0x00ff) | ((value as u16) << 8)
-    } else {
-        (register & 0xff00) | (value as u16)
     }
 }
 
