@@ -166,7 +166,7 @@ impl Ppu {
 			} else if self.scanline_counter == 262 {
 				// end VBlank
 				self.scanline_counter = 0;
-				self.ppustatus &= 0x3f;
+				self.ppustatus &= 0x1f;
 			}
 		}
 	}
