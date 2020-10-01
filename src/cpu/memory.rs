@@ -37,6 +37,7 @@ pub(super) fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 		PPUSCROLL_ADDRESS => Ppuscroll::read(&mut emulator.ppu),
 		PPUADDR_ADDRESS => Ppuaddr::read(&mut emulator.ppu),
 		PPUDATA_ADDRESS => Ppudata::read(&mut emulator.ppu),
+		0x2008 ..= 0x3fff => read8(emulator, 0x2000 + (address - 0x2000) % 8), // mirrors of 0x2000-0x2007
 		OAMDMA_ADDRESS => Oamdma::read(),
 		0x4000 ..= 0x4013 | 0x4015 | 0x4017 => {
 			// TODO: implement APU registers
@@ -44,11 +45,16 @@ pub(super) fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 			0
 		},
 		JOY1_ADDRESS => emulator.joypad.read(&emulator.window),
+		0x4018 ..= 0x5fff => {
+			// TODO: implement open bus behavior and expansion ROM
+			warn!("Read from expansion ROM at {:04X}", address);
+			0
+		},
 		PRG_RAM_START ..= PRG_RAM_END => emulator.prg_ram[(address - PRG_RAM_START) as usize],
 		PRG_ROM_START ..= PRG_ROM_END => emulator.prg_rom[((address - PRG_ROM_START) as usize) % emulator.prg_rom.len()],
 		_ => {
 			error!("Read from {:04X}", address);
-			panic!();
+			0
 		}
 	}
 }
@@ -77,14 +83,12 @@ pub(super) fn read8_debug(emulator: &Emulator, address: u16) -> u8 {
 		PPUSCROLL_ADDRESS => Ppuscroll::read_debug(&emulator.ppu),
 		PPUADDR_ADDRESS => Ppuaddr::read_debug(&emulator.ppu),
 		PPUDATA_ADDRESS => Ppudata::read_debug(&emulator.ppu),
+		0x2008 ..= 0x3fff => read8_debug(emulator, 0x2000 + (address - 0x2000) % 8), // mirrors of 0x2000-0x2007
 		OAMDMA_ADDRESS => Oamdma::read_debug(),
 		JOY1_ADDRESS => emulator.joypad.read_debug(&emulator.window),
 		PRG_RAM_START ..= PRG_RAM_END => emulator.prg_ram[(address - PRG_RAM_START) as usize],
 		PRG_ROM_START ..= PRG_ROM_END => emulator.prg_rom[((address - PRG_ROM_START) as usize) % emulator.prg_rom.len()],
-		_ => {
-			warn!("Read from {:04X}", address);
-			0
-		}
+		_ => 0
 	}
 }
 
@@ -113,12 +117,17 @@ pub(super) fn write(emulator: &mut Emulator, address: u16, value: u8) {
 		PPUSCROLL_ADDRESS => Ppuscroll::write(&mut emulator.ppu, value),
 		PPUADDR_ADDRESS => Ppuaddr::write(&mut emulator.ppu, value),
 		PPUDATA_ADDRESS => Ppudata::write(&mut emulator.ppu, value),
+		0x2008 ..= 0x3fff => write(emulator, 0x2000 + (address - 0x2000) % 8, value), // mirrors of 0x2000-0x2007
+		OAMDMA_ADDRESS => Oamdma::write(emulator, value),
 		0x4000 ..= 0x4013 | 0x4015 | 0x4017 => {
 			// TODO: implement APU registers
 			warn!("Write to an APU register at {:04X}", address);
 		},
-		OAMDMA_ADDRESS => Oamdma::write(emulator, value),
 		JOY1_ADDRESS => emulator.joypad.write(&emulator.window, value),
+		0x4018 ..= 0x5fff => {
+			// TODO: implement expansion ROM
+			warn!("Write to expansion ROM at {:04X}", address);
+		},
 		PRG_RAM_START ..= PRG_RAM_END => emulator.prg_ram[(address - PRG_RAM_START) as usize] = value,
 		PRG_ROM_START ..= PRG_ROM_END => {
 			error!("Write to PRG ROM");
