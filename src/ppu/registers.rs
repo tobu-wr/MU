@@ -55,7 +55,7 @@ impl Register for Ppumask {
         "PPUMASK".to_string()
     }
 
-    fn read(ppu: &mut Ppu) -> u8 {
+    fn read(_ppu: &mut Ppu) -> u8 {
         0 // TODO: implement open bus behavior
     }
 
