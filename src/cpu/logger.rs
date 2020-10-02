@@ -8,14 +8,14 @@ use super::memory::*;
 const MAX_LOGS: usize = 44_000;
 
 struct Buffer {
-	logs: Vec::<String>,
+	logs: Vec<String>,
 	index: usize
 }
 
 impl Buffer {
 	fn new() -> Self {
 		Self {
-			logs: Vec::<String>::with_capacity(MAX_LOGS),
+			logs: Vec::with_capacity(MAX_LOGS),
 			index: 0
 		}
 	}
@@ -324,10 +324,7 @@ impl Logger {
 
 			0x32 => format("KIL"),
 
-			_ => {
-				warn!("Unknown opcode {:02X} at {:04X}", opcode, emulator.cpu.pc);
-				"# UNKNOWN OPCODE #".to_string()
-			}
+			_ => "# UNKNOWN OPCODE #".to_string()
 		};
 
 		let log = format!("{:04X}  {:02X} {:<38} A:{:02X} X:{:02X} Y:{:02X} P:{:02X} SP:{:02X}\n", emulator.cpu.pc, opcode, instruction_string, emulator.cpu.a, emulator.cpu.x, emulator.cpu.y, emulator.cpu.p, emulator.cpu.s);
