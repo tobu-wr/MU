@@ -4,9 +4,15 @@ mod memory;
 #[cfg(test)]
 mod tests;
 
+#[cfg(feature = "nametable-viewer")]
+mod nametable_viewer;
+
 use minifb::Window;
 use cpu::*;
 use self::memory::*;
+
+#[cfg(feature = "nametable-viewer")]
+use self::nametable_viewer::*;
 
 pub const FRAME_WIDTH: usize = 256;
 pub const FRAME_HEIGHT: usize = 240;
@@ -27,7 +33,10 @@ pub struct Ppu {
 	scanline_counter: u16,
 	frame_buffer: [u32; FRAME_BUFFER_SIZE],
 	oam: [u8; OAM_SIZE],
-	memory: Memory
+	memory: Memory,
+
+	#[cfg(feature = "nametable-viewer")]
+	nametable_viewer: NametableViewer
 }
 
 impl Ppu {
@@ -47,6 +56,9 @@ impl Ppu {
 			frame_buffer: [0; FRAME_BUFFER_SIZE],
 			oam: [0; OAM_SIZE],
 			memory: Memory::new(),
+
+			#[cfg(feature = "nametable-viewer")]
+			nametable_viewer: NametableViewer::new()
 		}
 	}
 
@@ -167,6 +179,9 @@ impl Ppu {
 						cpu.request_interrupt(Interrupt::Nmi);
 					}
 					window.update_with_buffer(&self.frame_buffer, FRAME_WIDTH, FRAME_HEIGHT).unwrap();
+
+					#[cfg(feature = "nametable-viewer")]
+					NametableViewer::update(self);
 				},
 				// VBlank end
 				261 => self.ppustatus &= 0x1f,

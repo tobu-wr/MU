@@ -7,6 +7,7 @@ edition = "2015"
 [features]
 default = []
 trace = []
+nametable-viewer = []
 
 [dependencies]
 minifb = "0.19.0"
