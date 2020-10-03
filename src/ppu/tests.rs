@@ -6,6 +6,7 @@ use cpu::tests::*;
 fn oam_read() {
 	let mut emulator = Emulator::new();
 	emulator.load_file("tests/ppu/oam_read.nes");
+	Cpu::init_pc(&mut emulator);
 	while read8(&mut emulator, 0x6000) != 0x80 {
 		Cpu::execute_next_instruction(&mut emulator);
 		emulator.ppu.do_cycle(&mut emulator.cpu, &mut emulator.window);

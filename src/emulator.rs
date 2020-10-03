@@ -56,11 +56,10 @@ impl Emulator {
 		
 		let mapper = (contents[7] & 0xf0) | (contents[6] >> 4);
 		info!("Cartridge mapper: {}", mapper);
-
-		Cpu::init_pc(self);
 	}
 
 	pub fn run(&mut self) {
+		Cpu::init_pc(self);
 		while self.window.is_open() {
 			Cpu::execute_next_instruction(self);
 			self.ppu.do_cycle(&mut self.cpu, &mut self.window);
