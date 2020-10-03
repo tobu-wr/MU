@@ -1,5 +1,7 @@
 use super::*;
 
+use std::io::{BufReader, BufRead};
+
 pub fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 	memory::read8(emulator, address)
 }
@@ -7,18 +9,46 @@ pub fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 #[test]
 fn nestest() {
 	let mut emulator = Emulator::new();
-	emulator.load_file("tests/cpu/nestest.nes");
+	emulator.load_file("tests/cpu/nestest/nestest.nes");
 	emulator.cpu.set_pc(0xc000);
-	for _ in 0..8991 {
+
+	let log_file = std::fs::File::open("tests/cpu/nestest/nestest.log").unwrap();
+	for line in BufReader::new(log_file).lines() {
+		// TODO: compare logger output with nestest logs
+		let log = line.unwrap();
+		
+		let pc = format!("{:04X}", emulator.cpu.pc);
+		let expected_pc = &log[..4];
+		assert_eq!(pc, expected_pc);
+
+		let a = format!("{:02X}", emulator.cpu.a);
+		let expected_a = &log[50..52];
+		assert_eq!(a, expected_a);
+
+		let x = format!("{:02X}", emulator.cpu.x);
+		let expected_x = &log[55..57];
+		assert_eq!(x, expected_x);
+
+		let y = format!("{:02X}", emulator.cpu.y);
+		let expected_y = &log[60..62];
+		assert_eq!(y, expected_y);
+
+		let p = format!("{:02X}", emulator.cpu.p);
+		let expected_p = &log[65..67];
+		assert_eq!(p, expected_p);
+
+		let s = format!("{:02X}", emulator.cpu.s);
+		let expected_s = &log[71..73];
+		assert_eq!(s, expected_s);
+
 		Cpu::execute_next_instruction(&mut emulator);
 	}
-	assert_eq!(read8(&mut emulator, 0x02), 0);
-	assert_eq!(read8(&mut emulator, 0x03), 0);
 }
 
 fn run_test(filename: &str) {
 	let mut emulator = Emulator::new();
 	emulator.load_file(filename);
+	Cpu::init_pc(&mut emulator);
 	while read8(&mut emulator, 0x6000) != 0x80 {
 		Cpu::execute_next_instruction(&mut emulator);
 	}
