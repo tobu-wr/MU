@@ -12,9 +12,10 @@ fn nestest() {
 	emulator.load_file("tests/cpu/nestest/nestest.nes");
 	emulator.cpu.set_pc(0xc000);
 
+	let mut cycle_counter = 7;
+
 	let log_file = std::fs::File::open("tests/cpu/nestest/nestest.log").unwrap();
 	for line in BufReader::new(log_file).lines() {
-		// TODO: compare logger output with nestest logs
 		let log = line.unwrap();
 		
 		let pc = format!("{:04X}", emulator.cpu.pc);
@@ -41,7 +42,11 @@ fn nestest() {
 		let expected_s = &log[71..73];
 		assert_eq!(s, expected_s);
 
-		Cpu::execute_next_instruction(&mut emulator);
+		let cycle = format!("{}", cycle_counter);
+		let expected_cycle = &log[90..];
+		assert_eq!(cycle, expected_cycle);
+
+		cycle_counter += Cpu::execute_next_instruction(&mut emulator);
 	}
 }
 

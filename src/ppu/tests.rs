@@ -8,12 +8,16 @@ fn oam_read() {
 	emulator.load_file("tests/ppu/oam_read.nes");
 	Cpu::init_pc(&mut emulator);
 	while read8(&mut emulator, 0x6000) != 0x80 {
-		Cpu::execute_next_instruction(&mut emulator);
-		emulator.ppu.do_cycle(&mut emulator.cpu, &mut emulator.window);
+		let cycles = Cpu::execute_next_instruction(&mut emulator);
+		for _ in 0..cycles {
+			emulator.ppu.do_cycle(&mut emulator.cpu, &mut emulator.window);
+		}
 	}
 	while read8(&mut emulator, 0x6000) == 0x80 {
-		Cpu::execute_next_instruction(&mut emulator);
-		emulator.ppu.do_cycle(&mut emulator.cpu, &mut emulator.window);
+		let cycles = Cpu::execute_next_instruction(&mut emulator);
+		for _ in 0..cycles {
+			emulator.ppu.do_cycle(&mut emulator.cpu, &mut emulator.window);
+		}
 	}
 	assert_eq!(read8(&mut emulator, 0x6000), 0);
 }

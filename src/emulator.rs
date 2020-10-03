@@ -61,8 +61,10 @@ impl Emulator {
 	pub fn run(&mut self) {
 		Cpu::init_pc(self);
 		while self.window.is_open() {
-			Cpu::execute_next_instruction(self);
-			self.ppu.do_cycle(&mut self.cpu, &mut self.window);
+			let cycles = Cpu::execute_next_instruction(self);
+			for _ in 0..cycles {
+				self.ppu.do_cycle(&mut self.cpu, &mut self.window);
+			}
 		}
 	}
 }

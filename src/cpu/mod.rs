@@ -152,7 +152,7 @@ impl Cpu {
 		}
 	}
 
-	pub fn execute_next_instruction(emulator: &mut Emulator) {
+	pub fn execute_next_instruction(emulator: &mut Emulator) -> u8 {
 		match emulator.cpu.pending_interrupt {
 			Some(Interrupt::Nmi) => perform_interrupt(emulator, NMI_VECTOR_ADDRESS),
 			Some(Interrupt::Irq) => if !emulator.cpu.get_flag(Flag::I) {
@@ -571,6 +571,8 @@ impl Cpu {
 				panic!();
 			}
 		}
+
+		2
 	}
 }
 
