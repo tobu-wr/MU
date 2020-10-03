@@ -6,7 +6,6 @@ use cpu::tests::*;
 fn oam_read() {
 	let mut emulator = Emulator::new();
 	emulator.load_file("tests/ppu/oam_read.nes");
-	Cpu::init_pc(&mut emulator);
 	while read8(&mut emulator, 0x6000) != 0x80 {
 		Cpu::execute_next_instruction(&mut emulator);
 		emulator.ppu.do_cycle(&mut emulator.cpu, &mut emulator.window);
@@ -22,7 +21,7 @@ fn oam_read() {
 fn palette_ram() {
 	let mut emulator = Emulator::new();
 	emulator.load_file("tests/ppu/blargg_ppu_tests/palette_ram.nes");
-	Cpu::init_pc(&mut emulator);
+
 	// TODO
 	/*while  {
 		Cpu::execute_next_instruction(&mut emulator);
@@ -34,7 +33,7 @@ fn palette_ram() {
 fn sprite_ram() {
 	let mut emulator = Emulator::new();
 	emulator.load_file("tests/ppu/blargg_ppu_tests/sprite_ram.nes");
-	Cpu::init_pc(&mut emulator);
+
 	// TODO
 	/*while  {
 		Cpu::execute_next_instruction(&mut emulator);

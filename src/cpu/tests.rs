@@ -19,7 +19,6 @@ fn nestest() {
 fn run_test(filename: &str) {
 	let mut emulator = Emulator::new();
 	emulator.load_file(filename);
-	Cpu::init_pc(&mut emulator);
 	while read8(&mut emulator, 0x6000) != 0x80 {
 		Cpu::execute_next_instruction(&mut emulator);
 	}
