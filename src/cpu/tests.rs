@@ -152,3 +152,13 @@ fn abs_x_wrap() {
 fn branch_wrap() {
 	run_test("tests/cpu/instr_misc/02-branch_wrap.nes");
 }
+
+#[test]
+fn instr_timing() {
+	run_test("tests/cpu/instr_timing/1-instr_timing.nes");
+}
+
+#[test]
+fn branch_timing() {
+	run_test("tests/cpu/instr_timing/2-branch_timing.nes");
+}
