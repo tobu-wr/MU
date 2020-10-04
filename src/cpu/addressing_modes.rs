@@ -48,13 +48,17 @@ impl AddressingMode for Absolute {
 
 impl AddressingMode for AbsoluteX {
 	fn get_address(emulator: &mut Emulator) -> u16 {
-		read_next16(emulator).wrapping_add(emulator.cpu.x as _)
+		let result = read_next16(emulator).wrapping_add(emulator.cpu.x as _);
+		emulator.cpu.page_crossing = (result & 0xff00) != result.wrapping_sub(emulator.cpu.x as _) & 0xff00;
+		result
 	}
 }
 
 impl AddressingMode for AbsoluteY {
 	fn get_address(emulator: &mut Emulator) -> u16 {
-		read_next16(emulator).wrapping_add(emulator.cpu.y as _)
+		let result = read_next16(emulator).wrapping_add(emulator.cpu.y as _);
+		emulator.cpu.page_crossing = (result & 0xff00) != result.wrapping_sub(emulator.cpu.y as _) & 0xff00;
+		result
 	}
 }
 
@@ -68,6 +72,8 @@ impl AddressingMode for IndirectX {
 impl AddressingMode for IndirectY {
 	fn get_address(emulator: &mut Emulator) -> u16 {
 		let address = read_next8(emulator);
-		read16_zeropage(emulator, address).wrapping_add(emulator.cpu.y as _)
+		let result = read16_zeropage(emulator, address).wrapping_add(emulator.cpu.y as _);
+		emulator.cpu.page_crossing = (result & 0xff00) != result.wrapping_sub(emulator.cpu.y as _) & 0xff00;
+		result
 	}
 }

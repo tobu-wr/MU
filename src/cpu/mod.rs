@@ -35,14 +35,16 @@ pub enum Interrupt {
 #[derive(Copy, Clone)]
 struct LookupTableEntry {
 	instruction: fn(emulator: &mut Emulator),
-	cycles: u8
+	cycles: u8,
+	page_crossing_cycles: u8
 }
 
 impl LookupTableEntry {
 	fn new() -> Self {
 		Self {
 			instruction: |_| {},
-			cycles: 0
+			cycles: 0,
+			page_crossing_cycles: 0
 		}
 	}
 }
@@ -56,7 +58,8 @@ pub struct Cpu {
 	p: u8,
 	pending_interrupt: Option<Interrupt>,
 	lookup_table: [LookupTableEntry; LOOKUP_TABLE_SIZE],
-	cycles: u8,
+	page_crossing: bool,
+	branch_taken: bool,
 
 	#[cfg(feature = "trace")]
 	logger: Logger
@@ -71,7 +74,10 @@ impl Cpu {
 				// NOPs
 				0x1a | 0x3a | 0x5a | 0x7a | 0xda | 0xea | 0xfa => |_| {},
 				0x04 | 0x14 | 0x34 | 0x44 | 0x54 | 0x64 | 0x74 | 0x80 | 0x82 | 0x89 | 0xc2 | 0xe2 | 0xd4 | 0xf4 => |emulator| emulator.cpu.pc = emulator.cpu.pc.wrapping_add(1),
-				0x0c | 0x1c | 0x3c | 0x5c | 0x7c | 0xdc | 0xfc => |emulator| emulator.cpu.pc = emulator.cpu.pc.wrapping_add(2),
+				0x0c => |emulator| emulator.cpu.pc = emulator.cpu.pc.wrapping_add(2),
+				0x1c | 0x3c | 0x5c | 0x7c | 0xdc | 0xfc => |emulator| {
+					AbsoluteX::get_address(emulator);
+				},
 
 				0xa9 => lda::<Immediate>,
 				0xa5 => lda::<ZeroPage>,
@@ -476,23 +482,41 @@ impl Cpu {
 				}
 			};
 												  // 0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f  
-			const CYCLES: [u8; LOOKUP_TABLE_SIZE] = [7, 6, 2, 6, 2, 3, 3, 3, 2, 2, 2, 2, 2, 4, 4, 4,  // 00
-													 3, 5, 2, 5, 2, 2, 2, 2, 2, 4, 2, 4, 2, 4, 4, 4,  // 10
-													 6, 6, 2, 6, 3, 3, 3, 3, 2, 2, 2, 2, 4, 4, 4, 4,  // 20
-													 3, 5, 2, 5, 2, 2, 2, 2, 2, 4, 2, 4, 2, 4, 4, 4,  // 30
-													 2, 6, 2, 6, 2, 3, 3, 3, 3, 2, 2, 2, 3, 4, 4, 4,  // 40
-													 3, 5, 2, 5, 2, 2, 2, 2, 2, 4, 2, 4, 2, 4, 4, 4,  // 50
-													 6, 6, 2, 6, 2, 3, 3, 3, 2, 2, 2, 2, 2, 4, 4, 4,  // 60
-													 3, 5, 2, 5, 2, 2, 2, 2, 2, 4, 2, 4, 2, 4, 4, 4,  // 70
+			const CYCLES: [u8; LOOKUP_TABLE_SIZE] = [7, 6, 2, 8, 3, 3, 5, 5, 3, 2, 2, 2, 4, 4, 6, 6,  // 00
+													 2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,  // 10
+													 6, 6, 2, 8, 3, 3, 5, 5, 4, 2, 2, 2, 4, 4, 6, 6,  // 20
+													 2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,  // 30
+													 6, 6, 2, 8, 3, 3, 5, 5, 3, 2, 2, 2, 3, 4, 6, 6,  // 40
+													 2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,  // 50
+													 6, 6, 2, 8, 3, 3, 5, 5, 4, 2, 2, 2, 5, 4, 6, 6,  // 60
+													 2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,  // 70
 													 2, 6, 2, 6, 3, 3, 3, 3, 2, 2, 2, 2, 4, 4, 4, 4,  // 80
-													 3, 5, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 4, 4, 4, 2,  // 90
+													 2, 6, 2, 6, 4, 4, 4, 4, 2, 5, 2, 5, 5, 5, 5, 5,  // 90
 													 2, 6, 2, 6, 3, 3, 3, 3, 2, 2, 2, 2, 4, 4, 4, 4,  // a0
-													 3, 5, 2, 5, 2, 2, 2, 2, 2, 4, 2, 2, 4, 4, 4, 4,  // b0
-													 2, 6, 2, 6, 3, 3, 3, 3, 2, 2, 2, 2, 4, 4, 4, 4,  // c0
-													 3, 5, 2, 5, 2, 2, 2, 2, 2, 4, 2, 4, 2, 4, 4, 4,  // d0
-													 2, 6, 2, 6, 3, 3, 3, 3, 2, 2, 2, 2, 4, 4, 4, 4,  // e0
-													 3, 5, 2, 5, 2, 2, 2, 2, 2, 4, 2, 4, 4, 4, 2, 4]; // f0
+													 2, 5, 2, 5, 4, 4, 4, 4, 2, 4, 2, 4, 4, 4, 4, 4,  // b0
+													 2, 6, 2, 8, 3, 3, 5, 5, 2, 2, 2, 2, 4, 4, 6, 6,  // c0
+													 2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,  // d0
+													 2, 6, 2, 8, 3, 3, 5, 5, 2, 2, 2, 2, 4, 4, 6, 6,  // e0
+													 2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7]; // f0
 			entry.cycles = CYCLES[opcode];
+																// 0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f  
+			const PAGE_CROSSING_CYCLES: [u8; LOOKUP_TABLE_SIZE] = [7, 6, 2, 8, 3, 3, 5, 5, 3, 2, 2, 2, 4, 4, 6, 6,  // 00
+																   2, 6, 2, 8, 4, 4, 6, 6, 2, 5, 2, 7, 5, 5, 7, 7,  // 10
+																   6, 6, 2, 8, 3, 3, 5, 5, 4, 2, 2, 2, 4, 4, 6, 6,  // 20
+																   2, 6, 2, 8, 4, 4, 6, 6, 2, 5, 2, 7, 5, 5, 7, 7,  // 30
+																   6, 6, 2, 8, 3, 3, 5, 5, 3, 2, 2, 2, 3, 4, 6, 6,  // 40
+																   2, 6, 2, 8, 4, 4, 6, 6, 2, 5, 2, 7, 5, 5, 7, 7,  // 50
+																   6, 6, 2, 8, 3, 3, 5, 5, 4, 2, 2, 2, 5, 4, 6, 6,  // 60
+																   2, 6, 2, 8, 4, 4, 6, 6, 2, 5, 2, 7, 5, 5, 7, 7,  // 70
+																   2, 6, 2, 6, 3, 3, 3, 3, 2, 2, 2, 2, 4, 4, 4, 4,  // 80
+																   2, 6, 2, 6, 4, 4, 4, 4, 2, 5, 2, 5, 5, 5, 5, 5,  // 90
+																   2, 6, 2, 6, 3, 3, 3, 3, 2, 2, 2, 2, 4, 4, 4, 4,  // a0
+																   2, 6, 2, 6, 4, 4, 4, 4, 2, 5, 2, 5, 5, 5, 5, 5,  // b0
+																   2, 6, 2, 8, 3, 3, 5, 5, 2, 2, 2, 2, 4, 4, 6, 6,  // c0
+																   2, 6, 2, 8, 4, 4, 6, 6, 2, 5, 2, 7, 5, 5, 7, 7,  // d0
+																   2, 6, 2, 8, 3, 3, 5, 5, 2, 2, 2, 2, 4, 4, 6, 6,  // e0
+																   2, 6, 2, 8, 4, 4, 6, 6, 2, 5, 2, 7, 5, 5, 7, 7]; // f0
+			entry.page_crossing_cycles = PAGE_CROSSING_CYCLES[opcode];
 		}
 
 		Self {
@@ -504,7 +528,8 @@ impl Cpu {
 			p: 0x24,
 			pending_interrupt: None,
 			lookup_table,
-			cycles: 0,
+			page_crossing: false,
+			branch_taken: false,
 
 			#[cfg(feature = "trace")]
 			logger: Logger::new()
@@ -618,8 +643,18 @@ impl Cpu {
 		
 		let opcode = read_next8(emulator);
 		let entry = emulator.cpu.lookup_table[opcode as usize];
+		emulator.cpu.branch_taken = false;
+		emulator.cpu.page_crossing = false;
 		(entry.instruction)(emulator);
-		entry.cycles
+		if emulator.cpu.branch_taken {
+			entry.cycles + emulator.cpu.page_crossing as u8 + 1
+		} else {
+			if emulator.cpu.page_crossing {
+				entry.page_crossing_cycles
+			} else {
+				entry.cycles
+			}
+		}
 	}
 }
 
@@ -899,6 +934,8 @@ fn branch(emulator: &mut Emulator, flag: Flag, value: bool) {
 	let offset = read_next8(emulator);
 	if emulator.cpu.get_flag(flag) == value {
 		emulator.cpu.pc = emulator.cpu.pc.wrapping_add(offset as i8 as _);
+		emulator.cpu.page_crossing = (emulator.cpu.pc & 0xff00) != emulator.cpu.pc.wrapping_sub(offset as i8 as _) & 0xff00;
+		emulator.cpu.branch_taken = true;
 	}
 }
 
