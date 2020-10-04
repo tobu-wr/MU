@@ -133,7 +133,7 @@ impl Cpu {
 				0x9e => |emulator| {
 					let mut address = AbsoluteY::get_address(emulator);
 					let high_byte = (address >> 8) as u8;
-					if high_byte != (address.wrapping_sub(emulator.cpu.y as _) >> 8) as u8 {
+					if emulator.cpu.page_crossing {
 						address &= (emulator.cpu.x as u16) << 8;
 					}
 					write(emulator, address, emulator.cpu.x & high_byte.wrapping_add(1));
@@ -143,7 +143,7 @@ impl Cpu {
 				0x9c => |emulator| {
 					let mut address = AbsoluteX::get_address(emulator);
 					let high_byte = (address >> 8) as u8;
-					if high_byte != (address.wrapping_sub(emulator.cpu.x as _) >> 8) as u8 {
+					if emulator.cpu.page_crossing {
 						address &= (emulator.cpu.y as u16) << 8;
 					}
 					write(emulator, address, emulator.cpu.y & high_byte.wrapping_add(1));
@@ -498,24 +498,26 @@ impl Cpu {
 													 2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,  // d0
 													 2, 6, 2, 8, 3, 3, 5, 5, 2, 2, 2, 2, 4, 4, 6, 6,  // e0
 													 2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7]; // f0
-			entry.cycles = CYCLES[opcode];
+
 																// 0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f  
 			const PAGE_CROSSING_CYCLES: [u8; LOOKUP_TABLE_SIZE] = [7, 6, 2, 8, 3, 3, 5, 5, 3, 2, 2, 2, 4, 4, 6, 6,  // 00
-																   2, 6, 2, 8, 4, 4, 6, 6, 2, 5, 2, 7, 5, 5, 7, 7,  // 10
+																   3, 6, 2, 8, 4, 4, 6, 6, 2, 5, 2, 7, 5, 5, 7, 7,  // 10
 																   6, 6, 2, 8, 3, 3, 5, 5, 4, 2, 2, 2, 4, 4, 6, 6,  // 20
-																   2, 6, 2, 8, 4, 4, 6, 6, 2, 5, 2, 7, 5, 5, 7, 7,  // 30
+																   3, 6, 2, 8, 4, 4, 6, 6, 2, 5, 2, 7, 5, 5, 7, 7,  // 30
 																   6, 6, 2, 8, 3, 3, 5, 5, 3, 2, 2, 2, 3, 4, 6, 6,  // 40
-																   2, 6, 2, 8, 4, 4, 6, 6, 2, 5, 2, 7, 5, 5, 7, 7,  // 50
+																   3, 6, 2, 8, 4, 4, 6, 6, 2, 5, 2, 7, 5, 5, 7, 7,  // 50
 																   6, 6, 2, 8, 3, 3, 5, 5, 4, 2, 2, 2, 5, 4, 6, 6,  // 60
-																   2, 6, 2, 8, 4, 4, 6, 6, 2, 5, 2, 7, 5, 5, 7, 7,  // 70
+																   3, 6, 2, 8, 4, 4, 6, 6, 2, 5, 2, 7, 5, 5, 7, 7,  // 70
 																   2, 6, 2, 6, 3, 3, 3, 3, 2, 2, 2, 2, 4, 4, 4, 4,  // 80
-																   2, 6, 2, 6, 4, 4, 4, 4, 2, 5, 2, 5, 5, 5, 5, 5,  // 90
+																   3, 6, 2, 6, 4, 4, 4, 4, 2, 5, 2, 5, 5, 5, 5, 5,  // 90
 																   2, 6, 2, 6, 3, 3, 3, 3, 2, 2, 2, 2, 4, 4, 4, 4,  // a0
-																   2, 6, 2, 6, 4, 4, 4, 4, 2, 5, 2, 5, 5, 5, 5, 5,  // b0
+																   3, 6, 2, 6, 4, 4, 4, 4, 2, 5, 2, 5, 5, 5, 5, 5,  // b0
 																   2, 6, 2, 8, 3, 3, 5, 5, 2, 2, 2, 2, 4, 4, 6, 6,  // c0
-																   2, 6, 2, 8, 4, 4, 6, 6, 2, 5, 2, 7, 5, 5, 7, 7,  // d0
+																   3, 6, 2, 8, 4, 4, 6, 6, 2, 5, 2, 7, 5, 5, 7, 7,  // d0
 																   2, 6, 2, 8, 3, 3, 5, 5, 2, 2, 2, 2, 4, 4, 6, 6,  // e0
-																   2, 6, 2, 8, 4, 4, 6, 6, 2, 5, 2, 7, 5, 5, 7, 7]; // f0
+																   3, 6, 2, 8, 4, 4, 6, 6, 2, 5, 2, 7, 5, 5, 7, 7]; // f0
+			
+			entry.cycles = CYCLES[opcode];
 			entry.page_crossing_cycles = PAGE_CROSSING_CYCLES[opcode];
 		}
 
@@ -544,6 +546,10 @@ impl Cpu {
 	fn set_pc(&mut self, value: u16) {
 		info!("PC: {:04X}", value);
 		self.pc = value;
+	}
+
+	fn check_page_crossing(&mut self, address_a: u16, address_b: u16) {
+		self.page_crossing = (address_a & 0xff00) != (address_b & 0xff00);
 	}
 
 	fn get_flag(&self, flag: Flag) -> bool {
@@ -646,15 +652,11 @@ impl Cpu {
 		emulator.cpu.branch_taken = false;
 		emulator.cpu.page_crossing = false;
 		(entry.instruction)(emulator);
-		if emulator.cpu.branch_taken {
-			entry.cycles + emulator.cpu.page_crossing as u8 + 1
+		(if emulator.cpu.page_crossing {
+			entry.page_crossing_cycles
 		} else {
-			if emulator.cpu.page_crossing {
-				entry.page_crossing_cycles
-			} else {
-				entry.cycles
-			}
-		}
+			entry.cycles
+		}) + emulator.cpu.branch_taken as u8
 	}
 }
 
@@ -933,8 +935,9 @@ fn cmp<T: AddressingMode>(emulator: &mut Emulator) {
 fn branch(emulator: &mut Emulator, flag: Flag, value: bool) {
 	let offset = read_next8(emulator);
 	if emulator.cpu.get_flag(flag) == value {
-		emulator.cpu.pc = emulator.cpu.pc.wrapping_add(offset as i8 as _);
-		emulator.cpu.page_crossing = (emulator.cpu.pc & 0xff00) != emulator.cpu.pc.wrapping_sub(offset as i8 as _) & 0xff00;
+		let pc = emulator.cpu.pc;
+		emulator.cpu.pc = pc.wrapping_add(offset as i8 as _);
+		emulator.cpu.check_page_crossing(pc, emulator.cpu.pc);
 		emulator.cpu.branch_taken = true;
 	}
 }
