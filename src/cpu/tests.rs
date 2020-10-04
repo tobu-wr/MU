@@ -12,7 +12,7 @@ fn nestest() {
 	emulator.load_file("tests/cpu/nestest/nestest.nes");
 	emulator.cpu.set_pc(0xc000);
 
-	let mut cycle_counter = 7;
+	let mut cycle_counter: u16 = 7;
 
 	let log_file = std::fs::File::open("tests/cpu/nestest/nestest.log").unwrap();
 	for line in BufReader::new(log_file).lines() {
@@ -46,7 +46,7 @@ fn nestest() {
 		let expected_cycle = &log[90..];
 		assert_eq!(cycle, expected_cycle);
 
-		cycle_counter += Cpu::execute_next_instruction(&mut emulator);
+		cycle_counter += Cpu::execute_next_instruction(&mut emulator) as u16;
 	}
 }
 
