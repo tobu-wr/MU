@@ -68,8 +68,7 @@ pub struct Cpu {
 impl Cpu {
 	pub fn new() -> Self {
 		let mut lookup_table = [LookupTableEntry::new(); LOOKUP_TABLE_SIZE];
-		for opcode in 0..LOOKUP_TABLE_SIZE {
-			let entry = &mut lookup_table[opcode];
+		for (opcode, entry) in lookup_table.iter_mut().enumerate() {
 			entry.instruction = match opcode {
 				// NOPs
 				0x1a | 0x3a | 0x5a | 0x7a | 0xda | 0xea | 0xfa => |_| {},
