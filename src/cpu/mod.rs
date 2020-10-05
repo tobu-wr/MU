@@ -58,7 +58,7 @@ pub struct Cpu {
 	p: u8,
 	pending_interrupt: Option<Interrupt>,
 	lookup_table: [LookupTableEntry; LOOKUP_TABLE_SIZE],
-	page_crossing: bool,
+	page_crossed: bool,
 	branch_taken: bool,
 
 	#[cfg(feature = "trace")]
@@ -133,7 +133,7 @@ impl Cpu {
 				0x9e => |emulator| {
 					let mut address = AbsoluteY::get_address(emulator);
 					let high_byte = (address >> 8) as u8;
-					if emulator.cpu.page_crossing {
+					if emulator.cpu.page_crossed {
 						address &= (emulator.cpu.x as u16) << 8;
 					}
 					write(emulator, address, emulator.cpu.x & high_byte.wrapping_add(1));
@@ -143,7 +143,7 @@ impl Cpu {
 				0x9c => |emulator| {
 					let mut address = AbsoluteX::get_address(emulator);
 					let high_byte = (address >> 8) as u8;
-					if emulator.cpu.page_crossing {
+					if emulator.cpu.page_crossed {
 						address &= (emulator.cpu.y as u16) << 8;
 					}
 					write(emulator, address, emulator.cpu.y & high_byte.wrapping_add(1));
@@ -530,7 +530,7 @@ impl Cpu {
 			p: 0x24,
 			pending_interrupt: None,
 			lookup_table,
-			page_crossing: false,
+			page_crossed: false,
 			branch_taken: false,
 
 			#[cfg(feature = "trace")]
@@ -549,7 +549,7 @@ impl Cpu {
 	}
 
 	fn check_page_crossing(&mut self, address_a: u16, address_b: u16) {
-		self.page_crossing = (address_a & 0xff00) != (address_b & 0xff00);
+		self.page_crossed = (address_a & 0xff00) != (address_b & 0xff00);
 	}
 
 	fn get_flag(&self, flag: Flag) -> bool {
@@ -650,9 +650,9 @@ impl Cpu {
 		let opcode = read_next8(emulator);
 		let entry = emulator.cpu.lookup_table[opcode as usize];
 		emulator.cpu.branch_taken = false;
-		emulator.cpu.page_crossing = false;
+		emulator.cpu.page_crossed = false;
 		(entry.instruction)(emulator);
-		(if emulator.cpu.page_crossing {
+		(if emulator.cpu.page_crossed {
 			entry.page_crossing_cycles
 		} else {
 			entry.cycles
