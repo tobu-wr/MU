@@ -652,6 +652,7 @@ impl Cpu {
 		emulator.cpu.branch_taken = false;
 		emulator.cpu.page_crossed = false;
 		(entry.instruction)(emulator);
+		
 		(if emulator.cpu.page_crossed {
 			entry.page_crossing_cycles
 		} else {
