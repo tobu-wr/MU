@@ -11,9 +11,12 @@ mod nametable_viewer;
 use std::time::{Instant, Duration};
 
 use minifb::Window;
-use emulator::*;
+
 use cpu::*;
 use self::memory::*;
+
+#[cfg(feature = "benchmark")]
+use emulator::*;
 
 #[cfg(feature = "nametable-viewer")]
 use self::nametable_viewer::*;
