@@ -7,7 +7,11 @@ mod tests;
 #[cfg(feature = "nametable-viewer")]
 mod nametable_viewer;
 
+#[cfg(feature = "benchmark")]
+use std::time::{Instant, Duration};
+
 use minifb::Window;
+use emulator::*;
 use cpu::*;
 use self::memory::*;
 
@@ -35,6 +39,12 @@ pub struct Ppu {
 	oam: [u8; OAM_SIZE],
 	memory: Memory,
 
+	#[cfg(feature = "benchmark")]
+	frame_counter: u16,
+
+	#[cfg(feature = "benchmark")]
+	instant: Instant,
+
 	#[cfg(feature = "nametable-viewer")]
 	nametable_viewer: NametableViewer
 }
@@ -57,6 +67,12 @@ impl Ppu {
 			oam: [0; OAM_SIZE],
 			memory: Memory::new(),
 
+			#[cfg(feature = "benchmark")]
+			frame_counter: 0,
+
+			#[cfg(feature = "benchmark")]
+			instant: Instant::now(),
+
 			#[cfg(feature = "nametable-viewer")]
 			nametable_viewer: NametableViewer::new()
 		}
@@ -76,6 +92,18 @@ impl Ppu {
 									 0x00eceeec, 0x00a8ccec, 0x00bcbcec, 0x00d4b2ec, 0x00ecaeec, 0x00ecaed4, 0x00ecb4b0, 0x00e4c490,
 									 0x00ccd278, 0x00b4de78, 0x00a8e290, 0x0098e2b4, 0x00a0d6e4, 0x00a0a2a0, 0x00000000, 0x00000000];
 		self.frame_buffer[(y as usize) * FRAME_WIDTH + x as usize] = COLORS[color as usize];
+	}
+
+	#[cfg(feature = "benchmark")]
+	fn display_fps(&mut self, window: &mut Window) {
+		self.frame_counter += 1;
+		let elapsed = self.instant.elapsed();
+		if elapsed >= Duration::from_secs(1) {
+			let fps = (self.frame_counter as f32) / elapsed.as_secs_f32();
+			window.set_title(&format!("{} - FPS: {}", EMULATOR_NAME, fps as u16));
+			self.frame_counter = 0;
+			self.instant = Instant::now();
+		}
 	}
 
 	pub fn do_cycle(&mut self, cpu: &mut Cpu, window: &mut Window) {
@@ -179,6 +207,9 @@ impl Ppu {
 						cpu.request_interrupt(Interrupt::Nmi);
 					}
 					window.update_with_buffer(&self.frame_buffer, FRAME_WIDTH, FRAME_HEIGHT).unwrap();
+
+					#[cfg(feature = "benchmark")]
+					self.display_fps(window);
 
 					#[cfg(feature = "nametable-viewer")]
 					NametableViewer::update(self);
