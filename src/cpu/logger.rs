@@ -5,27 +5,38 @@ use std::cell::RefCell;
 use emulator::*;
 use super::memory::*;
 
-const MAX_LOGS: usize = 44_000;
+const BUFFER_CAPACITY: usize = 44_000;
+
+struct Data {
+	pc: u16,
+	opcode: u8,
+	opcode_data: Vec<u16>,
+	a: u8,
+	x: u8,
+	y: u8,
+	p: u8,
+	s: u8
+}
 
 struct Buffer {
-	logs: Vec<String>,
+	data: Vec<Data>,
 	index: usize
 }
 
 impl Buffer {
 	fn new() -> Self {
 		Self {
-			logs: Vec::with_capacity(MAX_LOGS),
+			data: Vec::with_capacity(BUFFER_CAPACITY),
 			index: 0
 		}
 	}
 
-	fn push(&mut self, log: String) {
-		if self.logs.len() < MAX_LOGS {
-			self.logs.push(log);
+	fn push(&mut self, data: Data) {
+		if self.data.len() < BUFFER_CAPACITY {
+			self.data.push(data);
 		} else {
-			self.logs[self.index] = log;
-			self.index = (self.index + 1) % MAX_LOGS;
+			self.data[self.index] = data;
+			self.index = (self.index + 1) % BUFFER_CAPACITY;
 		}
 	}
 }
@@ -33,9 +44,12 @@ impl Buffer {
 impl Drop for Buffer {
 	fn drop(&mut self) {
 		let mut file = File::create("trace.log").unwrap();
-		for i in 0..self.logs.len() {
-			let index = (self.index + i) % MAX_LOGS;
-			file.write_all(self.logs[index].as_bytes()).unwrap();
+		for i in 0..self.data.len() {
+			let index = (self.index + i) % BUFFER_CAPACITY;
+			let data = &self.data[index];
+			let instruction_string = format_instruction(data.opcode, &data.opcode_data);
+			let log = format!("{:04X}  {:02X} {:<38} A:{:02X} X:{:02X} Y:{:02X} P:{:02X} SP:{:02X}\n", data.pc, data.opcode, instruction_string, data.a, data.x, data.y, data.p, data.s);
+			file.write_all(log.as_bytes()).unwrap();
 		}
 		file.flush().unwrap();
 	}
@@ -54,7 +68,7 @@ impl Logger {
 
 	pub(super) fn create_trace(emulator: &Emulator) {
 		let opcode = read8_debug(emulator, emulator.cpu.pc);
-		let instruction_string = match opcode {
+		/*let instruction_string = match opcode {
 			0xea => format("NOP"),
 			0x1a | 0x3a | 0x5a | 0x7a | 0xda | 0xfa => format("*NOP"),
 			0x80 => format_immediate(emulator, "*NOP"),
@@ -325,11 +339,25 @@ impl Logger {
 			0x32 => format("KIL"),
 
 			_ => "# UNKNOWN OPCODE #".to_string()
+		};*/
+
+		let data = Data {
+			pc: emulator.cpu.pc,
+			opcode,
+			opcode_data: Vec::new(),
+			a: emulator.cpu.a,
+			x: emulator.cpu.x,
+			y: emulator.cpu.y,
+			p: emulator.cpu.p,
+			s: emulator.cpu.s
 		};
 
-		let log = format!("{:04X}  {:02X} {:<38} A:{:02X} X:{:02X} Y:{:02X} P:{:02X} SP:{:02X}\n", emulator.cpu.pc, opcode, instruction_string, emulator.cpu.a, emulator.cpu.x, emulator.cpu.y, emulator.cpu.p, emulator.cpu.s);
-		emulator.cpu.logger.buffer.borrow_mut().push(log);
+		emulator.cpu.logger.buffer.borrow_mut().push(data);
 	}
+}
+
+fn format_instruction(opcode: u8, data: &Vec<u16>) -> String {
+	String::default()
 }
 
 fn format(mnemonic: &str) -> String {
