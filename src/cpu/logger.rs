@@ -47,7 +47,7 @@ impl Drop for Buffer {
 		for i in 0..self.data.len() {
 			let index = (self.index + i) % BUFFER_CAPACITY;
 			let data = &self.data[index];
-			let instruction = format_instruction(data.opcode, &data.opcode_data);
+			let instruction = format_instruction(data);
 			let log = format!("{:04X}  {:02X} {:<38} A:{:02X} X:{:02X} Y:{:02X} P:{:02X} SP:{:02X}\n", data.pc, data.opcode, instruction, data.a, data.x, data.y, data.p, data.s);
 			file.write_all(log.as_bytes()).unwrap();
 		}
@@ -83,383 +83,481 @@ impl Logger {
 }
 
 fn get_opcode_data(opcode: u8, emulator: &Emulator) -> Vec<u16> {
-	let mut data = Vec::<u16>::new();
+	let mut opcode_data = Vec::<u16>::new();
 	match opcode {
-		0xea => format("NOP"),
-		0x1a | 0x3a | 0x5a | 0x7a | 0xda | 0xfa => format("*NOP"),
-		0x80 => format_immediate(emulator, "*NOP"),
-		0x04 | 0x44 | 0x64 | 0x82 | 0x89 | 0xc2 | 0xe2 => format_zero_page(emulator, "*NOP"),
-		0x14 | 0x34 | 0x54 | 0x74 | 0xd4 | 0xf4 => format_zero_page_x(emulator, "*NOP"),
-		0x0c => format_absolute(emulator, "*NOP"),
-		0x1c | 0x3c | 0x5c | 0x7c | 0xdc | 0xfc => format_absolute_x(emulator, "*NOP"),
-			
-		0xa9 => format_immediate(emulator, "LDA"),
-		0xa5 => format_zero_page(emulator, "LDA"),
-		0xb5 => format_zero_page_x(emulator, "LDA"),
-		0xad => format_absolute(emulator, "LDA"),
-		0xbd => format_absolute_x(emulator, "LDA"),
-		0xb9 => format_absolute_y(emulator, "LDA"),
-		0xa1 => format_indirect_x(emulator, "LDA"),
-		0xb1 => format_indirect_y(emulator, "LDA"),
+		// NOPs
+		0x1a | 0x3a | 0x5a | 0x7a | 0xda | 0xea | 0xfa => {},
+		0x80 => get_opcode_data_immediate(emulator, &mut opcode_data),
+		0x04 | 0x44 | 0x64 | 0x82 | 0x89 | 0xc2 | 0xe2 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0x14 | 0x34 | 0x54 | 0x74 | 0xd4 | 0xf4 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0x0c => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0x1c | 0x3c | 0x5c | 0x7c | 0xdc | 0xfc => get_opcode_data_absolute_x(emulator, &mut opcode_data),
 
-		0xa2 => format_immediate(emulator, "LDX"),
-		0xa6 => format_zero_page(emulator, "LDX"),
-		0xb6 => format_zero_page_y(emulator, "LDX"),
-		0xae => format_absolute(emulator, "LDX"),
-		0xbe => format_absolute_y(emulator, "LDX"),
+		// LDA
+		0xa9 => get_opcode_data_immediate(emulator, &mut opcode_data),
+		0xa5 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0xb5 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0xad => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0xbd => get_opcode_data_absolute_x(emulator, &mut opcode_data),
+		0xb9 => get_opcode_data_absolute_y(emulator, &mut opcode_data),
+		0xa1 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
+		0xb1 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
 
-		0xa0 => format_immediate(emulator, "LDY"),
-		0xa4 => format_zero_page(emulator, "LDY"),
-		0xb4 => format_zero_page_x(emulator, "LDY"),
-		0xac => format_absolute(emulator, "LDY"),
-		0xbc => format_absolute_x(emulator, "LDY"),
+		// LDX
+		0xa2 => get_opcode_data_immediate(emulator, opcode_data),
+		0xa6 => get_opcode_data_zero_page(emulator, opcode_data),
+		0xb6 => get_opcode_data_zero_page_y(emulator, opcode_data),
+		0xae => get_opcode_data_absolute(emulator, opcode_data),
+		0xbe => get_opcode_data_absolute_y(emulator, opcode_data),
 
-		0xab => format_immediate(emulator, "LAX"),
-		0xa7 => format_zero_page(emulator, "LAX"),
-		0xb7 => format_zero_page_y(emulator, "LAX"),
-		0xaf => format_absolute(emulator, "LAX"),
-		0xbf => format_absolute_y(emulator, "LAX"),
-		0xa3 => format_indirect_x(emulator, "LAX"),
-		0xb3 => format_indirect_y(emulator, "LAX"),
+		// LDY
+		0xa0 => get_opcode_data_immediate(emulator, opcode_data),
+		0xa4 => get_opcode_data_zero_page(emulator, opcode_data),
+		0xb4 => get_opcode_data_zero_page_x(emulator, opcode_data),
+		0xac => get_opcode_data_absolute(emulator, opcode_data),
+		0xbc => get_opcode_data_absolute_x(emulator, opcode_data),
 
-		0x85 => format_zero_page(emulator, "STA"),
-		0x95 => format_zero_page_x(emulator, "STA"),
-		0x8d => format_absolute(emulator, "STA"),
-		0x9d => format_absolute_x(emulator, "STA"),
-		0x99 => format_absolute_y(emulator, "STA"),
-		0x81 => format_indirect_x(emulator, "STA"),
-		0x91 => format_indirect_y(emulator, "STA"),
+		// LAX
+		0xab => get_opcode_data_immediate(emulator, opcode_data),
+		0xa7 => get_opcode_data_zero_page(emulator, opcode_data),
+		0xb7 => get_opcode_data_zero_page_y(emulator, opcode_data),
+		0xaf => get_opcode_data_absolute(emulator, opcode_data),
+		0xbf => get_opcode_data_absolute_y(emulator, opcode_data),
+		0xa3 => get_opcode_data_indirect_x(emulator, opcode_data),
+		0xb3 => get_opcode_data_indirect_y(emulator, opcode_data),
 
-		0x86 => format_zero_page(emulator, "STX"),
-		0x96 => format_zero_page_y(emulator, "STX"),
-		0x8e => format_absolute(emulator, "STX"),
+		// STA
+		0x85 => get_opcode_data_zero_page(emulator, opcode_data),
+		0x95 => get_opcode_data_zero_page_x(emulator, opcode_data),
+		0x8d => get_opcode_data_absolute(emulator, opcode_data),
+		0x9d => get_opcode_data_absolute_x(emulator, opcode_data),
+		0x99 => get_opcode_data_absolute_y(emulator, opcode_data),
+		0x81 => get_opcode_data_indirect_x(emulator, opcode_data),
+		0x91 => get_opcode_data_indirect_y(emulator, opcode_data),
 
-		0x84 => format_zero_page(emulator, "STY"),
-		0x94 => format_zero_page_x(emulator, "STY"),
-		0x8c => format_absolute(emulator, "STY"),
+		// STX
+		0x86 => get_opcode_data_zero_page(emulator, opcode_data),
+		0x96 => get_opcode_data_zero_page_y(emulator, opcode_data),
+		0x8e => get_opcode_data_absolute(emulator, opcode_data),
 
-		0x87 => format_zero_page(emulator, "SAX"),
-		0x97 => format_zero_page_y(emulator, "SAX"),
-		0x8f => format_absolute(emulator, "SAX"),
-		0x83 => format_indirect_x(emulator, "SAX"),
+		// STY
+		0x84 => get_opcode_data_zero_page(emulator, opcode_data),
+		0x94 => get_opcode_data_zero_page_x(emulator, opcode_data),
+		0x8c => get_opcode_data_absolute(emulator, opcode_data),
 
-		0x9e => format_absolute_y(emulator, "SXA"),
-		0x9c => format_absolute_x(emulator, "SYA"),
+		// SAX
+		0x87 => get_opcode_data_zero_page(emulator, opcode_data),
+		0x97 => get_opcode_data_zero_page_y(emulator, opcode_data),
+		0x8f => get_opcode_data_absolute(emulator, opcode_data),
+		0x83 => get_opcode_data_indirect_x(emulator, opcode_data),
 
-		0xaa => format("TAX"),
-		0x8a => format("TXA"),
-		0xa8 => format("TAY"),
-		0x98 => format("TYA"),
-		0xba => format("TSX"),
-		0x9a => format("TXS"),
+		// SXA
+		0x9e => get_opcode_data_absolute_y(emulator, opcode_data),
 
-		0x29 => format_immediate(emulator, "AND"),
-		0x25 => format_zero_page(emulator, "AND"),
-		0x35 => format_zero_page_x(emulator, "AND"),
-		0x2d => format_absolute(emulator, "AND"),
-		0x3d => format_absolute_x(emulator, "AND"),
-		0x39 => format_absolute_y(emulator, "AND"),
-		0x21 => format_indirect_x(emulator, "AND"),
-		0x31 => format_indirect_y(emulator, "AND"),
+		// SYA
+		0x9c => get_opcode_data_absolute_x(emulator, opcode_data),
 
-		0x0b | 0x2b => format_immediate(emulator, "AAC"),
-		0x4b => format_immediate(emulator, "ASR"),
-		0x6b => format_immediate(emulator, "ARR"),
-		0xcb => format_immediate(emulator, "AXS"),
+		// TAX
+		0xaa => {},
+		
+		// TXA
+		0x8a => {},
 
-		0x09 => format_immediate(emulator, "ORA"),
-		0x05 => format_zero_page(emulator, "ORA"),
-		0x15 => format_zero_page_x(emulator, "ORA"),
-		0x0d => format_absolute(emulator, "ORA"),
-		0x1d => format_absolute_x(emulator, "ORA"),
-		0x19 => format_absolute_y(emulator, "ORA"),
-		0x01 => format_indirect_x(emulator, "ORA"),
-		0x11 => format_indirect_y(emulator, "ORA"),
+		// TAY
+		0xa8 => {},
 
-		0x49 => format_immediate(emulator, "EOR"),
-		0x45 => format_zero_page(emulator, "EOR"),
-		0x55 => format_zero_page_x(emulator, "EOR"),
-		0x4d => format_absolute(emulator, "EOR"),
-		0x5d => format_absolute_x(emulator, "EOR"),
-		0x59 => format_absolute_y(emulator, "EOR"),
-		0x41 => format_indirect_x(emulator, "EOR"),
-		0x51 => format_indirect_y(emulator, "EOR"),
+		// TYA
+		0x98 => {},
 
-		0x24 => format_zero_page(emulator, "BIT"),
-		0x2c => format_absolute(emulator, "BIT"),
+		// TSX
+		0xba => {},
 
-		0x4a => format_a("LSR"),
-		0x46 => format_zero_page(emulator, "LSR"),
-		0x56 => format_zero_page_x(emulator, "LSR"),
-		0x4e => format_absolute(emulator, "LSR"),
-		0x5e => format_absolute_x(emulator, "LSR"),
+		// TXS
+		0x9a => {},
 
-		0x47 => format_zero_page(emulator, "*SRE"),
-		0x57 => format_zero_page_x(emulator, "*SRE"),
-		0x4f => format_absolute(emulator, "*SRE"),
-		0x5f => format_absolute_x(emulator, "*SRE"),
-		0x5b => format_absolute_y(emulator, "*SRE"),
-		0x43 => format_indirect_x(emulator, "*SRE"),
-		0x53 => format_indirect_y(emulator, "*SRE"),		
+		// AND
+		0x29 => get_opcode_data_immediate(emulator, opcode_data),
+		0x25 => get_opcode_data_zero_page(emulator, opcode_data),
+		0x35 => get_opcode_data_zero_page_x(emulator, opcode_data),
+		0x2d => get_opcode_data_absolute(emulator, opcode_data),
+		0x3d => get_opcode_data_absolute_x(emulator, opcode_data),
+		0x39 => get_opcode_data_absolute_y(emulator, opcode_data),
+		0x21 => get_opcode_data_indirect_x(emulator, opcode_data),
+		0x31 => get_opcode_data_indirect_y(emulator, opcode_data),
 
-		0x0a => format_a("ASL"),
-		0x06 => format_zero_page(emulator, "ASL"),
-		0x16 => format_zero_page_x(emulator, "ASL"),
-		0x0e => format_absolute(emulator, "ASL"),
-		0x1e => format_absolute_x(emulator, "ASL"),
+		// AAC
+		0x0b | 0x2b => get_opcode_data_immediate(emulator, opcode_data),
 
-		0x07 => format_zero_page(emulator, "*SLO"),
-		0x17 => format_zero_page_x(emulator, "*SLO"),
-		0x0f => format_absolute(emulator, "*SLO"),
-		0x1f => format_absolute_x(emulator, "*SLO"),
-		0x1b => format_absolute_y(emulator, "*SLO"),
-		0x03 => format_indirect_x(emulator, "*SLO"),
-		0x13 => format_indirect_y(emulator, "*SLO"),
+		// ASR
+		0x4b => get_opcode_data_immediate(emulator, opcode_data),
 
-		0x6a => format_a("ROR"),
-		0x66 => format_zero_page(emulator, "ROR"),
-		0x76 => format_zero_page_x(emulator, "ROR"),
-		0x6e => format_absolute(emulator, "ROR"),
-		0x7e => format_absolute_x(emulator, "ROR"),
+		// ARR
+		0x6b => get_opcode_data_immediate(emulator, opcode_data),
 
-		0x67 => format_zero_page(emulator, "*RRA"),
-		0x77 => format_zero_page_x(emulator, "*RRA"),
-		0x6f => format_absolute(emulator, "*RRA"),
-		0x7f => format_absolute_x(emulator, "*RRA"),
-		0x7b => format_absolute_y(emulator, "*RRA"),
-		0x63 => format_indirect_x(emulator, "*RRA"),
-		0x73 => format_indirect_y(emulator, "*RRA"),
+		// AXS
+		0xcb => get_opcode_data_immediate(emulator, opcode_data),
 
-		0x2a => format_a("ROL"),
-		0x26 => format_zero_page(emulator, "ROL"),
-		0x36 => format_zero_page_x(emulator, "ROL"),
-		0x2e => format_absolute(emulator, "ROL"),
-		0x3e => format_absolute_x(emulator, "ROL"),
+		// ORA
+		0x09 => get_opcode_data_immediate(emulator, opcode_data),
+		0x05 => get_opcode_data_zero_page(emulator, opcode_data),
+		0x15 => get_opcode_data_zero_page_x(emulator, opcode_data),
+		0x0d => get_opcode_data_absolute(emulator, opcode_data),
+		0x1d => get_opcode_data_absolute_x(emulator, opcode_data),
+		0x19 => get_opcode_data_absolute_y(emulator, opcode_data),
+		0x01 => get_opcode_data_indirect_x(emulator, opcode_data),
+		0x11 => get_opcode_data_indirect_y(emulator, opcode_data),
 
-		0x27 => format_zero_page(emulator, "*RLA"), 
-		0x37 => format_zero_page_x(emulator, "*RLA"),
-		0x2f => format_absolute(emulator, "*RLA"),
-		0x3f => format_absolute_x(emulator, "*RLA"),
-		0x3b => format_absolute_y(emulator, "*RLA"),
-		0x23 => format_indirect_x(emulator, "*RLA"),
-		0x33 => format_indirect_y(emulator, "*RLA"),
+		// EOR
+		0x49 => get_opcode_data_immediate(emulator, opcode_data),
+		0x45 => get_opcode_data_zero_page(emulator, opcode_data),
+		0x55 => get_opcode_data_zero_page_x(emulator, opcode_data),
+		0x4d => get_opcode_data_absolute(emulator, opcode_data),
+		0x5d => get_opcode_data_absolute_x(emulator, opcode_data),
+		0x59 => get_opcode_data_absolute_y(emulator, opcode_data),
+		0x41 => get_opcode_data_indirect_x(emulator, opcode_data),
+		0x51 => get_opcode_data_indirect_y(emulator, opcode_data),
 
-		0x69 => format_immediate(emulator, "ADC"),
-		0x65 => format_zero_page(emulator, "ADC"),
-		0x75 => format_zero_page_x(emulator, "ADC"),
-		0x6d => format_absolute(emulator, "ADC"),
-		0x7d => format_absolute_x(emulator, "ADC"),
-		0x79 => format_absolute_y(emulator, "ADC"),
-		0x61 => format_indirect_x(emulator, "ADC"),
-		0x71 => format_indirect_y(emulator, "ADC"),
+		// BIT
+		0x24 => get_opcode_data_zero_page(emulator, opcode_data),
+		0x2c => get_opcode_data_absolute(emulator, opcode_data),
 
-		0xe9 => format_immediate(emulator, "SBC"),
-		0xe5 => format_zero_page(emulator, "SBC"),
-		0xf5 => format_zero_page_x(emulator, "SBC"),
-		0xed => format_absolute(emulator, "SBC"),
-		0xfd => format_absolute_x(emulator, "SBC"),
-		0xf9 => format_absolute_y(emulator, "SBC"),
-		0xe1 => format_indirect_x(emulator, "SBC"),
-		0xf1 => format_indirect_y(emulator, "SBC"),
-			
-		0xeb => format_immediate(emulator, "*SBC"),
+		// LSR
+		0x4a => {},
+		0x46 => get_opcode_data_zero_page(emulator, opcode_data),
+		0x56 => get_opcode_data_zero_page_x(emulator, opcode_data),
+		0x4e => get_opcode_data_absolute(emulator, opcode_data),
+		0x5e => get_opcode_data_absolute_x(emulator, opcode_data),
 
-		0xe8 => format("INX"),
-		0xc8 => format("INY"),
+		// SRE
+		0x47 => get_opcode_data_zero_page(emulator, opcode_data),
+		0x57 => get_opcode_data_zero_page_x(emulator, opcode_data),
+		0x4f => get_opcode_data_absolute(emulator, opcode_data),
+		0x5f => get_opcode_data_absolute_x(emulator, opcode_data),
+		0x5b => get_opcode_data_absolute_y(emulator, opcode_data),
+		0x43 => get_opcode_data_indirect_x(emulator, opcode_data),
+		0x53 => get_opcode_data_indirect_y(emulator, opcode_data),		
 
-		0xe6 => format_zero_page(emulator, "INC"),
-		0xf6 => format_zero_page_x(emulator, "INC"),
-		0xee => format_absolute(emulator, "INC"),
-		0xfe => format_absolute_x(emulator, "INC"),
+		// ASL
+		0x0a => {},
+		0x06 => get_opcode_data_zero_page(emulator, opcode_data),
+		0x16 => get_opcode_data_zero_page_x(emulator, opcode_data),
+		0x0e => get_opcode_data_absolute(emulator, opcode_data),
+		0x1e => get_opcode_data_absolute_x(emulator, opcode_data),
 
-		0xe7 => format_zero_page(emulator, "*ISB"),
-		0xf7 => format_zero_page_x(emulator, "*ISB"),
-		0xef => format_absolute(emulator, "*ISB"),
-		0xff => format_absolute_x(emulator, "*ISB"),
-		0xfb => format_absolute_y(emulator, "*ISB"),
-		0xe3 => format_indirect_x(emulator, "*ISB"),
-		0xf3 => format_indirect_y(emulator, "*ISB"),
+		// SLO
+		0x07 => get_opcode_data_zero_page(emulator, opcode_data),
+		0x17 => get_opcode_data_zero_page_x(emulator, opcode_data),
+		0x0f => get_opcode_data_absolute(emulator, opcode_data),
+		0x1f => get_opcode_data_absolute_x(emulator, opcode_data),
+		0x1b => get_opcode_data_absolute_y(emulator, opcode_data),
+		0x03 => get_opcode_data_indirect_x(emulator, opcode_data),
+		0x13 => get_opcode_data_indirect_y(emulator, opcode_data),
 
-		0xca => format("DEX"),
-		0x88 => format("DEY"),
+		// ROR
+		0x6a => {},
+		0x66 => get_opcode_data_zero_page(emulator, opcode_data),
+		0x76 => get_opcode_data_zero_page_x(emulator, opcode_data),
+		0x6e => get_opcode_data_absolute(emulator, opcode_data),
+		0x7e => get_opcode_data_absolute_x(emulator, opcode_data),
 
-		0xc6 => format_zero_page(emulator, "DEC"),
-		0xd6 => format_zero_page_x(emulator, "DEC"),
-		0xce => format_absolute(emulator, "DEC"),
-		0xde => format_absolute_x(emulator, "DEC"),
+		// RRA
+		0x67 => get_opcode_data_zero_page(emulator, opcode_data),
+		0x77 => get_opcode_data_zero_page_x(emulator, opcode_data),
+		0x6f => get_opcode_data_absolute(emulator, opcode_data),
+		0x7f => get_opcode_data_absolute_x(emulator, opcode_data),
+		0x7b => get_opcode_data_absolute_y(emulator, opcode_data),
+		0x63 => get_opcode_data_indirect_x(emulator, opcode_data),
+		0x73 => get_opcode_data_indirect_y(emulator, opcode_data),
 
-		0xc7 => format_zero_page(emulator, "*DCP"),
-		0xd7 => format_zero_page_x(emulator, "*DCP"),
-		0xcf => format_absolute(emulator, "*DCP"),
-		0xdf => format_absolute_x(emulator, "*DCP"),
-		0xdb => format_absolute_y(emulator, "*DCP"),
-		0xc3 => format_indirect_x(emulator, "*DCP"),
-		0xd3 => format_indirect_y(emulator, "*DCP"),
+		// ROL
+		0x2a => {},
+		0x26 => get_opcode_data_zero_page(emulator, opcode_data),
+		0x36 => get_opcode_data_zero_page_x(emulator, opcode_data),
+		0x2e => get_opcode_data_absolute(emulator, opcode_data),
+		0x3e => get_opcode_data_absolute_x(emulator, opcode_data),
 
-		0xe0 => format_immediate(emulator, "CPX"),
-		0xe4 => format_zero_page(emulator, "CPX"),
-		0xec => format_absolute(emulator, "CPX"),
+		// RLA
+		0x27 => get_opcode_data_zero_page(emulator, opcode_data), 
+		0x37 => get_opcode_data_zero_page_x(emulator, opcode_data),
+		0x2f => get_opcode_data_absolute(emulator, opcode_data),
+		0x3f => get_opcode_data_absolute_x(emulator, opcode_data),
+		0x3b => get_opcode_data_absolute_y(emulator, opcode_data),
+		0x23 => get_opcode_data_indirect_x(emulator, opcode_data),
+		0x33 => get_opcode_data_indirect_y(emulator, opcode_data),
 
-		0xc0 => format_immediate(emulator, "CPY"),
-		0xc4 => format_zero_page(emulator, "CPY"),
-		0xcc => format_absolute(emulator, "CPY"),
+		// ADC
+		0x69 => get_opcode_data_immediate(emulator, opcode_data),
+		0x65 => get_opcode_data_zero_page(emulator, opcode_data),
+		0x75 => get_opcode_data_zero_page_x(emulator, opcode_data),
+		0x6d => get_opcode_data_absolute(emulator, opcode_data),
+		0x7d => get_opcode_data_absolute_x(emulator, opcode_data),
+		0x79 => get_opcode_data_absolute_y(emulator, opcode_data),
+		0x61 => get_opcode_data_indirect_x(emulator, opcode_data),
+		0x71 => get_opcode_data_indirect_y(emulator, opcode_data),
 
-		0xc9 => format_immediate(emulator, "CMP"),
-		0xc5 => format_zero_page(emulator, "CMP"),
-		0xd5 => format_zero_page_x(emulator, "CMP"),
-		0xcd => format_absolute(emulator, "CMP"),
-		0xdd => format_absolute_x(emulator, "CMP"),
-		0xd9 => format_absolute_y(emulator, "CMP"),
-		0xc1 => format_indirect_x(emulator, "CMP"),
-		0xd1 => format_indirect_y(emulator, "CMP"),
+		// SBC
+		0xe9 | 0xeb => get_opcode_data_immediate(emulator, opcode_data),
+		0xe5 => get_opcode_data_zero_page(emulator, opcode_data),
+		0xf5 => get_opcode_data_zero_page_x(emulator, opcode_data),
+		0xed => get_opcode_data_absolute(emulator, opcode_data),
+		0xfd => get_opcode_data_absolute_x(emulator, opcode_data),
+		0xf9 => get_opcode_data_absolute_y(emulator, opcode_data),
+		0xe1 => get_opcode_data_indirect_x(emulator, opcode_data),
+		0xf1 => get_opcode_data_indirect_y(emulator, opcode_data),
 
-		0x48 => format("PHA"),
-		0x68 => format("PLA"),
-		0x08 => format("PHP"),
-		0x28 => format("PLP"),
-		0x18 => format("CLC"),
-		0x38 => format("SEC"),
-		0x58 => format("CLI"),
-		0x78 => format("SEI"),
-		0xd8 => format("CLD"),
-		0xf8 => format("SED"),
-		0xb8 => format("CLV"),
+		// INX
+		0xe8 => {},
 
-		0x4c => format_jump_absolute(emulator, "JMP"),
-		0x20 => format_jump_absolute(emulator, "JSR"),
+		// INY
+		0xc8 => {},
+
+		// INC
+		0xe6 => get_opcode_data_zero_page(emulator, opcode_data),
+		0xf6 => get_opcode_data_zero_page_x(emulator, opcode_data),
+		0xee => get_opcode_data_absolute(emulator, opcode_data),
+		0xfe => get_opcode_data_absolute_x(emulator, opcode_data),
+
+		// ISB
+		0xe7 => get_opcode_data_zero_page(emulator, opcode_data),
+		0xf7 => get_opcode_data_zero_page_x(emulator, opcode_data),
+		0xef => get_opcode_data_absolute(emulator, opcode_data),
+		0xff => get_opcode_data_absolute_x(emulator, opcode_data),
+		0xfb => get_opcode_data_absolute_y(emulator, opcode_data),
+		0xe3 => get_opcode_data_indirect_x(emulator, opcode_data),
+		0xf3 => get_opcode_data_indirect_y(emulator, opcode_data),
+
+		// DEX
+		0xca => {},
+
+		// DEY
+		0x88 => {},
+
+		// DEC
+		0xc6 => get_opcode_data_zero_page(emulator, opcode_data),
+		0xd6 => get_opcode_data_zero_page_x(emulator, opcode_data),
+		0xce => get_opcode_data_absolute(emulator, opcode_data),
+		0xde => get_opcode_data_absolute_x(emulator, opcode_data),
+
+		// DCP
+		0xc7 => get_opcode_data_zero_page(emulator, opcode_data),
+		0xd7 => get_opcode_data_zero_page_x(emulator, opcode_data),
+		0xcf => get_opcode_data_absolute(emulator, opcode_data),
+		0xdf => get_opcode_data_absolute_x(emulator, opcode_data),
+		0xdb => get_opcode_data_absolute_y(emulator, opcode_data),
+		0xc3 => get_opcode_data_indirect_x(emulator, opcode_data),
+		0xd3 => get_opcode_data_indirect_y(emulator, opcode_data),
+
+		// CPX
+		0xe0 => get_opcode_data_immediate(emulator, opcode_data),
+		0xe4 => get_opcode_data_zero_page(emulator, opcode_data),
+		0xec => get_opcode_data_absolute(emulator, opcode_data),
+
+		// CPY
+		0xc0 => get_opcode_data_immediate(emulator, opcode_data),
+		0xc4 => get_opcode_data_zero_page(emulator, opcode_data),
+		0xcc => get_opcode_data_absolute(emulator, opcode_data),
+
+		// CMP
+		0xc9 => get_opcode_data_immediate(emulator, opcode_data),
+		0xc5 => get_opcode_data_zero_page(emulator, opcode_data),
+		0xd5 => get_opcode_data_zero_page_x(emulator, opcode_data),
+		0xcd => get_opcode_data_absolute(emulator, opcode_data),
+		0xdd => get_opcode_data_absolute_x(emulator, opcode_data),
+		0xd9 => get_opcode_data_absolute_y(emulator, opcode_data),
+		0xc1 => get_opcode_data_indirect_x(emulator, opcode_data),
+		0xd1 => get_opcode_data_indirect_y(emulator, opcode_data),
+
+		// PHA
+		0x48 => {},
+
+		// PLA
+		0x68 => {},
+
+		// PHP
+		0x08 => {},
+
+		// PLP
+		0x28 => {},
+
+		// CLC
+		0x18 => {},
+
+		// SEC
+		0x38 => {},
+
+		// CLI
+		0x58 => {},
+
+		// SEI
+		0x78 => {},
+
+		// CLD
+		0xd8 => {},
+
+		// SED
+		0xf8 => {},
+
+		// CLV
+		0xb8 => {},
+
+		// JMP
+		0x4c => get_opcode_data_jump_absolute(emulator, opcode_data),
+
+		// JSR
+		0x20 => get_opcode_data_jump_absolute(emulator, opcode_data),
 
 		// JMP (indirect)
 		0x6c => {
 			let pc = emulator.cpu.pc.wrapping_add(1);
 			let address = read16_debug(emulator, pc);
-			let low_byte = read8_debug(emulator, address) as u16;
-			let high_byte = read8_debug(emulator, (address & 0xff00) | (address.wrapping_add(1) & 0x00ff)) as u16;
-			let effective_address = (high_byte << 8) | low_byte;
-			format!("{:02X} {:02X}  JMP (${:04X}) = {:04X}", low_byte, high_byte, address, effective_address)
+			let low_byte = read8_debug(emulator, address);
+			let high_byte = read8_debug(emulator, (address & 0xff00) | (address.wrapping_add(1) & 0x00ff));
+			opcode_data.push(address);
+			opcode_data.push(low_byte as _);
+			opcode_data.push(high_byte as _);
 		},
 
-		0x10 => format_jump_relative(emulator, "BPL"),
-		0x30 => format_jump_relative(emulator, "BMI"),
-		0x50 => format_jump_relative(emulator, "BVC"),
-		0x70 => format_jump_relative(emulator, "BVS"),
-		0x90 => format_jump_relative(emulator, "BCC"),
-		0xb0 => format_jump_relative(emulator, "BCS"),
-		0xd0 => format_jump_relative(emulator, "BNE"),
-		0xf0 => format_jump_relative(emulator, "BEQ"),
+		// BPL
+		0x10 => get_opcode_data_jump_relative(emulator, opcode_data),
 
-		0x00 => format("BRK"),
+		// BMI
+		0x30 => get_opcode_data_jump_relative(emulator, opcode_data),
 
-		0x40 => format("RTI"),
-		0x60 => format("RTS"),
+		// BVC
+		0x50 => get_opcode_data_jump_relative(emulator, opcode_data),
 
-		0x32 => format("KIL"),
+		// BVS
+		0x70 => get_opcode_data_jump_relative(emulator, opcode_data),
 
-		_ => "# UNKNOWN OPCODE #".to_string()
+		// BCC
+		0x90 => get_opcode_data_jump_relative(emulator, opcode_data),
+
+		// BCS
+		0xb0 => get_opcode_data_jump_relative(emulator, opcode_data),
+
+		// BNE
+		0xd0 => get_opcode_data_jump_relative(emulator, opcode_data),
+
+		// BEQ
+		0xf0 => get_opcode_data_jump_relative(emulator, opcode_data),
+
+		// BRK
+		0x00 => {},
+
+		// RTI
+		0x40 => {},
+
+		// RTS
+		0x60 => {},
+
+		// KIL
+		0x32 => {},
+
+		_ => {}
 	};
-	data
+	opcode_data
 }
 
-fn format(mnemonic: &str) -> String {
-	format!("{:>10}", mnemonic)
-}
-
-fn format_a(mnemonic: &str) -> String {
-	format!("{:>10} A", mnemonic)
-}
-
-fn format_immediate(emulator: &Emulator, mnemonic: &str) -> String {
+fn get_opcode_data_immediate(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let operand = read8_debug(emulator, pc);
-	format!("{:02X}{:>8} #${:02X}", operand, mnemonic, operand)
+	opcode_data.push(operand as _);
 }
 
-fn format_zero_page(emulator: &Emulator, mnemonic: &str) -> String {
+fn get_opcode_data_zero_page(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
-	let address = read8_debug(emulator, pc);
-	let operand = read8_debug(emulator, address as _);
-	format!("{:02X}{:>8} ${:02X} = {:02X}", address, mnemonic, address, operand)
-}
-
-fn format_zero_page_x(emulator: &Emulator, mnemonic: &str) -> String {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let address = read8_debug(emulator, pc);
-	let effective_address = address.wrapping_add(emulator.cpu.x);
-	let operand = read8_debug(emulator, effective_address as _);
-	format!("{:02X}{:>8} ${:02X},X @ {:02X} = {:02X}", address, mnemonic, address, effective_address, operand)
-}
-
-fn format_zero_page_y(emulator: &Emulator, mnemonic: &str) -> String {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let address = read8_debug(emulator, pc);
-	let effective_address = address.wrapping_add(emulator.cpu.y);
-	let operand = read8_debug(emulator, effective_address as _);
-	format!("{:02X}{:>8} ${:02X},Y @ {:02X} = {:02X}", address, mnemonic, address, effective_address, operand)
-}
-
-fn format_absolute(emulator: &Emulator, mnemonic: &str) -> String {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let address = read16_debug(emulator, pc);
-	let low_byte = address & 0xff;
-	let high_byte = address >> 8;
+	let address = read8_debug(emulator, pc) as u16;
 	let operand = read8_debug(emulator, address);
-	format!("{:02X} {:02X}{:>5} ${:04X} = {:02X}", low_byte, high_byte, mnemonic, address, operand)
+	opcode_data.push(address);
+	opcode_data.push(operand as _);
 }
 
-fn format_absolute_x(emulator: &Emulator, mnemonic: &str) -> String {
+fn get_opcode_data_zero_page_x(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
+	let pc = emulator.cpu.pc.wrapping_add(1);
+	let address = read8_debug(emulator, pc);
+	let effective_address = address.wrapping_add(emulator.cpu.x) as u16;
+	let operand = read8_debug(emulator, effective_address);
+	opcode_data.push(address as _);
+	opcode_data.push(effective_address);
+	opcode_data.push(operand as _);
+}
+
+fn get_opcode_data_zero_page_y(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
+	let pc = emulator.cpu.pc.wrapping_add(1);
+	let address = read8_debug(emulator, pc);
+	let effective_address = address.wrapping_add(emulator.cpu.y) as u16;
+	let operand = read8_debug(emulator, effective_address);
+	opcode_data.push(address as _);
+	opcode_data.push(effective_address);
+	opcode_data.push(operand as _);
+}
+
+fn get_opcode_data_absolute(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let address = read16_debug(emulator, pc);
-	let low_byte = address & 0xff;
-	let high_byte = address >> 8;
+	let operand = read8_debug(emulator, address);
+	opcode_data.push(address);
+	opcode_data.push(operand as _);
+}
+
+fn get_opcode_data_absolute_x(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
+	let pc = emulator.cpu.pc.wrapping_add(1);
+	let address = read16_debug(emulator, pc);
 	let effective_address = address.wrapping_add(emulator.cpu.x as _);
 	let operand = read8_debug(emulator, effective_address);
-	format!("{:02X} {:02X}{:>5} ${:04X},X @ {:04X} = {:02X}", low_byte, high_byte, mnemonic, address, effective_address, operand)
+	opcode_data.push(address);
+	opcode_data.push(effective_address);
+	opcode_data.push(operand as _);
 }
 
-fn format_absolute_y(emulator: &Emulator, mnemonic: &str) -> String {
+fn get_opcode_data_absolute_y(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let address = read16_debug(emulator, pc);
-	let low_byte = address & 0xff;
-	let high_byte = address >> 8;
 	let effective_address = address.wrapping_add(emulator.cpu.y as _);
 	let operand = read8_debug(emulator, effective_address);
-	format!("{:02X} {:02X}{:>5} ${:04X},Y @ {:04X} = {:02X}", low_byte, high_byte, mnemonic, address, effective_address, operand)
+	opcode_data.push(address);
+	opcode_data.push(effective_address);
+	opcode_data.push(operand as _);
 }
 
-fn format_indirect_x(emulator: &Emulator, mnemonic: &str) -> String {
+fn get_opcode_data_indirect_x(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let immediate = read8_debug(emulator, pc);
 	let address = immediate.wrapping_add(emulator.cpu.x);
 	let effective_address = read16_zeropage_debug(emulator, address);
 	let operand = read8_debug(emulator, effective_address);
-	format!("{:02X}{:>8} (${:02X},X) @ {:02X} = {:04X} = {:02X}", immediate, mnemonic, immediate, address, effective_address, operand)
+	opcode_data.push(immediate as _);
+	opcode_data.push(address as _);
+	opcode_data.push(effective_address);
+	opcode_data.push(operand as _);
 }
 
-fn format_indirect_y(emulator: &Emulator, mnemonic: &str) -> String {
+fn get_opcode_data_indirect_y(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let immediate = read8_debug(emulator, pc);
 	let address = read16_zeropage_debug(emulator, immediate);
 	let effective_address = address.wrapping_add(emulator.cpu.y as _);
 	let operand = read8_debug(emulator, effective_address);
-	format!("{:02X}{:>8} (${:02X}),Y = {:04X} @ {:04X} = {:02X}", immediate, mnemonic, immediate, address, effective_address, operand)
+	opcode_data.push(immediate as _);
+	opcode_data.push(address);
+	opcode_data.push(effective_address);
+	opcode_data.push(operand as _);
 }
 
-fn format_jump_absolute(emulator: &Emulator, mnemonic: &str) -> String {
+fn get_opcode_data_jump_absolute(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let address = read16_debug(emulator, pc);
-	let low_byte = address & 0xff;
-	let high_byte = address >> 8;
-	format!("{:02X} {:02X}{:>5} ${:04X}", low_byte, high_byte, mnemonic, address)
+	opcode_data.push(address);
 }
 
-fn format_jump_relative(emulator: &Emulator, mnemonic: &str) -> String {
+fn get_opcode_data_jump_relative(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let offset = read8_debug(emulator, pc);
-	let address = pc.wrapping_add(offset as i8 as _).wrapping_add(1);
-	format!("{:02X}{:>8} ${:04X}", offset, mnemonic, address)
+	opcode_data.push(offset as i8 as _);
 }
 
-fn format_instruction(opcode: u8, data: &Vec<u16>) -> String {
-	match opcode {
+fn format_instruction(data: &Data) -> String {
+	match data.opcode {
 		0xea => format("NOP"),
 		0x1a | 0x3a | 0x5a | 0x7a | 0xda | 0xfa => format("*NOP"),
 		0x80 => format_immediate(data, "*NOP"),
@@ -705,9 +803,9 @@ fn format_instruction(opcode: u8, data: &Vec<u16>) -> String {
 
 		// JMP (indirect)
 		0x6c => {
-			let address = read16_debug(emulator, pc);
-			let low_byte = read8_debug(emulator, address) as u16;
-			let high_byte = read8_debug(emulator, (address & 0xff00) | (address.wrapping_add(1) & 0x00ff)) as u16;
+			let address = data.opcode_data[0];
+			let low_byte = data.opcode_data[1];
+			let high_byte = data.opcode_data[2];
 			let effective_address = (high_byte << 8) | low_byte;
 			format!("{:02X} {:02X}  JMP (${:04X}) = {:04X}", low_byte, high_byte, address, effective_address)
 		},
@@ -729,7 +827,7 @@ fn format_instruction(opcode: u8, data: &Vec<u16>) -> String {
 		0x32 => format("KIL"),
 
 		_ => "# UNKNOWN OPCODE #".to_string()
-	};
+	}
 }
 
 fn format(mnemonic: &str) -> String {
@@ -740,93 +838,82 @@ fn format_a(mnemonic: &str) -> String {
 	format!("{:>10} A", mnemonic)
 }
 
-fn format_immediate(emulator: &Emulator, mnemonic: &str) -> String {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let operand = read8_debug(emulator, pc);
+fn format_immediate(data: &Data, mnemonic: &str) -> String {
+	let operand = data.opcode_data[0];
 	format!("{:02X}{:>8} #${:02X}", operand, mnemonic, operand)
 }
 
-fn format_zero_page(emulator: &Emulator, mnemonic: &str) -> String {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let address = read8_debug(emulator, pc);
-	let operand = read8_debug(emulator, address as _);
+fn format_zero_page(data: &Data, mnemonic: &str) -> String {
+	let address = data.opcode_data[0];
+	let operand = data.opcode_data[1];
 	format!("{:02X}{:>8} ${:02X} = {:02X}", address, mnemonic, address, operand)
 }
 
-fn format_zero_page_x(emulator: &Emulator, mnemonic: &str) -> String {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let address = read8_debug(emulator, pc);
-	let effective_address = address.wrapping_add(emulator.cpu.x);
-	let operand = read8_debug(emulator, effective_address as _);
+fn format_zero_page_x(data: &Data, mnemonic: &str) -> String {
+	let address = data.opcode_data[0];
+	let effective_address = data.opcode_data[1];
+	let operand = data.opcode_data[2];
 	format!("{:02X}{:>8} ${:02X},X @ {:02X} = {:02X}", address, mnemonic, address, effective_address, operand)
 }
 
-fn format_zero_page_y(emulator: &Emulator, mnemonic: &str) -> String {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let address = read8_debug(emulator, pc);
-	let effective_address = address.wrapping_add(emulator.cpu.y);
-	let operand = read8_debug(emulator, effective_address as _);
+fn format_zero_page_y(data: &Data, mnemonic: &str) -> String {
+	let address = data.opcode_data[0];
+	let effective_address = data.opcode_data[1];
+	let operand = data.opcode_data[2];
 	format!("{:02X}{:>8} ${:02X},Y @ {:02X} = {:02X}", address, mnemonic, address, effective_address, operand)
 }
 
-fn format_absolute(emulator: &Emulator, mnemonic: &str) -> String {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let address = read16_debug(emulator, pc);
+fn format_absolute(data: &Data, mnemonic: &str) -> String {
+	let address = data.opcode_data[0];
 	let low_byte = address & 0xff;
 	let high_byte = address >> 8;
-	let operand = read8_debug(emulator, address);
+	let operand = data.opcode_data[1];
 	format!("{:02X} {:02X}{:>5} ${:04X} = {:02X}", low_byte, high_byte, mnemonic, address, operand)
 }
 
-fn format_absolute_x(emulator: &Emulator, mnemonic: &str) -> String {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let address = read16_debug(emulator, pc);
+fn format_absolute_x(data: &Data, mnemonic: &str) -> String {
+	let address = data.opcode_data[0];
 	let low_byte = address & 0xff;
 	let high_byte = address >> 8;
-	let effective_address = address.wrapping_add(emulator.cpu.x as _);
-	let operand = read8_debug(emulator, effective_address);
+	let effective_address = data.opcode_data[1];
+	let operand = data.opcode_data[2];
 	format!("{:02X} {:02X}{:>5} ${:04X},X @ {:04X} = {:02X}", low_byte, high_byte, mnemonic, address, effective_address, operand)
 }
 
-fn format_absolute_y(emulator: &Emulator, mnemonic: &str) -> String {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let address = read16_debug(emulator, pc);
+fn format_absolute_y(data: &Data, mnemonic: &str) -> String {
+	let address = data.opcode_data[0];
 	let low_byte = address & 0xff;
 	let high_byte = address >> 8;
-	let effective_address = address.wrapping_add(emulator.cpu.y as _);
-	let operand = read8_debug(emulator, effective_address);
+	let effective_address = data.opcode_data[1];
+	let operand = data.opcode_data[2];
 	format!("{:02X} {:02X}{:>5} ${:04X},Y @ {:04X} = {:02X}", low_byte, high_byte, mnemonic, address, effective_address, operand)
 }
 
-fn format_indirect_x(emulator: &Emulator, mnemonic: &str) -> String {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let immediate = read8_debug(emulator, pc);
-	let address = immediate.wrapping_add(emulator.cpu.x);
-	let effective_address = read16_zeropage_debug(emulator, address);
-	let operand = read8_debug(emulator, effective_address);
+fn format_indirect_x(data: &Data, mnemonic: &str) -> String {
+	let immediate = data.opcode_data[0];
+	let address = data.opcode_data[1];
+	let effective_address = data.opcode_data[2];
+	let operand = data.opcode_data[3];
 	format!("{:02X}{:>8} (${:02X},X) @ {:02X} = {:04X} = {:02X}", immediate, mnemonic, immediate, address, effective_address, operand)
 }
 
-fn format_indirect_y(emulator: &Emulator, mnemonic: &str) -> String {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let immediate = read8_debug(emulator, pc);
-	let address = read16_zeropage_debug(emulator, immediate);
-	let effective_address = address.wrapping_add(emulator.cpu.y as _);
-	let operand = read8_debug(emulator, effective_address);
+fn format_indirect_y(data: &Data, mnemonic: &str) -> String {
+	let immediate = data.opcode_data[0];
+	let address = data.opcode_data[1];
+	let effective_address = data.opcode_data[2];
+	let operand = data.opcode_data[3];
 	format!("{:02X}{:>8} (${:02X}),Y = {:04X} @ {:04X} = {:02X}", immediate, mnemonic, immediate, address, effective_address, operand)
 }
 
-fn format_jump_absolute(emulator: &Emulator, mnemonic: &str) -> String {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let address = read16_debug(emulator, pc);
+fn format_jump_absolute(data: &Data, mnemonic: &str) -> String {
+	let address = data.opcode_data[0];
 	let low_byte = address & 0xff;
 	let high_byte = address >> 8;
 	format!("{:02X} {:02X}{:>5} ${:04X}", low_byte, high_byte, mnemonic, address)
 }
 
-fn format_jump_relative(emulator: &Emulator, mnemonic: &str) -> String {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let offset = read8_debug(emulator, pc);
-	let address = pc.wrapping_add(offset as i8 as _).wrapping_add(1);
+fn format_jump_relative(data: &Data, mnemonic: &str) -> String {
+	let offset = data.opcode_data[0];
+	let address = data.pc.wrapping_add(offset).wrapping_add(2);
 	format!("{:02X}{:>8} ${:04X}", offset, mnemonic, address)
 }
