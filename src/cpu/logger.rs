@@ -104,58 +104,58 @@ fn get_opcode_data(opcode: u8, emulator: &Emulator) -> Vec<u16> {
 		0xb1 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
 
 		// LDX
-		0xa2 => get_opcode_data_immediate(emulator, opcode_data),
-		0xa6 => get_opcode_data_zero_page(emulator, opcode_data),
-		0xb6 => get_opcode_data_zero_page_y(emulator, opcode_data),
-		0xae => get_opcode_data_absolute(emulator, opcode_data),
-		0xbe => get_opcode_data_absolute_y(emulator, opcode_data),
+		0xa2 => get_opcode_data_immediate(emulator, &mut opcode_data),
+		0xa6 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0xb6 => get_opcode_data_zero_page_y(emulator, &mut opcode_data),
+		0xae => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0xbe => get_opcode_data_absolute_y(emulator, &mut opcode_data),
 
 		// LDY
-		0xa0 => get_opcode_data_immediate(emulator, opcode_data),
-		0xa4 => get_opcode_data_zero_page(emulator, opcode_data),
-		0xb4 => get_opcode_data_zero_page_x(emulator, opcode_data),
-		0xac => get_opcode_data_absolute(emulator, opcode_data),
-		0xbc => get_opcode_data_absolute_x(emulator, opcode_data),
+		0xa0 => get_opcode_data_immediate(emulator, &mut opcode_data),
+		0xa4 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0xb4 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0xac => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0xbc => get_opcode_data_absolute_x(emulator, &mut opcode_data),
 
 		// LAX
-		0xab => get_opcode_data_immediate(emulator, opcode_data),
-		0xa7 => get_opcode_data_zero_page(emulator, opcode_data),
-		0xb7 => get_opcode_data_zero_page_y(emulator, opcode_data),
-		0xaf => get_opcode_data_absolute(emulator, opcode_data),
-		0xbf => get_opcode_data_absolute_y(emulator, opcode_data),
-		0xa3 => get_opcode_data_indirect_x(emulator, opcode_data),
-		0xb3 => get_opcode_data_indirect_y(emulator, opcode_data),
+		0xab => get_opcode_data_immediate(emulator, &mut opcode_data),
+		0xa7 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0xb7 => get_opcode_data_zero_page_y(emulator, &mut opcode_data),
+		0xaf => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0xbf => get_opcode_data_absolute_y(emulator, &mut opcode_data),
+		0xa3 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
+		0xb3 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
 
 		// STA
-		0x85 => get_opcode_data_zero_page(emulator, opcode_data),
-		0x95 => get_opcode_data_zero_page_x(emulator, opcode_data),
-		0x8d => get_opcode_data_absolute(emulator, opcode_data),
-		0x9d => get_opcode_data_absolute_x(emulator, opcode_data),
-		0x99 => get_opcode_data_absolute_y(emulator, opcode_data),
-		0x81 => get_opcode_data_indirect_x(emulator, opcode_data),
-		0x91 => get_opcode_data_indirect_y(emulator, opcode_data),
+		0x85 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0x95 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0x8d => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0x9d => get_opcode_data_absolute_x(emulator, &mut opcode_data),
+		0x99 => get_opcode_data_absolute_y(emulator, &mut opcode_data),
+		0x81 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
+		0x91 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
 
 		// STX
-		0x86 => get_opcode_data_zero_page(emulator, opcode_data),
-		0x96 => get_opcode_data_zero_page_y(emulator, opcode_data),
-		0x8e => get_opcode_data_absolute(emulator, opcode_data),
+		0x86 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0x96 => get_opcode_data_zero_page_y(emulator, &mut opcode_data),
+		0x8e => get_opcode_data_absolute(emulator, &mut opcode_data),
 
 		// STY
-		0x84 => get_opcode_data_zero_page(emulator, opcode_data),
-		0x94 => get_opcode_data_zero_page_x(emulator, opcode_data),
-		0x8c => get_opcode_data_absolute(emulator, opcode_data),
+		0x84 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0x94 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0x8c => get_opcode_data_absolute(emulator, &mut opcode_data),
 
 		// SAX
-		0x87 => get_opcode_data_zero_page(emulator, opcode_data),
-		0x97 => get_opcode_data_zero_page_y(emulator, opcode_data),
-		0x8f => get_opcode_data_absolute(emulator, opcode_data),
-		0x83 => get_opcode_data_indirect_x(emulator, opcode_data),
+		0x87 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0x97 => get_opcode_data_zero_page_y(emulator, &mut opcode_data),
+		0x8f => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0x83 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
 
 		// SXA
-		0x9e => get_opcode_data_absolute_y(emulator, opcode_data),
+		0x9e => get_opcode_data_absolute_y(emulator, &mut opcode_data),
 
 		// SYA
-		0x9c => get_opcode_data_absolute_x(emulator, opcode_data),
+		0x9c => get_opcode_data_absolute_x(emulator, &mut opcode_data),
 
 		// TAX
 		0xaa => {},
@@ -176,134 +176,134 @@ fn get_opcode_data(opcode: u8, emulator: &Emulator) -> Vec<u16> {
 		0x9a => {},
 
 		// AND
-		0x29 => get_opcode_data_immediate(emulator, opcode_data),
-		0x25 => get_opcode_data_zero_page(emulator, opcode_data),
-		0x35 => get_opcode_data_zero_page_x(emulator, opcode_data),
-		0x2d => get_opcode_data_absolute(emulator, opcode_data),
-		0x3d => get_opcode_data_absolute_x(emulator, opcode_data),
-		0x39 => get_opcode_data_absolute_y(emulator, opcode_data),
-		0x21 => get_opcode_data_indirect_x(emulator, opcode_data),
-		0x31 => get_opcode_data_indirect_y(emulator, opcode_data),
+		0x29 => get_opcode_data_immediate(emulator, &mut opcode_data),
+		0x25 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0x35 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0x2d => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0x3d => get_opcode_data_absolute_x(emulator, &mut opcode_data),
+		0x39 => get_opcode_data_absolute_y(emulator, &mut opcode_data),
+		0x21 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
+		0x31 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
 
 		// AAC
-		0x0b | 0x2b => get_opcode_data_immediate(emulator, opcode_data),
+		0x0b | 0x2b => get_opcode_data_immediate(emulator, &mut opcode_data),
 
 		// ASR
-		0x4b => get_opcode_data_immediate(emulator, opcode_data),
+		0x4b => get_opcode_data_immediate(emulator, &mut opcode_data),
 
 		// ARR
-		0x6b => get_opcode_data_immediate(emulator, opcode_data),
+		0x6b => get_opcode_data_immediate(emulator, &mut opcode_data),
 
 		// AXS
-		0xcb => get_opcode_data_immediate(emulator, opcode_data),
+		0xcb => get_opcode_data_immediate(emulator, &mut opcode_data),
 
 		// ORA
-		0x09 => get_opcode_data_immediate(emulator, opcode_data),
-		0x05 => get_opcode_data_zero_page(emulator, opcode_data),
-		0x15 => get_opcode_data_zero_page_x(emulator, opcode_data),
-		0x0d => get_opcode_data_absolute(emulator, opcode_data),
-		0x1d => get_opcode_data_absolute_x(emulator, opcode_data),
-		0x19 => get_opcode_data_absolute_y(emulator, opcode_data),
-		0x01 => get_opcode_data_indirect_x(emulator, opcode_data),
-		0x11 => get_opcode_data_indirect_y(emulator, opcode_data),
+		0x09 => get_opcode_data_immediate(emulator, &mut opcode_data),
+		0x05 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0x15 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0x0d => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0x1d => get_opcode_data_absolute_x(emulator, &mut opcode_data),
+		0x19 => get_opcode_data_absolute_y(emulator, &mut opcode_data),
+		0x01 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
+		0x11 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
 
 		// EOR
-		0x49 => get_opcode_data_immediate(emulator, opcode_data),
-		0x45 => get_opcode_data_zero_page(emulator, opcode_data),
-		0x55 => get_opcode_data_zero_page_x(emulator, opcode_data),
-		0x4d => get_opcode_data_absolute(emulator, opcode_data),
-		0x5d => get_opcode_data_absolute_x(emulator, opcode_data),
-		0x59 => get_opcode_data_absolute_y(emulator, opcode_data),
-		0x41 => get_opcode_data_indirect_x(emulator, opcode_data),
-		0x51 => get_opcode_data_indirect_y(emulator, opcode_data),
+		0x49 => get_opcode_data_immediate(emulator, &mut opcode_data),
+		0x45 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0x55 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0x4d => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0x5d => get_opcode_data_absolute_x(emulator, &mut opcode_data),
+		0x59 => get_opcode_data_absolute_y(emulator, &mut opcode_data),
+		0x41 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
+		0x51 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
 
 		// BIT
-		0x24 => get_opcode_data_zero_page(emulator, opcode_data),
-		0x2c => get_opcode_data_absolute(emulator, opcode_data),
+		0x24 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0x2c => get_opcode_data_absolute(emulator, &mut opcode_data),
 
 		// LSR
 		0x4a => {},
-		0x46 => get_opcode_data_zero_page(emulator, opcode_data),
-		0x56 => get_opcode_data_zero_page_x(emulator, opcode_data),
-		0x4e => get_opcode_data_absolute(emulator, opcode_data),
-		0x5e => get_opcode_data_absolute_x(emulator, opcode_data),
+		0x46 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0x56 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0x4e => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0x5e => get_opcode_data_absolute_x(emulator, &mut opcode_data),
 
 		// SRE
-		0x47 => get_opcode_data_zero_page(emulator, opcode_data),
-		0x57 => get_opcode_data_zero_page_x(emulator, opcode_data),
-		0x4f => get_opcode_data_absolute(emulator, opcode_data),
-		0x5f => get_opcode_data_absolute_x(emulator, opcode_data),
-		0x5b => get_opcode_data_absolute_y(emulator, opcode_data),
-		0x43 => get_opcode_data_indirect_x(emulator, opcode_data),
-		0x53 => get_opcode_data_indirect_y(emulator, opcode_data),		
+		0x47 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0x57 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0x4f => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0x5f => get_opcode_data_absolute_x(emulator, &mut opcode_data),
+		0x5b => get_opcode_data_absolute_y(emulator, &mut opcode_data),
+		0x43 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
+		0x53 => get_opcode_data_indirect_y(emulator, &mut opcode_data),		
 
 		// ASL
 		0x0a => {},
-		0x06 => get_opcode_data_zero_page(emulator, opcode_data),
-		0x16 => get_opcode_data_zero_page_x(emulator, opcode_data),
-		0x0e => get_opcode_data_absolute(emulator, opcode_data),
-		0x1e => get_opcode_data_absolute_x(emulator, opcode_data),
+		0x06 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0x16 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0x0e => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0x1e => get_opcode_data_absolute_x(emulator, &mut opcode_data),
 
 		// SLO
-		0x07 => get_opcode_data_zero_page(emulator, opcode_data),
-		0x17 => get_opcode_data_zero_page_x(emulator, opcode_data),
-		0x0f => get_opcode_data_absolute(emulator, opcode_data),
-		0x1f => get_opcode_data_absolute_x(emulator, opcode_data),
-		0x1b => get_opcode_data_absolute_y(emulator, opcode_data),
-		0x03 => get_opcode_data_indirect_x(emulator, opcode_data),
-		0x13 => get_opcode_data_indirect_y(emulator, opcode_data),
+		0x07 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0x17 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0x0f => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0x1f => get_opcode_data_absolute_x(emulator, &mut opcode_data),
+		0x1b => get_opcode_data_absolute_y(emulator, &mut opcode_data),
+		0x03 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
+		0x13 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
 
 		// ROR
 		0x6a => {},
-		0x66 => get_opcode_data_zero_page(emulator, opcode_data),
-		0x76 => get_opcode_data_zero_page_x(emulator, opcode_data),
-		0x6e => get_opcode_data_absolute(emulator, opcode_data),
-		0x7e => get_opcode_data_absolute_x(emulator, opcode_data),
+		0x66 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0x76 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0x6e => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0x7e => get_opcode_data_absolute_x(emulator, &mut opcode_data),
 
 		// RRA
-		0x67 => get_opcode_data_zero_page(emulator, opcode_data),
-		0x77 => get_opcode_data_zero_page_x(emulator, opcode_data),
-		0x6f => get_opcode_data_absolute(emulator, opcode_data),
-		0x7f => get_opcode_data_absolute_x(emulator, opcode_data),
-		0x7b => get_opcode_data_absolute_y(emulator, opcode_data),
-		0x63 => get_opcode_data_indirect_x(emulator, opcode_data),
-		0x73 => get_opcode_data_indirect_y(emulator, opcode_data),
+		0x67 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0x77 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0x6f => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0x7f => get_opcode_data_absolute_x(emulator, &mut opcode_data),
+		0x7b => get_opcode_data_absolute_y(emulator, &mut opcode_data),
+		0x63 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
+		0x73 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
 
 		// ROL
 		0x2a => {},
-		0x26 => get_opcode_data_zero_page(emulator, opcode_data),
-		0x36 => get_opcode_data_zero_page_x(emulator, opcode_data),
-		0x2e => get_opcode_data_absolute(emulator, opcode_data),
-		0x3e => get_opcode_data_absolute_x(emulator, opcode_data),
+		0x26 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0x36 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0x2e => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0x3e => get_opcode_data_absolute_x(emulator, &mut opcode_data),
 
 		// RLA
-		0x27 => get_opcode_data_zero_page(emulator, opcode_data), 
-		0x37 => get_opcode_data_zero_page_x(emulator, opcode_data),
-		0x2f => get_opcode_data_absolute(emulator, opcode_data),
-		0x3f => get_opcode_data_absolute_x(emulator, opcode_data),
-		0x3b => get_opcode_data_absolute_y(emulator, opcode_data),
-		0x23 => get_opcode_data_indirect_x(emulator, opcode_data),
-		0x33 => get_opcode_data_indirect_y(emulator, opcode_data),
+		0x27 => get_opcode_data_zero_page(emulator, &mut opcode_data), 
+		0x37 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0x2f => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0x3f => get_opcode_data_absolute_x(emulator, &mut opcode_data),
+		0x3b => get_opcode_data_absolute_y(emulator, &mut opcode_data),
+		0x23 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
+		0x33 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
 
 		// ADC
-		0x69 => get_opcode_data_immediate(emulator, opcode_data),
-		0x65 => get_opcode_data_zero_page(emulator, opcode_data),
-		0x75 => get_opcode_data_zero_page_x(emulator, opcode_data),
-		0x6d => get_opcode_data_absolute(emulator, opcode_data),
-		0x7d => get_opcode_data_absolute_x(emulator, opcode_data),
-		0x79 => get_opcode_data_absolute_y(emulator, opcode_data),
-		0x61 => get_opcode_data_indirect_x(emulator, opcode_data),
-		0x71 => get_opcode_data_indirect_y(emulator, opcode_data),
+		0x69 => get_opcode_data_immediate(emulator, &mut opcode_data),
+		0x65 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0x75 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0x6d => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0x7d => get_opcode_data_absolute_x(emulator, &mut opcode_data),
+		0x79 => get_opcode_data_absolute_y(emulator, &mut opcode_data),
+		0x61 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
+		0x71 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
 
 		// SBC
-		0xe9 | 0xeb => get_opcode_data_immediate(emulator, opcode_data),
-		0xe5 => get_opcode_data_zero_page(emulator, opcode_data),
-		0xf5 => get_opcode_data_zero_page_x(emulator, opcode_data),
-		0xed => get_opcode_data_absolute(emulator, opcode_data),
-		0xfd => get_opcode_data_absolute_x(emulator, opcode_data),
-		0xf9 => get_opcode_data_absolute_y(emulator, opcode_data),
-		0xe1 => get_opcode_data_indirect_x(emulator, opcode_data),
-		0xf1 => get_opcode_data_indirect_y(emulator, opcode_data),
+		0xe9 | 0xeb => get_opcode_data_immediate(emulator, &mut opcode_data),
+		0xe5 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0xf5 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0xed => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0xfd => get_opcode_data_absolute_x(emulator, &mut opcode_data),
+		0xf9 => get_opcode_data_absolute_y(emulator, &mut opcode_data),
+		0xe1 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
+		0xf1 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
 
 		// INX
 		0xe8 => {},
@@ -312,19 +312,19 @@ fn get_opcode_data(opcode: u8, emulator: &Emulator) -> Vec<u16> {
 		0xc8 => {},
 
 		// INC
-		0xe6 => get_opcode_data_zero_page(emulator, opcode_data),
-		0xf6 => get_opcode_data_zero_page_x(emulator, opcode_data),
-		0xee => get_opcode_data_absolute(emulator, opcode_data),
-		0xfe => get_opcode_data_absolute_x(emulator, opcode_data),
+		0xe6 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0xf6 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0xee => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0xfe => get_opcode_data_absolute_x(emulator, &mut opcode_data),
 
 		// ISB
-		0xe7 => get_opcode_data_zero_page(emulator, opcode_data),
-		0xf7 => get_opcode_data_zero_page_x(emulator, opcode_data),
-		0xef => get_opcode_data_absolute(emulator, opcode_data),
-		0xff => get_opcode_data_absolute_x(emulator, opcode_data),
-		0xfb => get_opcode_data_absolute_y(emulator, opcode_data),
-		0xe3 => get_opcode_data_indirect_x(emulator, opcode_data),
-		0xf3 => get_opcode_data_indirect_y(emulator, opcode_data),
+		0xe7 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0xf7 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0xef => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0xff => get_opcode_data_absolute_x(emulator, &mut opcode_data),
+		0xfb => get_opcode_data_absolute_y(emulator, &mut opcode_data),
+		0xe3 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
+		0xf3 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
 
 		// DEX
 		0xca => {},
@@ -333,39 +333,39 @@ fn get_opcode_data(opcode: u8, emulator: &Emulator) -> Vec<u16> {
 		0x88 => {},
 
 		// DEC
-		0xc6 => get_opcode_data_zero_page(emulator, opcode_data),
-		0xd6 => get_opcode_data_zero_page_x(emulator, opcode_data),
-		0xce => get_opcode_data_absolute(emulator, opcode_data),
-		0xde => get_opcode_data_absolute_x(emulator, opcode_data),
+		0xc6 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0xd6 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0xce => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0xde => get_opcode_data_absolute_x(emulator, &mut opcode_data),
 
 		// DCP
-		0xc7 => get_opcode_data_zero_page(emulator, opcode_data),
-		0xd7 => get_opcode_data_zero_page_x(emulator, opcode_data),
-		0xcf => get_opcode_data_absolute(emulator, opcode_data),
-		0xdf => get_opcode_data_absolute_x(emulator, opcode_data),
-		0xdb => get_opcode_data_absolute_y(emulator, opcode_data),
-		0xc3 => get_opcode_data_indirect_x(emulator, opcode_data),
-		0xd3 => get_opcode_data_indirect_y(emulator, opcode_data),
+		0xc7 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0xd7 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0xcf => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0xdf => get_opcode_data_absolute_x(emulator, &mut opcode_data),
+		0xdb => get_opcode_data_absolute_y(emulator, &mut opcode_data),
+		0xc3 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
+		0xd3 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
 
 		// CPX
-		0xe0 => get_opcode_data_immediate(emulator, opcode_data),
-		0xe4 => get_opcode_data_zero_page(emulator, opcode_data),
-		0xec => get_opcode_data_absolute(emulator, opcode_data),
+		0xe0 => get_opcode_data_immediate(emulator, &mut opcode_data),
+		0xe4 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0xec => get_opcode_data_absolute(emulator, &mut opcode_data),
 
 		// CPY
-		0xc0 => get_opcode_data_immediate(emulator, opcode_data),
-		0xc4 => get_opcode_data_zero_page(emulator, opcode_data),
-		0xcc => get_opcode_data_absolute(emulator, opcode_data),
+		0xc0 => get_opcode_data_immediate(emulator, &mut opcode_data),
+		0xc4 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0xcc => get_opcode_data_absolute(emulator, &mut opcode_data),
 
 		// CMP
-		0xc9 => get_opcode_data_immediate(emulator, opcode_data),
-		0xc5 => get_opcode_data_zero_page(emulator, opcode_data),
-		0xd5 => get_opcode_data_zero_page_x(emulator, opcode_data),
-		0xcd => get_opcode_data_absolute(emulator, opcode_data),
-		0xdd => get_opcode_data_absolute_x(emulator, opcode_data),
-		0xd9 => get_opcode_data_absolute_y(emulator, opcode_data),
-		0xc1 => get_opcode_data_indirect_x(emulator, opcode_data),
-		0xd1 => get_opcode_data_indirect_y(emulator, opcode_data),
+		0xc9 => get_opcode_data_immediate(emulator, &mut opcode_data),
+		0xc5 => get_opcode_data_zero_page(emulator, &mut opcode_data),
+		0xd5 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
+		0xcd => get_opcode_data_absolute(emulator, &mut opcode_data),
+		0xdd => get_opcode_data_absolute_x(emulator, &mut opcode_data),
+		0xd9 => get_opcode_data_absolute_y(emulator, &mut opcode_data),
+		0xc1 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
+		0xd1 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
 
 		// PHA
 		0x48 => {},
@@ -401,10 +401,10 @@ fn get_opcode_data(opcode: u8, emulator: &Emulator) -> Vec<u16> {
 		0xb8 => {},
 
 		// JMP
-		0x4c => get_opcode_data_jump_absolute(emulator, opcode_data),
+		0x4c => get_opcode_data_jump_absolute(emulator, &mut opcode_data),
 
 		// JSR
-		0x20 => get_opcode_data_jump_absolute(emulator, opcode_data),
+		0x20 => get_opcode_data_jump_absolute(emulator, &mut opcode_data),
 
 		// JMP (indirect)
 		0x6c => {
@@ -418,28 +418,28 @@ fn get_opcode_data(opcode: u8, emulator: &Emulator) -> Vec<u16> {
 		},
 
 		// BPL
-		0x10 => get_opcode_data_jump_relative(emulator, opcode_data),
+		0x10 => get_opcode_data_jump_relative(emulator, &mut opcode_data),
 
 		// BMI
-		0x30 => get_opcode_data_jump_relative(emulator, opcode_data),
+		0x30 => get_opcode_data_jump_relative(emulator, &mut opcode_data),
 
 		// BVC
-		0x50 => get_opcode_data_jump_relative(emulator, opcode_data),
+		0x50 => get_opcode_data_jump_relative(emulator, &mut opcode_data),
 
 		// BVS
-		0x70 => get_opcode_data_jump_relative(emulator, opcode_data),
+		0x70 => get_opcode_data_jump_relative(emulator, &mut opcode_data),
 
 		// BCC
-		0x90 => get_opcode_data_jump_relative(emulator, opcode_data),
+		0x90 => get_opcode_data_jump_relative(emulator, &mut opcode_data),
 
 		// BCS
-		0xb0 => get_opcode_data_jump_relative(emulator, opcode_data),
+		0xb0 => get_opcode_data_jump_relative(emulator, &mut opcode_data),
 
 		// BNE
-		0xd0 => get_opcode_data_jump_relative(emulator, opcode_data),
+		0xd0 => get_opcode_data_jump_relative(emulator, &mut opcode_data),
 
 		// BEQ
-		0xf0 => get_opcode_data_jump_relative(emulator, opcode_data),
+		0xf0 => get_opcode_data_jump_relative(emulator, &mut opcode_data),
 
 		// BRK
 		0x00 => {},
