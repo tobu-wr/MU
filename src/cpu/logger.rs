@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use emulator::*;
 use super::memory::*;
 
-const BUFFER_CAPACITY: usize = 44_000;
+const MAX_LOGS: usize = 44_000;
 
 struct Data {
 	pc: u16,
@@ -26,17 +26,17 @@ struct Buffer {
 impl Buffer {
 	fn new() -> Self {
 		Self {
-			data: Vec::with_capacity(BUFFER_CAPACITY),
+			data: Vec::with_capacity(MAX_LOGS),
 			index: 0
 		}
 	}
 
 	fn push(&mut self, data: Data) {
-		if self.data.len() < BUFFER_CAPACITY {
+		if self.data.len() < MAX_LOGS {
 			self.data.push(data);
 		} else {
 			self.data[self.index] = data;
-			self.index = (self.index + 1) % BUFFER_CAPACITY;
+			self.index = (self.index + 1) % MAX_LOGS;
 		}
 	}
 }
@@ -45,7 +45,7 @@ impl Drop for Buffer {
 	fn drop(&mut self) {
 		let mut file = File::create("trace.log").unwrap();
 		for i in 0..self.data.len() {
-			let index = (self.index + i) % BUFFER_CAPACITY;
+			let index = (self.index + i) % MAX_LOGS;
 			let data = &self.data[index];
 			let instruction = format_instruction(data);
 			let log = format!("{:04X}  {:02X} {:<38} A:{:02X} X:{:02X} Y:{:02X} P:{:02X} SP:{:02X}\n", data.pc, data.opcode, instruction, data.a, data.x, data.y, data.p, data.s);
@@ -66,7 +66,7 @@ impl Logger {
 		}
 	}
 
-	pub(super) fn create_trace(emulator: &Emulator) {
+	pub(super) fn create_trace_data(emulator: &Emulator) {
 		let opcode = read8_debug(emulator, emulator.cpu.pc);
 		let data = Data {
 			pc: emulator.cpu.pc,
@@ -453,7 +453,7 @@ fn get_opcode_data(opcode: u8, emulator: &Emulator) -> Vec<u16> {
 		// KIL
 		0x32 => {},
 
-		_ => {}
+		_ => warn!("Unknown opcode {:02X} at {:04X}", opcode, emulator.cpu.pc)
 	};
 	opcode_data
 }

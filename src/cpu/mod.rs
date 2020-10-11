@@ -234,7 +234,7 @@ impl Cpu {
 		}
 
 		#[cfg(feature = "trace")]
-		Logger::create_trace(emulator);
+		Logger::create_trace_data(emulator);
 		
 		let opcode = read_next8(emulator);
 		let entry = emulator.cpu.lookup_table[opcode as usize];

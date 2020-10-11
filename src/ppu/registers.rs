@@ -137,7 +137,7 @@ impl Register for Ppuscroll {
     }
 
     #[cfg(feature = "trace")]
-    fn read_debug(ppu: &Ppu) -> u8 {
+    fn read_debug(_ppu: &Ppu) -> u8 {
         0
     }
 }
