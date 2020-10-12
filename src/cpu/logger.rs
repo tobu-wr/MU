@@ -553,7 +553,7 @@ fn get_opcode_data_jump_absolute(emulator: &Emulator, opcode_data: &mut Vec<u16>
 fn get_opcode_data_jump_relative(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let offset = read8_debug(emulator, pc);
-	opcode_data.push(offset as i8 as _);
+	opcode_data.push(offset as _);
 }
 
 fn format_instruction(data: &Data) -> String {
@@ -587,13 +587,13 @@ fn format_instruction(data: &Data) -> String {
 		0xac => format_absolute(data, "LDY"),
 		0xbc => format_absolute_x(data, "LDY"),
 
-		0xab => format_immediate(data, "LAX"),
-		0xa7 => format_zero_page(data, "LAX"),
-		0xb7 => format_zero_page_y(data, "LAX"),
-		0xaf => format_absolute(data, "LAX"),
-		0xbf => format_absolute_y(data, "LAX"),
-		0xa3 => format_indirect_x(data, "LAX"),
-		0xb3 => format_indirect_y(data, "LAX"),
+		0xab => format_immediate(data, "*LAX"),
+		0xa7 => format_zero_page(data, "*LAX"),
+		0xb7 => format_zero_page_y(data, "*LAX"),
+		0xaf => format_absolute(data, "*LAX"),
+		0xbf => format_absolute_y(data, "*LAX"),
+		0xa3 => format_indirect_x(data, "*LAX"),
+		0xb3 => format_indirect_y(data, "*LAX"),
 
 		0x85 => format_zero_page(data, "STA"),
 		0x95 => format_zero_page_x(data, "STA"),
@@ -611,10 +611,10 @@ fn format_instruction(data: &Data) -> String {
 		0x94 => format_zero_page_x(data, "STY"),
 		0x8c => format_absolute(data, "STY"),
 
-		0x87 => format_zero_page(data, "SAX"),
-		0x97 => format_zero_page_y(data, "SAX"),
-		0x8f => format_absolute(data, "SAX"),
-		0x83 => format_indirect_x(data, "SAX"),
+		0x87 => format_zero_page(data, "*SAX"),
+		0x97 => format_zero_page_y(data, "*SAX"),
+		0x8f => format_absolute(data, "*SAX"),
+		0x83 => format_indirect_x(data, "*SAX"),
 
 		0x9e => format_absolute_y(data, "SXA"),
 		0x9c => format_absolute_x(data, "SYA"),
@@ -804,10 +804,12 @@ fn format_instruction(data: &Data) -> String {
 		// JMP (indirect)
 		0x6c => {
 			let address = data.opcode_data[0];
-			let low_byte = data.opcode_data[1];
-			let high_byte = data.opcode_data[2];
-			let effective_address = (high_byte << 8) | low_byte;
-			format!("{:02X} {:02X}  JMP (${:04X}) = {:04X}", low_byte, high_byte, address, effective_address)
+			let address_low = address & 0xff;
+			let address_high = address >> 8;
+			let effective_address_low = data.opcode_data[1];
+			let effective_address_high = data.opcode_data[2];
+			let effective_address = (effective_address_high << 8) | effective_address_low;
+			format!("{:02X} {:02X}  JMP (${:04X}) = {:04X}", address_low, address_high, address, effective_address)
 		},
 
 		0x10 => format_jump_relative(data, "BPL"),
@@ -914,6 +916,6 @@ fn format_jump_absolute(data: &Data, mnemonic: &str) -> String {
 
 fn format_jump_relative(data: &Data, mnemonic: &str) -> String {
 	let offset = data.opcode_data[0];
-	let address = data.pc.wrapping_add(offset).wrapping_add(2);
+	let address = data.pc.wrapping_add(offset as i8 as _).wrapping_add(2);
 	format!("{:02X}{:>8} ${:04X}", offset, mnemonic, address)
 }
