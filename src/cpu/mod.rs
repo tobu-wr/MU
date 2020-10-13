@@ -71,7 +71,7 @@ pub enum Interrupt {
 
 #[derive(Copy, Clone)]
 struct LookupTableEntry {
-	instruction: fn(emulator: &mut Emulator),
+	instruction: fn(&mut Emulator),
 	cycles: u8,
 	page_crossing_cycles: u8
 }
