@@ -73,7 +73,10 @@ pub enum Interrupt {
 struct LookupTableEntry {
 	instruction: fn(&mut Emulator),
 	cycles: u8,
-	page_crossing_cycles: u8
+	page_crossing_cycles: u8,
+
+	#[cfg(feature = "trace")]
+	foo: fn(&Emulator)
 }
 
 pub struct Cpu {
@@ -103,7 +106,10 @@ impl Cpu {
 				*entry = MaybeUninit::new(LookupTableEntry {
 					instruction: get_instruction(opcode as _),
 					cycles: OPCODE_CYCLES[opcode],
-					page_crossing_cycles: PAGE_CROSSING_OPCODE_CYCLES[opcode]
+					page_crossing_cycles: PAGE_CROSSING_OPCODE_CYCLES[opcode],
+
+					#[cfg(feature = "trace")]
+					foo: Logger::get_foo(opcode as _)
 				});
 			}
 
@@ -232,12 +238,13 @@ impl Cpu {
 			},
 			None => {}
 		}
-
-		#[cfg(feature = "trace")]
-		Logger::create_trace_data(emulator);
 		
 		let opcode = read_next8(emulator);
 		let entry = emulator.cpu.lookup_table[opcode as usize];
+
+		#[cfg(feature = "trace")]
+		(entry.foo)(emulator);
+
 		emulator.cpu.branch_taken = false;
 		emulator.cpu.page_crossed = false;
 		(entry.instruction)(emulator);
