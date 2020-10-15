@@ -76,7 +76,7 @@ struct LookupTableEntry {
 	page_crossing_cycles: u8,
 
 	#[cfg(feature = "trace")]
-	foo: fn(&Emulator)
+	trace_function: fn(&Emulator)
 }
 
 pub struct Cpu {
@@ -109,7 +109,7 @@ impl Cpu {
 					page_crossing_cycles: PAGE_CROSSING_OPCODE_CYCLES[opcode],
 
 					#[cfg(feature = "trace")]
-					foo: Logger::get_foo(opcode as _)
+					trace_function: Logger::get_trace_function(opcode as _)
 				});
 			}
 
@@ -243,7 +243,7 @@ impl Cpu {
 		let entry = emulator.cpu.lookup_table[opcode as usize];
 
 		#[cfg(feature = "trace")]
-		(entry.foo)(emulator);
+		(entry.trace_function)(emulator);
 
 		emulator.cpu.branch_taken = false;
 		emulator.cpu.page_crossed = false;
@@ -257,7 +257,7 @@ impl Cpu {
 	}
 }
 
-fn get_instruction(opcode: u8) -> fn(emulator: &mut Emulator) {
+fn get_instruction(opcode: u8) -> fn(&mut Emulator) {
 	match opcode {
 		// NOPs
 		0x1a | 0x3a | 0x5a | 0x7a | 0xda | 0xea | 0xfa => |_| {},
