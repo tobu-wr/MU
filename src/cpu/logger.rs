@@ -66,402 +66,430 @@ impl Logger {
 		}
 	}
 
-	pub(super) fn create_trace_data(emulator: &Emulator) {
-		let opcode = read8_debug(emulator, emulator.cpu.pc);
-		let data = Data {
-			pc: emulator.cpu.pc,
-			opcode,
-			opcode_data: get_opcode_data(opcode, emulator),
-			a: emulator.cpu.a,
-			x: emulator.cpu.x,
-			y: emulator.cpu.y,
-			p: emulator.cpu.p,
-			s: emulator.cpu.s
-		};
-		emulator.cpu.logger.buffer.borrow_mut().push(data);
+	pub(super) fn get_trace_function(opcode: u8) -> fn(&Emulator) {
+		match opcode {
+			// NOPs
+			0x1a | 0x3a | 0x5a | 0x7a | 0xda | 0xea | 0xfa => trace_function,
+			0x80 => trace_function_immediate,
+			0x04 | 0x44 | 0x64 | 0x82 | 0x89 | 0xc2 | 0xe2 => trace_function_zero_page,
+			0x14 | 0x34 | 0x54 | 0x74 | 0xd4 | 0xf4 => trace_function_zero_page_x,
+			0x0c => trace_function_absolute,
+			0x1c | 0x3c | 0x5c | 0x7c | 0xdc | 0xfc => trace_function_absolute_x,
+	
+			// LDA
+			0xa9 => trace_function_immediate,
+			0xa5 => trace_function_zero_page,
+			0xb5 => trace_function_zero_page_x,
+			0xad => trace_function_absolute,
+			0xbd => trace_function_absolute_x,
+			0xb9 => trace_function_absolute_y,
+			0xa1 => trace_function_indirect_x,
+			0xb1 => trace_function_indirect_y,
+	
+			// LDX
+			0xa2 => trace_function_immediate,
+			0xa6 => trace_function_zero_page,
+			0xb6 => trace_function_zero_page_y,
+			0xae => trace_function_absolute,
+			0xbe => trace_function_absolute_y,
+	
+			// LDY
+			0xa0 => trace_function_immediate,
+			0xa4 => trace_function_zero_page,
+			0xb4 => trace_function_zero_page_x,
+			0xac => trace_function_absolute,
+			0xbc => trace_function_absolute_x,
+	
+			// LAX
+			0xab => trace_function_immediate,
+			0xa7 => trace_function_zero_page,
+			0xb7 => trace_function_zero_page_y,
+			0xaf => trace_function_absolute,
+			0xbf => trace_function_absolute_y,
+			0xa3 => trace_function_indirect_x,
+			0xb3 => trace_function_indirect_y,
+	
+			// STA
+			0x85 => trace_function_zero_page,
+			0x95 => trace_function_zero_page_x,
+			0x8d => trace_function_absolute,
+			0x9d => trace_function_absolute_x,
+			0x99 => trace_function_absolute_y,
+			0x81 => trace_function_indirect_x,
+			0x91 => trace_function_indirect_y,
+	
+			// STX
+			0x86 => trace_function_zero_page,
+			0x96 => trace_function_zero_page_y,
+			0x8e => trace_function_absolute,
+	
+			// STY
+			0x84 => trace_function_zero_page,
+			0x94 => trace_function_zero_page_x,
+			0x8c => trace_function_absolute,
+	
+			// SAX
+			0x87 => trace_function_zero_page,
+			0x97 => trace_function_zero_page_y,
+			0x8f => trace_function_absolute,
+			0x83 => trace_function_indirect_x,
+	
+			// SXA
+			0x9e => trace_function_absolute_y,
+	
+			// SYA
+			0x9c => trace_function_absolute_x,
+	
+			// TAX
+			0xaa => trace_function,
+			
+			// TXA
+			0x8a => trace_function,
+	
+			// TAY
+			0xa8 => trace_function,
+	
+			// TYA
+			0x98 => trace_function,
+	
+			// TSX
+			0xba => trace_function,
+	
+			// TXS
+			0x9a => trace_function,
+	
+			// AND
+			0x29 => trace_function_immediate,
+			0x25 => trace_function_zero_page,
+			0x35 => trace_function_zero_page_x,
+			0x2d => trace_function_absolute,
+			0x3d => trace_function_absolute_x,
+			0x39 => trace_function_absolute_y,
+			0x21 => trace_function_indirect_x,
+			0x31 => trace_function_indirect_y,
+	
+			// AAC
+			0x0b | 0x2b => trace_function_immediate,
+	
+			// ASR
+			0x4b => trace_function_immediate,
+	
+			// ARR
+			0x6b => trace_function_immediate,
+	
+			// AXS
+			0xcb => trace_function_immediate,
+	
+			// ORA
+			0x09 => trace_function_immediate,
+			0x05 => trace_function_zero_page,
+			0x15 => trace_function_zero_page_x,
+			0x0d => trace_function_absolute,
+			0x1d => trace_function_absolute_x,
+			0x19 => trace_function_absolute_y,
+			0x01 => trace_function_indirect_x,
+			0x11 => trace_function_indirect_y,
+	
+			// EOR
+			0x49 => trace_function_immediate,
+			0x45 => trace_function_zero_page,
+			0x55 => trace_function_zero_page_x,
+			0x4d => trace_function_absolute,
+			0x5d => trace_function_absolute_x,
+			0x59 => trace_function_absolute_y,
+			0x41 => trace_function_indirect_x,
+			0x51 => trace_function_indirect_y,
+	
+			// BIT
+			0x24 => trace_function_zero_page,
+			0x2c => trace_function_absolute,
+	
+			// LSR
+			0x4a => trace_function,
+			0x46 => trace_function_zero_page,
+			0x56 => trace_function_zero_page_x,
+			0x4e => trace_function_absolute,
+			0x5e => trace_function_absolute_x,
+	
+			// SRE
+			0x47 => trace_function_zero_page,
+			0x57 => trace_function_zero_page_x,
+			0x4f => trace_function_absolute,
+			0x5f => trace_function_absolute_x,
+			0x5b => trace_function_absolute_y,
+			0x43 => trace_function_indirect_x,
+			0x53 => trace_function_indirect_y,		
+	
+			// ASL
+			0x0a => trace_function,
+			0x06 => trace_function_zero_page,
+			0x16 => trace_function_zero_page_x,
+			0x0e => trace_function_absolute,
+			0x1e => trace_function_absolute_x,
+	
+			// SLO
+			0x07 => trace_function_zero_page,
+			0x17 => trace_function_zero_page_x,
+			0x0f => trace_function_absolute,
+			0x1f => trace_function_absolute_x,
+			0x1b => trace_function_absolute_y,
+			0x03 => trace_function_indirect_x,
+			0x13 => trace_function_indirect_y,
+	
+			// ROR
+			0x6a => trace_function,
+			0x66 => trace_function_zero_page,
+			0x76 => trace_function_zero_page_x,
+			0x6e => trace_function_absolute,
+			0x7e => trace_function_absolute_x,
+	
+			// RRA
+			0x67 => trace_function_zero_page,
+			0x77 => trace_function_zero_page_x,
+			0x6f => trace_function_absolute,
+			0x7f => trace_function_absolute_x,
+			0x7b => trace_function_absolute_y,
+			0x63 => trace_function_indirect_x,
+			0x73 => trace_function_indirect_y,
+	
+			// ROL
+			0x2a => trace_function,
+			0x26 => trace_function_zero_page,
+			0x36 => trace_function_zero_page_x,
+			0x2e => trace_function_absolute,
+			0x3e => trace_function_absolute_x,
+	
+			// RLA
+			0x27 => trace_function_zero_page, 
+			0x37 => trace_function_zero_page_x,
+			0x2f => trace_function_absolute,
+			0x3f => trace_function_absolute_x,
+			0x3b => trace_function_absolute_y,
+			0x23 => trace_function_indirect_x,
+			0x33 => trace_function_indirect_y,
+	
+			// ADC
+			0x69 => trace_function_immediate,
+			0x65 => trace_function_zero_page,
+			0x75 => trace_function_zero_page_x,
+			0x6d => trace_function_absolute,
+			0x7d => trace_function_absolute_x,
+			0x79 => trace_function_absolute_y,
+			0x61 => trace_function_indirect_x,
+			0x71 => trace_function_indirect_y,
+	
+			// SBC
+			0xe9 | 0xeb => trace_function_immediate,
+			0xe5 => trace_function_zero_page,
+			0xf5 => trace_function_zero_page_x,
+			0xed => trace_function_absolute,
+			0xfd => trace_function_absolute_x,
+			0xf9 => trace_function_absolute_y,
+			0xe1 => trace_function_indirect_x,
+			0xf1 => trace_function_indirect_y,
+	
+			// INX
+			0xe8 => trace_function,
+	
+			// INY
+			0xc8 => trace_function,
+	
+			// INC
+			0xe6 => trace_function_zero_page,
+			0xf6 => trace_function_zero_page_x,
+			0xee => trace_function_absolute,
+			0xfe => trace_function_absolute_x,
+	
+			// ISB
+			0xe7 => trace_function_zero_page,
+			0xf7 => trace_function_zero_page_x,
+			0xef => trace_function_absolute,
+			0xff => trace_function_absolute_x,
+			0xfb => trace_function_absolute_y,
+			0xe3 => trace_function_indirect_x,
+			0xf3 => trace_function_indirect_y,
+	
+			// DEX
+			0xca => trace_function,
+	
+			// DEY
+			0x88 => trace_function,
+	
+			// DEC
+			0xc6 => trace_function_zero_page,
+			0xd6 => trace_function_zero_page_x,
+			0xce => trace_function_absolute,
+			0xde => trace_function_absolute_x,
+	
+			// DCP
+			0xc7 => trace_function_zero_page,
+			0xd7 => trace_function_zero_page_x,
+			0xcf => trace_function_absolute,
+			0xdf => trace_function_absolute_x,
+			0xdb => trace_function_absolute_y,
+			0xc3 => trace_function_indirect_x,
+			0xd3 => trace_function_indirect_y,
+	
+			// CPX
+			0xe0 => trace_function_immediate,
+			0xe4 => trace_function_zero_page,
+			0xec => trace_function_absolute,
+	
+			// CPY
+			0xc0 => trace_function_immediate,
+			0xc4 => trace_function_zero_page,
+			0xcc => trace_function_absolute,
+	
+			// CMP
+			0xc9 => trace_function_immediate,
+			0xc5 => trace_function_zero_page,
+			0xd5 => trace_function_zero_page_x,
+			0xcd => trace_function_absolute,
+			0xdd => trace_function_absolute_x,
+			0xd9 => trace_function_absolute_y,
+			0xc1 => trace_function_indirect_x,
+			0xd1 => trace_function_indirect_y,
+	
+			// PHA
+			0x48 => trace_function,
+	
+			// PLA
+			0x68 => trace_function,
+	
+			// PHP
+			0x08 => trace_function,
+	
+			// PLP
+			0x28 => trace_function,
+	
+			// CLC
+			0x18 => trace_function,
+	
+			// SEC
+			0x38 => trace_function,
+	
+			// CLI
+			0x58 => trace_function,
+	
+			// SEI
+			0x78 => trace_function,
+	
+			// CLD
+			0xd8 => trace_function,
+	
+			// SED
+			0xf8 => trace_function,
+	
+			// CLV
+			0xb8 => trace_function,
+	
+			// JMP
+			0x4c => trace_function_jump_absolute,
+	
+			// JSR
+			0x20 => trace_function_jump_absolute,
+	
+			// JMP (indirect)
+			0x6c => {
+				let pc = emulator.cpu.pc.wrapping_add(1);
+				let address = read16_debug(emulator, pc);
+				let low_byte = read8_debug(emulator, address);
+				let high_byte = read8_debug(emulator, (address & 0xff00) | (address.wrapping_add(1) & 0x00ff));
+				opcode_data.push(address);
+				opcode_data.push(low_byte as _);
+				opcode_data.push(high_byte as _);
+
+
+				let data = Data {
+					pc: emulator.cpu.pc,
+					opcode: read8_debug(emulator, emulator.cpu.pc),
+					opcode_data,
+					a: emulator.cpu.a,
+					x: emulator.cpu.x,
+					y: emulator.cpu.y,
+					p: emulator.cpu.p,
+					s: emulator.cpu.s
+				};
+				emulator.cpu.logger.buffer.borrow_mut().push(data);
+			},
+	
+			// BPL
+			0x10 => trace_function_jump_relative,
+	
+			// BMI
+			0x30 => trace_function_jump_relative,
+	
+			// BVC
+			0x50 => trace_function_jump_relative,
+	
+			// BVS
+			0x70 => trace_function_jump_relative,
+	
+			// BCC
+			0x90 => trace_function_jump_relative,
+	
+			// BCS
+			0xb0 => trace_function_jump_relative,
+	
+			// BNE
+			0xd0 => trace_function_jump_relative,
+	
+			// BEQ
+			0xf0 => trace_function_jump_relative,
+	
+			// BRK
+			0x00 => trace_function,
+	
+			// RTI
+			0x40 => trace_function,
+	
+			// RTS
+			0x60 => trace_function,
+	
+			// KIL
+			0x32 => trace_function,
+	
+			_ => |emulator| {
+				let opcode = read8_debug(emulator, emulator.cpu.pc);
+				warn!("Unknown opcode {:02X} at {:04X}", opcode, emulator.cpu.pc);
+				trace_function(emulator);
+			}
+		}
 	}
 }
 
-fn get_opcode_data(opcode: u8, emulator: &Emulator) -> Vec<u16> {
-	let mut opcode_data = Vec::<u16>::new();
-	match opcode {
-		// NOPs
-		0x1a | 0x3a | 0x5a | 0x7a | 0xda | 0xea | 0xfa => {},
-		0x80 => get_opcode_data_immediate(emulator, &mut opcode_data),
-		0x04 | 0x44 | 0x64 | 0x82 | 0x89 | 0xc2 | 0xe2 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0x14 | 0x34 | 0x54 | 0x74 | 0xd4 | 0xf4 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0x0c => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0x1c | 0x3c | 0x5c | 0x7c | 0xdc | 0xfc => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-
-		// LDA
-		0xa9 => get_opcode_data_immediate(emulator, &mut opcode_data),
-		0xa5 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0xb5 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0xad => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0xbd => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-		0xb9 => get_opcode_data_absolute_y(emulator, &mut opcode_data),
-		0xa1 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
-		0xb1 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
-
-		// LDX
-		0xa2 => get_opcode_data_immediate(emulator, &mut opcode_data),
-		0xa6 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0xb6 => get_opcode_data_zero_page_y(emulator, &mut opcode_data),
-		0xae => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0xbe => get_opcode_data_absolute_y(emulator, &mut opcode_data),
-
-		// LDY
-		0xa0 => get_opcode_data_immediate(emulator, &mut opcode_data),
-		0xa4 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0xb4 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0xac => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0xbc => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-
-		// LAX
-		0xab => get_opcode_data_immediate(emulator, &mut opcode_data),
-		0xa7 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0xb7 => get_opcode_data_zero_page_y(emulator, &mut opcode_data),
-		0xaf => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0xbf => get_opcode_data_absolute_y(emulator, &mut opcode_data),
-		0xa3 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
-		0xb3 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
-
-		// STA
-		0x85 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0x95 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0x8d => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0x9d => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-		0x99 => get_opcode_data_absolute_y(emulator, &mut opcode_data),
-		0x81 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
-		0x91 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
-
-		// STX
-		0x86 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0x96 => get_opcode_data_zero_page_y(emulator, &mut opcode_data),
-		0x8e => get_opcode_data_absolute(emulator, &mut opcode_data),
-
-		// STY
-		0x84 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0x94 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0x8c => get_opcode_data_absolute(emulator, &mut opcode_data),
-
-		// SAX
-		0x87 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0x97 => get_opcode_data_zero_page_y(emulator, &mut opcode_data),
-		0x8f => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0x83 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
-
-		// SXA
-		0x9e => get_opcode_data_absolute_y(emulator, &mut opcode_data),
-
-		// SYA
-		0x9c => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-
-		// TAX
-		0xaa => {},
-		
-		// TXA
-		0x8a => {},
-
-		// TAY
-		0xa8 => {},
-
-		// TYA
-		0x98 => {},
-
-		// TSX
-		0xba => {},
-
-		// TXS
-		0x9a => {},
-
-		// AND
-		0x29 => get_opcode_data_immediate(emulator, &mut opcode_data),
-		0x25 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0x35 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0x2d => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0x3d => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-		0x39 => get_opcode_data_absolute_y(emulator, &mut opcode_data),
-		0x21 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
-		0x31 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
-
-		// AAC
-		0x0b | 0x2b => get_opcode_data_immediate(emulator, &mut opcode_data),
-
-		// ASR
-		0x4b => get_opcode_data_immediate(emulator, &mut opcode_data),
-
-		// ARR
-		0x6b => get_opcode_data_immediate(emulator, &mut opcode_data),
-
-		// AXS
-		0xcb => get_opcode_data_immediate(emulator, &mut opcode_data),
-
-		// ORA
-		0x09 => get_opcode_data_immediate(emulator, &mut opcode_data),
-		0x05 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0x15 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0x0d => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0x1d => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-		0x19 => get_opcode_data_absolute_y(emulator, &mut opcode_data),
-		0x01 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
-		0x11 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
-
-		// EOR
-		0x49 => get_opcode_data_immediate(emulator, &mut opcode_data),
-		0x45 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0x55 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0x4d => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0x5d => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-		0x59 => get_opcode_data_absolute_y(emulator, &mut opcode_data),
-		0x41 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
-		0x51 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
-
-		// BIT
-		0x24 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0x2c => get_opcode_data_absolute(emulator, &mut opcode_data),
-
-		// LSR
-		0x4a => {},
-		0x46 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0x56 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0x4e => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0x5e => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-
-		// SRE
-		0x47 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0x57 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0x4f => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0x5f => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-		0x5b => get_opcode_data_absolute_y(emulator, &mut opcode_data),
-		0x43 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
-		0x53 => get_opcode_data_indirect_y(emulator, &mut opcode_data),		
-
-		// ASL
-		0x0a => {},
-		0x06 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0x16 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0x0e => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0x1e => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-
-		// SLO
-		0x07 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0x17 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0x0f => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0x1f => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-		0x1b => get_opcode_data_absolute_y(emulator, &mut opcode_data),
-		0x03 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
-		0x13 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
-
-		// ROR
-		0x6a => {},
-		0x66 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0x76 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0x6e => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0x7e => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-
-		// RRA
-		0x67 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0x77 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0x6f => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0x7f => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-		0x7b => get_opcode_data_absolute_y(emulator, &mut opcode_data),
-		0x63 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
-		0x73 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
-
-		// ROL
-		0x2a => {},
-		0x26 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0x36 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0x2e => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0x3e => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-
-		// RLA
-		0x27 => get_opcode_data_zero_page(emulator, &mut opcode_data), 
-		0x37 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0x2f => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0x3f => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-		0x3b => get_opcode_data_absolute_y(emulator, &mut opcode_data),
-		0x23 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
-		0x33 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
-
-		// ADC
-		0x69 => get_opcode_data_immediate(emulator, &mut opcode_data),
-		0x65 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0x75 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0x6d => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0x7d => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-		0x79 => get_opcode_data_absolute_y(emulator, &mut opcode_data),
-		0x61 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
-		0x71 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
-
-		// SBC
-		0xe9 | 0xeb => get_opcode_data_immediate(emulator, &mut opcode_data),
-		0xe5 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0xf5 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0xed => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0xfd => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-		0xf9 => get_opcode_data_absolute_y(emulator, &mut opcode_data),
-		0xe1 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
-		0xf1 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
-
-		// INX
-		0xe8 => {},
-
-		// INY
-		0xc8 => {},
-
-		// INC
-		0xe6 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0xf6 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0xee => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0xfe => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-
-		// ISB
-		0xe7 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0xf7 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0xef => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0xff => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-		0xfb => get_opcode_data_absolute_y(emulator, &mut opcode_data),
-		0xe3 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
-		0xf3 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
-
-		// DEX
-		0xca => {},
-
-		// DEY
-		0x88 => {},
-
-		// DEC
-		0xc6 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0xd6 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0xce => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0xde => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-
-		// DCP
-		0xc7 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0xd7 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0xcf => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0xdf => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-		0xdb => get_opcode_data_absolute_y(emulator, &mut opcode_data),
-		0xc3 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
-		0xd3 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
-
-		// CPX
-		0xe0 => get_opcode_data_immediate(emulator, &mut opcode_data),
-		0xe4 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0xec => get_opcode_data_absolute(emulator, &mut opcode_data),
-
-		// CPY
-		0xc0 => get_opcode_data_immediate(emulator, &mut opcode_data),
-		0xc4 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0xcc => get_opcode_data_absolute(emulator, &mut opcode_data),
-
-		// CMP
-		0xc9 => get_opcode_data_immediate(emulator, &mut opcode_data),
-		0xc5 => get_opcode_data_zero_page(emulator, &mut opcode_data),
-		0xd5 => get_opcode_data_zero_page_x(emulator, &mut opcode_data),
-		0xcd => get_opcode_data_absolute(emulator, &mut opcode_data),
-		0xdd => get_opcode_data_absolute_x(emulator, &mut opcode_data),
-		0xd9 => get_opcode_data_absolute_y(emulator, &mut opcode_data),
-		0xc1 => get_opcode_data_indirect_x(emulator, &mut opcode_data),
-		0xd1 => get_opcode_data_indirect_y(emulator, &mut opcode_data),
-
-		// PHA
-		0x48 => {},
-
-		// PLA
-		0x68 => {},
-
-		// PHP
-		0x08 => {},
-
-		// PLP
-		0x28 => {},
-
-		// CLC
-		0x18 => {},
-
-		// SEC
-		0x38 => {},
-
-		// CLI
-		0x58 => {},
-
-		// SEI
-		0x78 => {},
-
-		// CLD
-		0xd8 => {},
-
-		// SED
-		0xf8 => {},
-
-		// CLV
-		0xb8 => {},
-
-		// JMP
-		0x4c => get_opcode_data_jump_absolute(emulator, &mut opcode_data),
-
-		// JSR
-		0x20 => get_opcode_data_jump_absolute(emulator, &mut opcode_data),
-
-		// JMP (indirect)
-		0x6c => {
-			let pc = emulator.cpu.pc.wrapping_add(1);
-			let address = read16_debug(emulator, pc);
-			let low_byte = read8_debug(emulator, address);
-			let high_byte = read8_debug(emulator, (address & 0xff00) | (address.wrapping_add(1) & 0x00ff));
-			opcode_data.push(address);
-			opcode_data.push(low_byte as _);
-			opcode_data.push(high_byte as _);
-		},
-
-		// BPL
-		0x10 => get_opcode_data_jump_relative(emulator, &mut opcode_data),
-
-		// BMI
-		0x30 => get_opcode_data_jump_relative(emulator, &mut opcode_data),
-
-		// BVC
-		0x50 => get_opcode_data_jump_relative(emulator, &mut opcode_data),
-
-		// BVS
-		0x70 => get_opcode_data_jump_relative(emulator, &mut opcode_data),
-
-		// BCC
-		0x90 => get_opcode_data_jump_relative(emulator, &mut opcode_data),
-
-		// BCS
-		0xb0 => get_opcode_data_jump_relative(emulator, &mut opcode_data),
-
-		// BNE
-		0xd0 => get_opcode_data_jump_relative(emulator, &mut opcode_data),
-
-		// BEQ
-		0xf0 => get_opcode_data_jump_relative(emulator, &mut opcode_data),
-
-		// BRK
-		0x00 => {},
-
-		// RTI
-		0x40 => {},
-
-		// RTS
-		0x60 => {},
-
-		// KIL
-		0x32 => {},
-
-		_ => warn!("Unknown opcode {:02X} at {:04X}", opcode, emulator.cpu.pc)
+fn trace_function(emulator: &Emulator) {
+	let opcode = read8_debug(emulator, emulator.cpu.pc);
+	let data = Data {
+		pc: emulator.cpu.pc,
+		opcode,
+		opcode_data: Vec::new(),
+		a: emulator.cpu.a,
+		x: emulator.cpu.x,
+		y: emulator.cpu.y,
+		p: emulator.cpu.p,
+		s: emulator.cpu.s
 	};
-	opcode_data
+	emulator.cpu.logger.buffer.borrow_mut().push(data);
 }
 
-fn get_opcode_data_immediate(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
+fn trace_function_immediate(emulator: &Emulator) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let operand = read8_debug(emulator, pc);
+	let mut opcode_data = Vec::<u16>::new();
 	opcode_data.push(operand as _);
+	
+	let data = Data {
+		pc: emulator.cpu.pc,
+		opcode: read8_debug(emulator, emulator.cpu.pc),
+		opcode_data,
+		a: emulator.cpu.a,
+		x: emulator.cpu.x,
+		y: emulator.cpu.y,
+		p: emulator.cpu.p,
+		s: emulator.cpu.s
+	};
+	emulator.cpu.logger.buffer.borrow_mut().push(data);
 }
 
 fn get_opcode_data_zero_page(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
