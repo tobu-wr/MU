@@ -69,7 +69,7 @@ impl Logger {
 	pub(super) fn get_trace_function(opcode: u8) -> fn(&Emulator) {
 		match opcode {
 			// NOPs
-			0x1a | 0x3a | 0x5a | 0x7a | 0xda | 0xea | 0xfa => trace_function,
+			0x1a | 0x3a | 0x5a | 0x7a | 0xda | 0xea | 0xfa => |emulator| create_trace_data(emulator, Vec::new()),
 			0x80 => trace_function_immediate,
 			0x04 | 0x44 | 0x64 | 0x82 | 0x89 | 0xc2 | 0xe2 => trace_function_zero_page,
 			0x14 | 0x34 | 0x54 | 0x74 | 0xd4 | 0xf4 => trace_function_zero_page_x,
@@ -141,22 +141,22 @@ impl Logger {
 			0x9c => trace_function_absolute_x,
 	
 			// TAX
-			0xaa => trace_function,
+			0xaa => |emulator| create_trace_data(emulator, Vec::new()),
 			
 			// TXA
-			0x8a => trace_function,
+			0x8a => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// TAY
-			0xa8 => trace_function,
+			0xa8 => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// TYA
-			0x98 => trace_function,
+			0x98 => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// TSX
-			0xba => trace_function,
+			0xba => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// TXS
-			0x9a => trace_function,
+			0x9a => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// AND
 			0x29 => trace_function_immediate,
@@ -205,7 +205,7 @@ impl Logger {
 			0x2c => trace_function_absolute,
 	
 			// LSR
-			0x4a => trace_function,
+			0x4a => |emulator| create_trace_data(emulator, Vec::new()),
 			0x46 => trace_function_zero_page,
 			0x56 => trace_function_zero_page_x,
 			0x4e => trace_function_absolute,
@@ -221,7 +221,7 @@ impl Logger {
 			0x53 => trace_function_indirect_y,		
 	
 			// ASL
-			0x0a => trace_function,
+			0x0a => |emulator| create_trace_data(emulator, Vec::new()),
 			0x06 => trace_function_zero_page,
 			0x16 => trace_function_zero_page_x,
 			0x0e => trace_function_absolute,
@@ -237,7 +237,7 @@ impl Logger {
 			0x13 => trace_function_indirect_y,
 	
 			// ROR
-			0x6a => trace_function,
+			0x6a => |emulator| create_trace_data(emulator, Vec::new()),
 			0x66 => trace_function_zero_page,
 			0x76 => trace_function_zero_page_x,
 			0x6e => trace_function_absolute,
@@ -253,7 +253,7 @@ impl Logger {
 			0x73 => trace_function_indirect_y,
 	
 			// ROL
-			0x2a => trace_function,
+			0x2a => |emulator| create_trace_data(emulator, Vec::new()),
 			0x26 => trace_function_zero_page,
 			0x36 => trace_function_zero_page_x,
 			0x2e => trace_function_absolute,
@@ -289,10 +289,10 @@ impl Logger {
 			0xf1 => trace_function_indirect_y,
 	
 			// INX
-			0xe8 => trace_function,
+			0xe8 => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// INY
-			0xc8 => trace_function,
+			0xc8 => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// INC
 			0xe6 => trace_function_zero_page,
@@ -310,10 +310,10 @@ impl Logger {
 			0xf3 => trace_function_indirect_y,
 	
 			// DEX
-			0xca => trace_function,
+			0xca => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// DEY
-			0x88 => trace_function,
+			0x88 => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// DEC
 			0xc6 => trace_function_zero_page,
@@ -351,37 +351,37 @@ impl Logger {
 			0xd1 => trace_function_indirect_y,
 	
 			// PHA
-			0x48 => trace_function,
+			0x48 => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// PLA
-			0x68 => trace_function,
+			0x68 => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// PHP
-			0x08 => trace_function,
+			0x08 => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// PLP
-			0x28 => trace_function,
+			0x28 => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// CLC
-			0x18 => trace_function,
+			0x18 => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// SEC
-			0x38 => trace_function,
+			0x38 => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// CLI
-			0x58 => trace_function,
+			0x58 => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// SEI
-			0x78 => trace_function,
+			0x78 => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// CLD
-			0xd8 => trace_function,
+			0xd8 => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// SED
-			0xf8 => trace_function,
+			0xf8 => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// CLV
-			0xb8 => trace_function,
+			0xb8 => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// JMP
 			0x4c => trace_function_jump_absolute,
@@ -390,27 +390,16 @@ impl Logger {
 			0x20 => trace_function_jump_absolute,
 	
 			// JMP (indirect)
-			0x6c => {
+			0x6c => |emulator| {
 				let pc = emulator.cpu.pc.wrapping_add(1);
 				let address = read16_debug(emulator, pc);
 				let low_byte = read8_debug(emulator, address);
 				let high_byte = read8_debug(emulator, (address & 0xff00) | (address.wrapping_add(1) & 0x00ff));
+				let mut opcode_data = Vec::<u16>::new();
 				opcode_data.push(address);
 				opcode_data.push(low_byte as _);
 				opcode_data.push(high_byte as _);
-
-
-				let data = Data {
-					pc: emulator.cpu.pc,
-					opcode: read8_debug(emulator, emulator.cpu.pc),
-					opcode_data,
-					a: emulator.cpu.a,
-					x: emulator.cpu.x,
-					y: emulator.cpu.y,
-					p: emulator.cpu.p,
-					s: emulator.cpu.s
-				};
-				emulator.cpu.logger.buffer.borrow_mut().push(data);
+				create_trace_data(emulator, opcode_data);
 			},
 	
 			// BPL
@@ -438,31 +427,31 @@ impl Logger {
 			0xf0 => trace_function_jump_relative,
 	
 			// BRK
-			0x00 => trace_function,
+			0x00 => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// RTI
-			0x40 => trace_function,
+			0x40 => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// RTS
-			0x60 => trace_function,
+			0x60 => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			// KIL
-			0x32 => trace_function,
+			0x32 => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			_ => |emulator| {
 				let opcode = read8_debug(emulator, emulator.cpu.pc);
 				warn!("Unknown opcode {:02X} at {:04X}", opcode, emulator.cpu.pc);
-				trace_function(emulator);
+				create_trace_data(emulator, Vec::new());
 			}
 		}
 	}
 }
 
-fn trace_function(emulator: &Emulator) {
+fn create_trace_data(emulator: &Emulator, opcode_data: Vec<u16>) {
 	let data = Data {
 		pc: emulator.cpu.pc,
 		opcode: read8_debug(emulator, emulator.cpu.pc),
-		opcode_data: Vec::new(),
+		opcode_data,
 		a: emulator.cpu.a,
 		x: emulator.cpu.x,
 		y: emulator.cpu.y,
@@ -477,110 +466,119 @@ fn trace_function_immediate(emulator: &Emulator) {
 	let operand = read8_debug(emulator, pc);
 	let mut opcode_data = Vec::<u16>::new();
 	opcode_data.push(operand as _);
-	
-	let data = Data {
-		pc: emulator.cpu.pc,
-		opcode: read8_debug(emulator, emulator.cpu.pc),
-		opcode_data,
-		a: emulator.cpu.a,
-		x: emulator.cpu.x,
-		y: emulator.cpu.y,
-		p: emulator.cpu.p,
-		s: emulator.cpu.s
-	};
-	emulator.cpu.logger.buffer.borrow_mut().push(data);
+	create_trace_data(emulator, opcode_data);
 }
 
-fn get_opcode_data_zero_page(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
+fn trace_function_zero_page(emulator: &Emulator) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let address = read8_debug(emulator, pc) as u16;
 	let operand = read8_debug(emulator, address);
+	let mut opcode_data = Vec::<u16>::new();
 	opcode_data.push(address);
 	opcode_data.push(operand as _);
+	create_trace_data(emulator, opcode_data);
 }
 
-fn get_opcode_data_zero_page_x(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
+fn trace_function_zero_page_x(emulator: &Emulator) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let address = read8_debug(emulator, pc);
 	let effective_address = address.wrapping_add(emulator.cpu.x) as u16;
 	let operand = read8_debug(emulator, effective_address);
+	let mut opcode_data = Vec::<u16>::new();
 	opcode_data.push(address as _);
 	opcode_data.push(effective_address);
 	opcode_data.push(operand as _);
+	create_trace_data(emulator, opcode_data);
 }
 
-fn get_opcode_data_zero_page_y(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
+fn trace_function_zero_page_y(emulator: &Emulator) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let address = read8_debug(emulator, pc);
 	let effective_address = address.wrapping_add(emulator.cpu.y) as u16;
 	let operand = read8_debug(emulator, effective_address);
+	let mut opcode_data = Vec::<u16>::new();
 	opcode_data.push(address as _);
 	opcode_data.push(effective_address);
 	opcode_data.push(operand as _);
+	create_trace_data(emulator, opcode_data);
 }
 
-fn get_opcode_data_absolute(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
+fn trace_function_absolute(emulator: &Emulator) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let address = read16_debug(emulator, pc);
 	let operand = read8_debug(emulator, address);
+	let mut opcode_data = Vec::<u16>::new();
 	opcode_data.push(address);
 	opcode_data.push(operand as _);
+	create_trace_data(emulator, opcode_data);
 }
 
-fn get_opcode_data_absolute_x(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
+fn trace_function_absolute_x(emulator: &Emulator) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let address = read16_debug(emulator, pc);
 	let effective_address = address.wrapping_add(emulator.cpu.x as _);
 	let operand = read8_debug(emulator, effective_address);
+	let mut opcode_data = Vec::<u16>::new();
 	opcode_data.push(address);
 	opcode_data.push(effective_address);
 	opcode_data.push(operand as _);
+	create_trace_data(emulator, opcode_data);
 }
 
-fn get_opcode_data_absolute_y(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
+fn trace_function_absolute_y(emulator: &Emulator) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let address = read16_debug(emulator, pc);
 	let effective_address = address.wrapping_add(emulator.cpu.y as _);
 	let operand = read8_debug(emulator, effective_address);
+	let mut opcode_data = Vec::<u16>::new();
 	opcode_data.push(address);
 	opcode_data.push(effective_address);
 	opcode_data.push(operand as _);
+	create_trace_data(emulator, opcode_data);
 }
 
-fn get_opcode_data_indirect_x(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
+fn trace_function_indirect_x(emulator: &Emulator) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let immediate = read8_debug(emulator, pc);
 	let address = immediate.wrapping_add(emulator.cpu.x);
 	let effective_address = read16_zeropage_debug(emulator, address);
 	let operand = read8_debug(emulator, effective_address);
+	let mut opcode_data = Vec::<u16>::new();
 	opcode_data.push(immediate as _);
 	opcode_data.push(address as _);
 	opcode_data.push(effective_address);
 	opcode_data.push(operand as _);
+	create_trace_data(emulator, opcode_data);
 }
 
-fn get_opcode_data_indirect_y(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
+fn trace_function_indirect_y(emulator: &Emulator) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let immediate = read8_debug(emulator, pc);
 	let address = read16_zeropage_debug(emulator, immediate);
 	let effective_address = address.wrapping_add(emulator.cpu.y as _);
 	let operand = read8_debug(emulator, effective_address);
+	let mut opcode_data = Vec::<u16>::new();
 	opcode_data.push(immediate as _);
 	opcode_data.push(address);
 	opcode_data.push(effective_address);
 	opcode_data.push(operand as _);
+	create_trace_data(emulator, opcode_data);
 }
 
-fn get_opcode_data_jump_absolute(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
+fn trace_function_jump_absolute(emulator: &Emulator) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let address = read16_debug(emulator, pc);
+	let mut opcode_data = Vec::<u16>::new();
 	opcode_data.push(address);
+	create_trace_data(emulator, opcode_data);
 }
 
-fn get_opcode_data_jump_relative(emulator: &Emulator, opcode_data: &mut Vec<u16>) {
+fn trace_function_jump_relative(emulator: &Emulator) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let offset = read8_debug(emulator, pc);
+	let mut opcode_data = Vec::<u16>::new();
 	opcode_data.push(offset as _);
+	create_trace_data(emulator, opcode_data);
 }
 
 fn format_instruction(data: &Data) -> String {
@@ -855,7 +853,10 @@ fn format_instruction(data: &Data) -> String {
 
 		0x32 => format("KIL"),
 
-		_ => "# UNKNOWN OPCODE #".to_string()
+		_ => {
+			warn!("Unknown opcode {:02X} at {:04X}", data.opcode, data.pc);
+			"# UNKNOWN OPCODE #".to_string()
+		}
 	}
 }
 
