@@ -459,10 +459,9 @@ impl Logger {
 }
 
 fn trace_function(emulator: &Emulator) {
-	let opcode = read8_debug(emulator, emulator.cpu.pc);
 	let data = Data {
 		pc: emulator.cpu.pc,
-		opcode,
+		opcode: read8_debug(emulator, emulator.cpu.pc),
 		opcode_data: Vec::new(),
 		a: emulator.cpu.a,
 		x: emulator.cpu.x,

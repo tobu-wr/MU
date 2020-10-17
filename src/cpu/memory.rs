@@ -51,11 +51,7 @@ pub(super) fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 			0
 		},
 		PRG_RAM_START ..= PRG_RAM_END => emulator.prg_ram[(address - PRG_RAM_START) as usize],
-		PRG_ROM_START ..= PRG_ROM_END => emulator.prg_rom[((address - PRG_ROM_START) as usize) % emulator.prg_rom.len()],
-		_ => {
-			error!("Read from {:04X}", address);
-			0
-		}
+		PRG_ROM_START ..= PRG_ROM_END => emulator.prg_rom[((address - PRG_ROM_START) as usize) % emulator.prg_rom.len()]
 	}
 }
 
@@ -131,10 +127,6 @@ pub(super) fn write(emulator: &mut Emulator, address: u16, value: u8) {
 		PRG_RAM_START ..= PRG_RAM_END => emulator.prg_ram[(address - PRG_RAM_START) as usize] = value,
 		PRG_ROM_START ..= PRG_ROM_END => {
 			error!("Write to PRG ROM");
-			panic!();
-		},
-		_ => {
-			error!("Write to {:04X}", address);
 			panic!();
 		}
 	}
