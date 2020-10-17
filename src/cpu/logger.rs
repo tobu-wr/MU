@@ -395,10 +395,10 @@ impl Logger {
 				let address = read16_debug(emulator, pc);
 				let low_byte = read8_debug(emulator, address);
 				let high_byte = read8_debug(emulator, (address & 0xff00) | (address.wrapping_add(1) & 0x00ff));
-				let mut opcode_data = Vec::<u16>::new();
-				opcode_data.push(address);
-				opcode_data.push(low_byte as _);
-				opcode_data.push(high_byte as _);
+				let mut opcode_data = vec![0u16; 3];
+				opcode_data[0] = address;
+				opcode_data[1] = low_byte as _;
+				opcode_data[2] = high_byte as _;
 				create_trace_data(emulator, opcode_data);
 			},
 	
@@ -464,8 +464,8 @@ fn create_trace_data(emulator: &Emulator, opcode_data: Vec<u16>) {
 fn trace_function_immediate(emulator: &Emulator) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let operand = read8_debug(emulator, pc);
-	let mut opcode_data = Vec::<u16>::new();
-	opcode_data.push(operand as _);
+	let mut opcode_data = vec![0u16; 1];
+	opcode_data[0] = operand as _;
 	create_trace_data(emulator, opcode_data);
 }
 
@@ -473,9 +473,9 @@ fn trace_function_zero_page(emulator: &Emulator) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let address = read8_debug(emulator, pc) as u16;
 	let operand = read8_debug(emulator, address);
-	let mut opcode_data = Vec::<u16>::new();
-	opcode_data.push(address);
-	opcode_data.push(operand as _);
+	let mut opcode_data = vec![0u16; 2];
+	opcode_data[0] = address;
+	opcode_data[1] = operand as _;
 	create_trace_data(emulator, opcode_data);
 }
 
@@ -484,10 +484,10 @@ fn trace_function_zero_page_x(emulator: &Emulator) {
 	let address = read8_debug(emulator, pc);
 	let effective_address = address.wrapping_add(emulator.cpu.x) as u16;
 	let operand = read8_debug(emulator, effective_address);
-	let mut opcode_data = Vec::<u16>::new();
-	opcode_data.push(address as _);
-	opcode_data.push(effective_address);
-	opcode_data.push(operand as _);
+	let mut opcode_data = vec![0u16; 3];
+	opcode_data[0] = address as _;
+	opcode_data[1] = effective_address;
+	opcode_data[2] = operand as _;
 	create_trace_data(emulator, opcode_data);
 }
 
@@ -496,10 +496,10 @@ fn trace_function_zero_page_y(emulator: &Emulator) {
 	let address = read8_debug(emulator, pc);
 	let effective_address = address.wrapping_add(emulator.cpu.y) as u16;
 	let operand = read8_debug(emulator, effective_address);
-	let mut opcode_data = Vec::<u16>::new();
-	opcode_data.push(address as _);
-	opcode_data.push(effective_address);
-	opcode_data.push(operand as _);
+	let mut opcode_data = vec![0u16; 3];
+	opcode_data[0] = address as _;
+	opcode_data[1] = effective_address;
+	opcode_data[2] = operand as _;
 	create_trace_data(emulator, opcode_data);
 }
 
@@ -507,9 +507,9 @@ fn trace_function_absolute(emulator: &Emulator) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let address = read16_debug(emulator, pc);
 	let operand = read8_debug(emulator, address);
-	let mut opcode_data = Vec::<u16>::new();
-	opcode_data.push(address);
-	opcode_data.push(operand as _);
+	let mut opcode_data = vec![0u16; 2];
+	opcode_data[0] = address;
+	opcode_data[1] = operand as _;
 	create_trace_data(emulator, opcode_data);
 }
 
@@ -518,10 +518,10 @@ fn trace_function_absolute_x(emulator: &Emulator) {
 	let address = read16_debug(emulator, pc);
 	let effective_address = address.wrapping_add(emulator.cpu.x as _);
 	let operand = read8_debug(emulator, effective_address);
-	let mut opcode_data = Vec::<u16>::new();
-	opcode_data.push(address);
-	opcode_data.push(effective_address);
-	opcode_data.push(operand as _);
+	let mut opcode_data = vec![0u16; 3];
+	opcode_data[0] = address;
+	opcode_data[1] = effective_address;
+	opcode_data[2] = operand as _;
 	create_trace_data(emulator, opcode_data);
 }
 
@@ -530,10 +530,10 @@ fn trace_function_absolute_y(emulator: &Emulator) {
 	let address = read16_debug(emulator, pc);
 	let effective_address = address.wrapping_add(emulator.cpu.y as _);
 	let operand = read8_debug(emulator, effective_address);
-	let mut opcode_data = Vec::<u16>::new();
-	opcode_data.push(address);
-	opcode_data.push(effective_address);
-	opcode_data.push(operand as _);
+	let mut opcode_data = vec![0u16; 3];
+	opcode_data[0] = address;
+	opcode_data[1] = effective_address;
+	opcode_data[2] = operand as _;
 	create_trace_data(emulator, opcode_data);
 }
 
@@ -543,11 +543,11 @@ fn trace_function_indirect_x(emulator: &Emulator) {
 	let address = immediate.wrapping_add(emulator.cpu.x);
 	let effective_address = read16_zeropage_debug(emulator, address);
 	let operand = read8_debug(emulator, effective_address);
-	let mut opcode_data = Vec::<u16>::new();
-	opcode_data.push(immediate as _);
-	opcode_data.push(address as _);
-	opcode_data.push(effective_address);
-	opcode_data.push(operand as _);
+	let mut opcode_data = vec![0u16; 4];
+	opcode_data[0] = immediate as _;
+	opcode_data[1] = address as _;
+	opcode_data[2] = effective_address;
+	opcode_data[3] = operand as _;
 	create_trace_data(emulator, opcode_data);
 }
 
@@ -557,27 +557,27 @@ fn trace_function_indirect_y(emulator: &Emulator) {
 	let address = read16_zeropage_debug(emulator, immediate);
 	let effective_address = address.wrapping_add(emulator.cpu.y as _);
 	let operand = read8_debug(emulator, effective_address);
-	let mut opcode_data = Vec::<u16>::new();
-	opcode_data.push(immediate as _);
-	opcode_data.push(address);
-	opcode_data.push(effective_address);
-	opcode_data.push(operand as _);
+	let mut opcode_data = vec![0u16; 4];
+	opcode_data[0] = immediate as _;
+	opcode_data[1] = address;
+	opcode_data[2] = effective_address;
+	opcode_data[3] = operand as _;
 	create_trace_data(emulator, opcode_data);
 }
 
 fn trace_function_jump_absolute(emulator: &Emulator) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let address = read16_debug(emulator, pc);
-	let mut opcode_data = Vec::<u16>::new();
-	opcode_data.push(address);
+	let mut opcode_data = vec![0u16; 1];
+	opcode_data[0] = address;
 	create_trace_data(emulator, opcode_data);
 }
 
 fn trace_function_jump_relative(emulator: &Emulator) {
 	let pc = emulator.cpu.pc.wrapping_add(1);
 	let offset = read8_debug(emulator, pc);
-	let mut opcode_data = Vec::<u16>::new();
-	opcode_data.push(offset as _);
+	let mut opcode_data = vec![0u16; 1];
+	opcode_data[0] = offset as _;
 	create_trace_data(emulator, opcode_data);
 }
 
