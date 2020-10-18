@@ -439,8 +439,9 @@ impl Logger {
 			0x32 => |emulator| create_trace_data(emulator, Vec::new()),
 	
 			_ => |emulator| {
-				let opcode = read8_debug(emulator, emulator.cpu.pc);
-				warn!("Unknown opcode {:02X} at {:04X}", opcode, emulator.cpu.pc);
+				let pc = emulator.cpu.pc.wrapping_sub(1);
+				let opcode = read8_debug(emulator, pc);
+				warn!("Unknown opcode {:02X} at {:04X}", opcode, pc);
 				create_trace_data(emulator, Vec::new());
 			}
 		}
