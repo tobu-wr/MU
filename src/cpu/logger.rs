@@ -448,9 +448,10 @@ impl Logger {
 }
 
 fn create_trace_data(emulator: &Emulator, opcode_data: Vec<u16>) {
+	let pc = emulator.cpu.pc.wrapping_sub(1);
 	let data = Data {
-		pc: emulator.cpu.pc,
-		opcode: read8_debug(emulator, emulator.cpu.pc),
+		pc: pc,
+		opcode: read8_debug(emulator, pc),
 		opcode_data,
 		a: emulator.cpu.a,
 		x: emulator.cpu.x,
@@ -462,16 +463,14 @@ fn create_trace_data(emulator: &Emulator, opcode_data: Vec<u16>) {
 }
 
 fn trace_function_immediate(emulator: &Emulator) {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let operand = read8_debug(emulator, pc);
+	let operand = read8_debug(emulator, emulator.cpu.pc);
 	let mut opcode_data = vec![0u16; 1];
 	opcode_data[0] = operand as _;
 	create_trace_data(emulator, opcode_data);
 }
 
 fn trace_function_zero_page(emulator: &Emulator) {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let address = read8_debug(emulator, pc) as u16;
+	let address = read8_debug(emulator, emulator.cpu.pc) as u16;
 	let operand = read8_debug(emulator, address);
 	let mut opcode_data = vec![0u16; 2];
 	opcode_data[0] = address;
@@ -480,8 +479,7 @@ fn trace_function_zero_page(emulator: &Emulator) {
 }
 
 fn trace_function_zero_page_x(emulator: &Emulator) {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let address = read8_debug(emulator, pc);
+	let address = read8_debug(emulator, emulator.cpu.pc);
 	let effective_address = address.wrapping_add(emulator.cpu.x) as u16;
 	let operand = read8_debug(emulator, effective_address);
 	let mut opcode_data = vec![0u16; 3];
@@ -492,8 +490,7 @@ fn trace_function_zero_page_x(emulator: &Emulator) {
 }
 
 fn trace_function_zero_page_y(emulator: &Emulator) {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let address = read8_debug(emulator, pc);
+	let address = read8_debug(emulator, emulator.cpu.pc);
 	let effective_address = address.wrapping_add(emulator.cpu.y) as u16;
 	let operand = read8_debug(emulator, effective_address);
 	let mut opcode_data = vec![0u16; 3];
@@ -504,8 +501,7 @@ fn trace_function_zero_page_y(emulator: &Emulator) {
 }
 
 fn trace_function_absolute(emulator: &Emulator) {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let address = read16_debug(emulator, pc);
+	let address = read16_debug(emulator, emulator.cpu.pc);
 	let operand = read8_debug(emulator, address);
 	let mut opcode_data = vec![0u16; 2];
 	opcode_data[0] = address;
@@ -514,8 +510,7 @@ fn trace_function_absolute(emulator: &Emulator) {
 }
 
 fn trace_function_absolute_x(emulator: &Emulator) {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let address = read16_debug(emulator, pc);
+	let address = read16_debug(emulator, emulator.cpu.pc);
 	let effective_address = address.wrapping_add(emulator.cpu.x as _);
 	let operand = read8_debug(emulator, effective_address);
 	let mut opcode_data = vec![0u16; 3];
@@ -526,8 +521,7 @@ fn trace_function_absolute_x(emulator: &Emulator) {
 }
 
 fn trace_function_absolute_y(emulator: &Emulator) {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let address = read16_debug(emulator, pc);
+	let address = read16_debug(emulator, emulator.cpu.pc);
 	let effective_address = address.wrapping_add(emulator.cpu.y as _);
 	let operand = read8_debug(emulator, effective_address);
 	let mut opcode_data = vec![0u16; 3];
@@ -538,8 +532,7 @@ fn trace_function_absolute_y(emulator: &Emulator) {
 }
 
 fn trace_function_indirect_x(emulator: &Emulator) {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let immediate = read8_debug(emulator, pc);
+	let immediate = read8_debug(emulator, emulator.cpu.pc);
 	let address = immediate.wrapping_add(emulator.cpu.x);
 	let effective_address = read16_zeropage_debug(emulator, address);
 	let operand = read8_debug(emulator, effective_address);
@@ -552,8 +545,7 @@ fn trace_function_indirect_x(emulator: &Emulator) {
 }
 
 fn trace_function_indirect_y(emulator: &Emulator) {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let immediate = read8_debug(emulator, pc);
+	let immediate = read8_debug(emulator, emulator.cpu.pc);
 	let address = read16_zeropage_debug(emulator, immediate);
 	let effective_address = address.wrapping_add(emulator.cpu.y as _);
 	let operand = read8_debug(emulator, effective_address);
@@ -566,16 +558,14 @@ fn trace_function_indirect_y(emulator: &Emulator) {
 }
 
 fn trace_function_jump_absolute(emulator: &Emulator) {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let address = read16_debug(emulator, pc);
+	let address = read16_debug(emulator, emulator.cpu.pc);
 	let mut opcode_data = vec![0u16; 1];
 	opcode_data[0] = address;
 	create_trace_data(emulator, opcode_data);
 }
 
 fn trace_function_jump_relative(emulator: &Emulator) {
-	let pc = emulator.cpu.pc.wrapping_add(1);
-	let offset = read8_debug(emulator, pc);
+	let offset = read8_debug(emulator, emulator.cpu.pc);
 	let mut opcode_data = vec![0u16; 1];
 	opcode_data[0] = offset as _;
 	create_trace_data(emulator, opcode_data);
