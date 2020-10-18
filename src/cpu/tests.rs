@@ -1,5 +1,6 @@
 use super::*;
 
+use std::fs::File;
 use std::io::{BufReader, BufRead};
 
 pub fn read8(emulator: &mut Emulator, address: u16) -> u8 {
@@ -14,10 +15,8 @@ fn nestest() {
 
 	let mut cycle_counter: u16 = 7;
 
-	let log_file = std::fs::File::open("tests/cpu/nestest/nestest.log").unwrap();
-	for line in BufReader::new(log_file).lines() {
-		let log = line.unwrap();
-		
+	let log_file = File::open("tests/cpu/nestest/nestest.log").unwrap();
+	for log in BufReader::new(log_file).lines().map(|line| line.unwrap()) {
 		let pc = format!("{:04X}", emulator.cpu.pc);
 		let expected_pc = &log[..4];
 		assert_eq!(pc, expected_pc);
@@ -48,6 +47,24 @@ fn nestest() {
 
 		cycle_counter += Cpu::execute_next_instruction(&mut emulator) as u16;
 	}
+}
+
+#[cfg(feature = "trace")]
+#[test]
+fn nestest_trace() {
+	let expected_log_file = File::open("tests/cpu/nestest/nestest_simplified.log").unwrap();
+	let expected_logs: Vec<_> = BufReader::new(expected_log_file).lines().map(|line| line.unwrap()).collect();
+	{
+		let mut emulator = Emulator::new();
+		emulator.load_file("tests/cpu/nestest/nestest.nes");
+		emulator.cpu.set_pc(0xc000);
+		for _ in 0..expected_logs.len() {
+			Cpu::execute_next_instruction(&mut emulator);
+		}
+	}
+	let log_file = File::open("trace.log").unwrap();
+	let logs: Vec<_> = BufReader::new(log_file).lines().map(|line| line.unwrap()).collect();
+	assert_eq!(logs, expected_logs);
 }
 
 fn run_test(filename: &str) {
