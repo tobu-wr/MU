@@ -76,7 +76,7 @@ struct LookupTableEntry {
 	page_crossing_cycles: u8,
 
 	#[cfg(feature = "trace")]
-	trace_function: fn(&Emulator)
+	trace_function: fn(&Emulator, u8)
 }
 
 pub struct Cpu {
@@ -243,7 +243,7 @@ impl Cpu {
 		let entry = emulator.cpu.lookup_table[opcode as usize];
 
 		#[cfg(feature = "trace")]
-		(entry.trace_function)(emulator);
+		(entry.trace_function)(emulator, opcode);
 
 		emulator.cpu.branch_taken = false;
 		emulator.cpu.page_crossed = false;
