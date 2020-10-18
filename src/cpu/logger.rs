@@ -391,8 +391,7 @@ impl Logger {
 	
 			// JMP (indirect)
 			0x6c => |emulator| {
-				let pc = emulator.cpu.pc.wrapping_add(1);
-				let address = read16_debug(emulator, pc);
+				let address = read16_debug(emulator, emulator.cpu.pc);
 				let low_byte = read8_debug(emulator, address);
 				let high_byte = read8_debug(emulator, (address & 0xff00) | (address.wrapping_add(1) & 0x00ff));
 				let mut opcode_data = vec![0u16; 3];
