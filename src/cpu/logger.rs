@@ -843,7 +843,7 @@ fn format_instruction(data: &Data) -> String {
 
 		_ => {
 			warn!("Unknown opcode {:02X} at {:04X}", data.opcode, data.pc);
-			"# UNKNOWN OPCODE #".to_string()
+			"???".to_string()
 		}
 	}
 }
