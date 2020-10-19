@@ -13,8 +13,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Build
-      run: cargo build --features "trace nametable-viewer benchmark" --tests --verbose
+    - name: Check
+      run: cargo check --features "trace nametable-viewer benchmark" --tests --verbose
     - name: Run tests
       run: cargo test --release --verbose
     - name: Compare logs
