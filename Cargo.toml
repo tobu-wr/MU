@@ -14,3 +14,10 @@ benchmark = []
 minifb = "0.19.1"
 log = "0.4.11"
 env_logger = "0.8.1"
+
+[dev-dependencies]
+criterion = "0.3.3"
+
+[[bench]]
+name = "benchmark"
+harness = false
