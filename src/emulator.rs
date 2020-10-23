@@ -1,16 +1,15 @@
 use minifb::{Window, WindowOptions};
+use mappers::*;
 use cpu::*;
 use ppu::*;
 use joypad::*;
 
 pub const EMULATOR_NAME: &str = "KirbyNES";
 pub const RAM_SIZE: u16 = 0x800;
-const PRG_RAM_SIZE: u16 = 0x2000;
 
 pub struct Emulator {
 	pub ram: [u8; RAM_SIZE as _],
-	pub prg_rom: Vec<u8>,
-	pub prg_ram: [u8; PRG_RAM_SIZE as _],
+	pub mapper: Option<Box<dyn Mapper>>,
 	pub cpu: Cpu,
 	pub ppu: Ppu,
 	pub joypad: Joypad,
@@ -27,8 +26,7 @@ impl Emulator {
 
 		Self {
 			ram: [0; RAM_SIZE as _],
-			prg_rom: Vec::new(),
-			prg_ram: [0; PRG_RAM_SIZE as _],
+			mapper: None,
 			cpu: Cpu::new(),
 			ppu: Ppu::new(),
 			joypad: Joypad::new(),
@@ -48,7 +46,7 @@ impl Emulator {
 		
 		let prg_rom_start = 16;
 		let prg_rom_end = prg_rom_start + prg_rom_size * 1024;
-		self.prg_rom = contents[prg_rom_start..prg_rom_end].to_vec();
+		let prg_rom = &contents[prg_rom_start..prg_rom_end];
 		
 		let chr_rom_size = (contents[5] * 8) as usize;
 		info!("CHR ROM size: {}KB", chr_rom_size);
@@ -56,10 +54,11 @@ impl Emulator {
 		let chr_rom_start = prg_rom_end;
 		let chr_rom_end = chr_rom_start + chr_rom_size * 1024;
 		let chr_rom = &contents[chr_rom_start..chr_rom_end];
-		self.ppu.load_chr_rom(chr_rom); 
+		self.ppu.load_chr_rom(chr_rom);
 		
-		let mapper = (contents[7] & 0xf0) | (contents[6] >> 4);
-		info!("Cartridge mapper: {}", mapper);
+		let mapper_number = (contents[7] & 0xf0) | (contents[6] >> 4);
+		info!("Cartridge mapper: {}", mapper_number);
+		self.mapper = Some(create_mapper(mapper_number, prg_rom));
 	}
 
 	pub fn run(&mut self) {
