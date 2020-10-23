@@ -5,10 +5,10 @@ use ppu::*;
 use joypad::*;
 
 pub const EMULATOR_NAME: &str = "KirbyNES";
-pub const RAM_SIZE: u16 = 0x800;
+pub const RAM_SIZE: usize = 0x800;
 
 pub struct Emulator {
-	pub ram: [u8; RAM_SIZE as _],
+	pub ram: [u8; RAM_SIZE],
 	pub mapper: Option<Box<dyn Mapper>>,
 	pub cpu: Cpu,
 	pub ppu: Ppu,
@@ -25,7 +25,7 @@ impl Emulator {
 		window.limit_update_rate(Some(std::time::Duration::from_nanos(1_000_000_000 / 60)));
 
 		Self {
-			ram: [0; RAM_SIZE as _],
+			ram: [0; RAM_SIZE],
 			mapper: None,
 			cpu: Cpu::new(),
 			ppu: Ppu::new(),
