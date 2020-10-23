@@ -37,8 +37,7 @@ impl Emulator {
 	pub fn load_file(&mut self, filename: &str) {
 		let contents = std::fs::read(filename).unwrap();
 		if &contents[..4] != b"NES\x1a" {
-			error!("Wrong file format");
-			panic!();
+			panic!("Wrong file format");
 		}
 
 		let prg_rom_size = (contents[4] * 16) as usize;

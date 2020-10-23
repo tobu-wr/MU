@@ -657,16 +657,12 @@ fn get_instruction(opcode: u8) -> fn(&mut Emulator) {
 		0x60 => |emulator| emulator.cpu.pc = pull16(emulator).wrapping_add(1),
 
 		// KIL
-		0x32 => |_| {
-			error!("CPU stopped");
-			panic!();
-		},
+		0x32 => |_| panic!("CPU stopped"),
 
 		_ => |emulator| {
 			let pc = emulator.cpu.pc.wrapping_sub(1);
 			let opcode = read8(emulator, pc);
-			error!("Unknown opcode {:02X} at {:04X}", opcode, pc);
-			panic!();
+			panic!("Unknown opcode {:02X} at {:04X}", opcode, pc);
 		}
 	}
 }
