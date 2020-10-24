@@ -25,6 +25,7 @@ impl Uxrom {
 impl Mapper for Uxrom {
     fn read(&self, address: u16) -> u8 {
         match address {
+            0x6000 ..= 0x7fff => 0,
             SWITCHABLE_BANK_START ..= SWITCHABLE_BANK_END => self.prg_rom[(address - SWITCHABLE_BANK_START) as usize + BANK_SIZE * self.bank as usize],
             LAST_BANK_START ..= LAST_BANK_END => self.prg_rom[(address - LAST_BANK_START) as usize + self.prg_rom.len() - BANK_SIZE],
             _ => unimplemented!()
