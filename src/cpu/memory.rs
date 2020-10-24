@@ -1,11 +1,6 @@
 use emulator::*;
 use ppu::registers::*;
 
-pub(super) const STACK_ADDRESS: u16 = 0x100;
-pub(super) const NMI_VECTOR_ADDRESS: u16 = 0xfffa;
-pub(super) const RESET_VECTOR_ADDRESS: u16 = 0xfffc;
-pub(super) const IRQ_VECTOR_ADDRESS: u16 = 0xfffe;
-
 const RAM_START: u16 = 0;
 const RAM_END: u16 = 0x1fff;
 
@@ -20,15 +15,12 @@ const PPUDATA_ADDRESS: u16 = 0x2007;
 const OAMDMA_ADDRESS: u16 = 0x4014;
 const JOY1_ADDRESS: u16 = 0x4016;
 
-const PRG_RAM_START: u16 = 0x6000;
-const PRG_RAM_END: u16 = 0x7fff;
-
-const PRG_ROM_START: u16 = 0x8000;
-const PRG_ROM_END: u16 = 0xffff;
+const MAPPER_START: u16 = 0x6000;
+const MAPPER_END: u16 = 0xffff;
 
 pub(super) fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 	match address {
-		RAM_START ..= RAM_END => emulator.ram[((address - RAM_START) % RAM_SIZE) as usize],
+		RAM_START ..= RAM_END => emulator.ram[(address - RAM_START) as usize % RAM_SIZE],
 		PPUCTRL_ADDRESS => Ppuctrl::read(&mut emulator.ppu),
 		PPUMASK_ADDRESS => Ppumask::read(&mut emulator.ppu),
 		PPUSTATUS_ADDRESS => Ppustatus::read(&mut emulator.ppu),
@@ -50,8 +42,7 @@ pub(super) fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 			warn!("Read from expansion ROM at {:04X}", address);
 			0
 		},
-		PRG_RAM_START ..= PRG_RAM_END => emulator.prg_ram[(address - PRG_RAM_START) as usize],
-		PRG_ROM_START ..= PRG_ROM_END => emulator.prg_rom[((address - PRG_ROM_START) as usize) % emulator.prg_rom.len()]
+		MAPPER_START ..= MAPPER_END => emulator.mapper.as_ref().unwrap().read(address)
 	}
 }
 
@@ -70,7 +61,7 @@ pub(super) fn read16_zeropage(emulator: &mut Emulator, address: u8) -> u16 {
 #[cfg(feature = "trace")]
 pub(super) fn read8_debug(emulator: &Emulator, address: u16) -> u8 {
 	match address {
-		RAM_START ..= RAM_END => emulator.ram[((address - RAM_START) % RAM_SIZE) as usize],
+		RAM_START ..= RAM_END => emulator.ram[(address - RAM_START) as usize % RAM_SIZE],
 		PPUCTRL_ADDRESS => Ppuctrl::read_debug(&emulator.ppu),
 		PPUMASK_ADDRESS => Ppumask::read_debug(&emulator.ppu),
 		PPUSTATUS_ADDRESS => Ppustatus::read_debug(&emulator.ppu),
@@ -82,8 +73,7 @@ pub(super) fn read8_debug(emulator: &Emulator, address: u16) -> u8 {
 		0x2008 ..= 0x3fff => read8_debug(emulator, 0x2000 + (address - 0x2000) % 8), // mirrors of 0x2000-0x2007
 		OAMDMA_ADDRESS => Oamdma::read_debug(),
 		JOY1_ADDRESS => emulator.joypad.read_debug(&emulator.window),
-		PRG_RAM_START ..= PRG_RAM_END => emulator.prg_ram[(address - PRG_RAM_START) as usize],
-		PRG_ROM_START ..= PRG_ROM_END => emulator.prg_rom[((address - PRG_ROM_START) as usize) % emulator.prg_rom.len()],
+		MAPPER_START ..= MAPPER_END => emulator.mapper.as_ref().unwrap().read(address),
 		_ => 0
 	}
 }
@@ -104,7 +94,7 @@ pub(super) fn read16_zeropage_debug(emulator: &Emulator, address: u8) -> u16 {
 
 pub(super) fn write(emulator: &mut Emulator, address: u16, value: u8) {
 	match address {
-		RAM_START ..= RAM_END => emulator.ram[((address - RAM_START) % RAM_SIZE) as usize] = value,
+		RAM_START ..= RAM_END => emulator.ram[(address - RAM_START) as usize % RAM_SIZE] = value,
 		PPUCTRL_ADDRESS => Ppuctrl::write(&mut emulator.ppu, value),
 		PPUMASK_ADDRESS => Ppumask::write(&mut emulator.ppu, value),
 		PPUSTATUS_ADDRESS => Ppustatus::write(&mut emulator.ppu, value),
@@ -124,10 +114,6 @@ pub(super) fn write(emulator: &mut Emulator, address: u16, value: u8) {
 			// TODO: implement expansion ROM
 			warn!("Write to expansion ROM at {:04X}", address);
 		},
-		PRG_RAM_START ..= PRG_RAM_END => emulator.prg_ram[(address - PRG_RAM_START) as usize] = value,
-		PRG_ROM_START ..= PRG_ROM_END => {
-			error!("Write to PRG ROM");
-			panic!();
-		}
+		MAPPER_START ..= MAPPER_END => emulator.mapper.as_mut().unwrap().write(address, value)
 	}
 }
