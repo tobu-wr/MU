@@ -9,16 +9,21 @@ use self::unrom::*;
 use self::mmc3::*;
 
 pub trait Mapper {
-    // TODO
+    fn read(&self, u16) -> u8 {
+        unimplemented!();
+    }
+
+    fn write(&mut self, u16, u8) {
+        unimplemented!();
+    }
 }
 
-// TODO
-pub fn create_mapper(mapper: u8) -> Box<dyn Mapper> {
-    match mapper {
-        0 => Box::new(Nrom::new()),
-        1 => Box::new(Mmc1::new()),
-        2 => Box::new(Unrom::new()),
-        4 => Box::new(Mmc3::new()),
+pub fn create_mapper(number: u8, prg_rom: &[u8]) -> Box<dyn Mapper> {
+    match number {
+        0 => Box::new(Nrom::new(prg_rom)),
+        1 => Box::new(Mmc1::new(prg_rom)),
+        2 => Box::new(Unrom::new(prg_rom)),
+        4 => Box::new(Mmc3::new(prg_rom)),
         _ => unimplemented!()
     }
 }
