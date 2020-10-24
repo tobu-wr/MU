@@ -15,6 +15,11 @@ use self::addressing_modes::*;
 #[cfg(feature = "trace")]
 use self::logger::*;
 
+const STACK_ADDRESS: u16 = 0x100;
+const NMI_VECTOR_ADDRESS: u16 = 0xfffa;
+const RESET_VECTOR_ADDRESS: u16 = 0xfffc;
+const IRQ_VECTOR_ADDRESS: u16 = 0xfffe;
+
 const OPCODE_COUNT: usize = 0x100;
 
                                         // 0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
