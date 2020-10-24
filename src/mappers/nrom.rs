@@ -25,7 +25,7 @@ impl Mapper for Nrom {
     fn read(&self, address: u16) -> u8 {
         match address {
             PRG_RAM_START ..= PRG_RAM_END => self.prg_ram[(address - PRG_RAM_START) as usize],
-            PRG_ROM_START ..= PRG_ROM_END => self.prg_rom[((address - PRG_ROM_START) as usize) % self.prg_rom.len()],
+            PRG_ROM_START ..= PRG_ROM_END => self.prg_rom[(address - PRG_ROM_START) as usize % self.prg_rom.len()],
             _ => unimplemented!()
         }
     }

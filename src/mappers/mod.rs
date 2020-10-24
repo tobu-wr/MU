@@ -1,11 +1,11 @@
 mod nrom;
 mod mmc1;
-mod unrom;
+mod uxrom;
 mod mmc3;
 
 use self::nrom::*;
 use self::mmc1::*;
-use self::unrom::*;
+use self::uxrom::*;
 use self::mmc3::*;
 
 pub trait Mapper {
@@ -22,7 +22,7 @@ pub fn create_mapper(number: u8, prg_rom: &[u8]) -> Box<dyn Mapper> {
     match number {
         0 => Box::new(Nrom::new(prg_rom)),
         1 => Box::new(Mmc1::new(prg_rom)),
-        2 => Box::new(Unrom::new(prg_rom)),
+        2 => Box::new(Uxrom::new(prg_rom)),
         4 => Box::new(Mmc3::new(prg_rom)),
         _ => unimplemented!()
     }

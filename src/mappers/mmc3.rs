@@ -5,7 +5,7 @@ pub(super) struct Mmc3 {
 }
 
 impl Mmc3 {
-    pub(super) fn new() -> Self {
+    pub(super) fn new(_prg_rom: &[u8]) -> Self {
         Self {
             // TODO
         }
