@@ -1,12 +1,12 @@
 use super::*;
 
-const BANK_SIZE: usize = 0x4000;
+const PRG_ROM_BANK_SIZE: usize = 0x4000;
 
-const SWITCHABLE_BANK_START: u16 = 0x8000;
-const SWITCHABLE_BANK_END: u16 = 0xbfff;
+const PRG_ROM_SWITCHABLE_BANK_START: u16 = 0x8000;
+const PRG_ROM_SWITCHABLE_BANK_END: u16 = 0xbfff;
 
-const LAST_BANK_START: u16 = 0xc000;
-const LAST_BANK_END: u16 = 0xffff;
+const PRG_ROM_LAST_BANK_START: u16 = 0xc000;
+const PRG_ROM_LAST_BANK_END: u16 = 0xffff;
 
 pub(super) struct Uxrom {
     prg_rom: Vec<u8>,
@@ -26,8 +26,8 @@ impl Mapper for Uxrom {
     fn read(&self, address: u16) -> u8 {
         match address {
             0x6000 ..= 0x7fff => 0,
-            SWITCHABLE_BANK_START ..= SWITCHABLE_BANK_END => self.prg_rom[(address - SWITCHABLE_BANK_START) as usize + BANK_SIZE * self.bank as usize],
-            LAST_BANK_START ..= LAST_BANK_END => self.prg_rom[(address - LAST_BANK_START) as usize + self.prg_rom.len() - BANK_SIZE],
+            PRG_ROM_SWITCHABLE_BANK_START ..= PRG_ROM_SWITCHABLE_BANK_END => self.prg_rom[(address - PRG_ROM_SWITCHABLE_BANK_START) as usize + PRG_ROM_BANK_SIZE * self.bank as usize],
+            PRG_ROM_LAST_BANK_START ..= PRG_ROM_LAST_BANK_END => self.prg_rom[(address - PRG_ROM_LAST_BANK_START) as usize + self.prg_rom.len() - PRG_ROM_BANK_SIZE],
             _ => unimplemented!()
         }
     }
