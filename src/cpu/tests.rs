@@ -181,3 +181,45 @@ fn instr_timing() {
 fn branch_timing() {
 	run_test("tests/cpu/instr_timing/2-branch_timing.nes");
 }
+
+#[test]
+#[ignore]
+fn cli_latency() {
+	run_test("tests/cpu/cpu_interrupts_v2/1-cli_latency.nes");
+}
+
+#[test]
+#[ignore]
+fn nmi_and_brk() {
+	run_test("tests/cpu/cpu_interrupts_v2/2-nmi_and_brk.nes");
+}
+
+#[test]
+#[ignore]
+fn nmi_and_irq() {
+	run_test("tests/cpu/cpu_interrupts_v2/3-nmi_and_irq.nes");
+}
+
+#[test]
+#[ignore]
+fn irq_and_dma() {
+	run_test("tests/cpu/cpu_interrupts_v2/4-irq_and_dma.nes");
+}
+
+#[test]
+#[ignore]
+fn branch_delays_irq() {
+	run_test("tests/cpu/cpu_interrupts_v2/5-branch_delays_irq.nes");
+}
+
+#[test]
+#[ignore]
+fn exec_space_ppuio() {
+	run_test("tests/cpu/cpu_exec_space/test_cpu_exec_space_ppuio.nes");
+}
+
+#[test]
+#[ignore]
+fn exec_space_apu() {
+	run_test("tests/cpu/cpu_exec_space/test_cpu_exec_space_apu.nes");
+}
