@@ -23,7 +23,7 @@ impl Joypad {
         }
     }
 
-    #[cfg(feature = "trace")]
+    #[cfg(any(feature = "trace", test))]
     pub fn read_debug(&self, window: &Window) -> u8 {
         if self.polling {
             window.is_key_down(Key::A) as u8
