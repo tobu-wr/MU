@@ -14,18 +14,18 @@ pub struct Oamdma;
 pub trait Register {
     fn name() -> String;
 
-    fn read(_ppu: &mut Ppu) -> u8 {
+    fn read(&mut Ppu) -> u8 {
         error!("Read from {}", Self::name());
         panic!();
     }
 
-    fn write(_ppu: &mut Ppu, _value: u8) {
+    fn write(&mut Ppu, u8) {
         error!("Write to {}", Self::name());
         panic!();
     }
 
-    #[cfg(feature = "trace")]
-    fn read_debug(_ppu: &Ppu) -> u8 {
+    #[cfg(any(feature = "trace", test))]
+    fn read_debug(&Ppu) -> u8 {
         warn!("Read from {}", Self::name());
         0
     }
@@ -44,7 +44,7 @@ impl Register for Ppuctrl {
         }
     }
 
-    #[cfg(feature = "trace")]
+    #[cfg(any(feature = "trace", test))]
     fn read_debug(ppu: &Ppu) -> u8 {
         ppu.ppuctrl
     }
@@ -63,7 +63,7 @@ impl Register for Ppumask {
         ppu.ppumask = value
     }
 
-    #[cfg(feature = "trace")]
+    #[cfg(any(feature = "trace", test))]
     fn read_debug(ppu: &Ppu) -> u8 {
         ppu.ppumask
     }
@@ -81,7 +81,7 @@ impl Register for Ppustatus {
         value
     }
 
-    #[cfg(feature = "trace")]
+    #[cfg(any(feature = "trace", test))]
     fn read_debug(ppu: &Ppu) -> u8 {
         ppu.ppustatus
     }
@@ -96,7 +96,7 @@ impl Register for Oamaddr {
         ppu.oamaddr = value;
     }
 
-    #[cfg(feature = "trace")]
+    #[cfg(any(feature = "trace", test))]
     fn read_debug(ppu: &Ppu) -> u8 {
         ppu.oamaddr
     }
@@ -116,7 +116,7 @@ impl Register for Oamdata {
         ppu.oamaddr = ppu.oamaddr.wrapping_add(1);
     }
 
-    #[cfg(feature = "trace")]
+    #[cfg(any(feature = "trace", test))]
     fn read_debug(ppu: &Ppu) -> u8 {
         ppu.oam[ppu.oamaddr as usize]
     }
@@ -136,7 +136,7 @@ impl Register for Ppuscroll {
         ppu.flipflop = !ppu.flipflop;
     }
 
-    #[cfg(feature = "trace")]
+    #[cfg(any(feature = "trace", test))]
     fn read_debug(_ppu: &Ppu) -> u8 {
         0
     }
@@ -156,7 +156,7 @@ impl Register for Ppuaddr {
         ppu.flipflop = !ppu.flipflop;
     }
 
-    #[cfg(feature = "trace")]
+    #[cfg(any(feature = "trace", test))]
     fn read_debug(ppu: &Ppu) -> u8 {
         read16_debug(ppu, ppu.ppuaddr)
     }
@@ -183,7 +183,7 @@ impl Register for Ppudata {
         increment_ppuaddr(ppu);
     }
 
-    #[cfg(feature = "trace")]
+    #[cfg(any(feature = "trace", test))]
     fn read_debug(ppu: &Ppu) -> u8 {
         if ppu.ppuaddr <= 0x3eff {
             ppu.ppudata_buffer
@@ -208,7 +208,7 @@ impl Oamdma {
         }
     }
 
-    #[cfg(feature = "trace")]
+    #[cfg(any(feature = "trace", test))]
     pub fn read_debug() -> u8 {
         0
     }
@@ -222,7 +222,7 @@ fn increment_ppuaddr(ppu: &mut Ppu) {
     };
 }
 
-#[cfg(feature = "trace")]
+#[cfg(any(feature = "trace", test))]
 fn read16_debug(ppu: &Ppu, register: u16) -> u8 {
     (if ppu.flipflop {
         register
