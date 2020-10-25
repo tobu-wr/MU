@@ -3,8 +3,8 @@ use super::*;
 use std::fs::File;
 use std::io::{BufReader, BufRead};
 
-pub fn read8(emulator: &mut Emulator, address: u16) -> u8 {
-	memory::read8(emulator, address)
+pub fn read8_debug(emulator: &Emulator, address: u16) -> u8 {
+	memory::read8_debug(emulator, address)
 }
 
 #[test]
@@ -71,13 +71,13 @@ fn run_test(filename: &str) {
 	let mut emulator = Emulator::new();
 	emulator.load_file(filename);
 	Cpu::init_pc(&mut emulator);
-	while read8(&mut emulator, 0x6000) != 0x80 {
+	while read8_debug(&emulator, 0x6000) != 0x80 {
 		Cpu::execute_next_instruction(&mut emulator);
 	}
-	while read8(&mut emulator, 0x6000) == 0x80 {
+	while read8_debug(&emulator, 0x6000) == 0x80 {
 		Cpu::execute_next_instruction(&mut emulator);
 	}
-	assert_eq!(read8(&mut emulator, 0x6000), 0);
+	assert_eq!(read8_debug(&emulator, 0x6000), 0);
 }
 
 #[test]

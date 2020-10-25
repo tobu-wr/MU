@@ -11,7 +11,7 @@ pub(super) struct IndirectX;
 pub(super) struct IndirectY;
 
 pub(super) trait AddressingMode {
-	fn get_address(emulator: &mut Emulator) -> u16;
+	fn get_address(&mut Emulator) -> u16;
 }
 
 impl AddressingMode for Immediate {

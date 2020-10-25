@@ -58,7 +58,7 @@ pub(super) fn read16_zeropage(emulator: &mut Emulator, address: u8) -> u16 {
 	(high_byte << 8) | low_byte
 }
 
-#[cfg(feature = "trace")]
+#[cfg(any(feature = "trace", test))]
 pub(super) fn read8_debug(emulator: &Emulator, address: u16) -> u8 {
 	match address {
 		RAM_START ..= RAM_END => emulator.ram[(address - RAM_START) as usize % RAM_SIZE],
