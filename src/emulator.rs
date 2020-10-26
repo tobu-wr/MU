@@ -40,14 +40,14 @@ impl Emulator {
 			panic!("Wrong file format");
 		}
 
-		let prg_rom_size = (contents[4] * 16) as usize;
+		let prg_rom_size = contents[4] as usize * 16;
 		info!("PRG ROM size: {}KB", prg_rom_size);
 		
 		let prg_rom_start = 16;
 		let prg_rom_end = prg_rom_start + prg_rom_size * 1024;
 		let prg_rom = &contents[prg_rom_start..prg_rom_end];
 		
-		let chr_rom_size = (contents[5] * 8) as usize;
+		let chr_rom_size = contents[5] as usize * 8;
 		info!("CHR ROM size: {}KB", chr_rom_size);
 
 		let chr_rom_start = prg_rom_end;
