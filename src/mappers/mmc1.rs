@@ -44,19 +44,19 @@ impl Mapper for Mmc1 {
             PRG_ROM_BANK_0_START ..= PRG_ROM_BANK_0_END => {
                 let mode = (self.control >> 2) & 0b11;
                 match mode {
-                    0 | 1 => self.prg_rom[(address - PRG_ROM_BANK_0_START) as usize + 0x8000 * (self.prg_bank & 0b11110) as usize],
-                    2 => self.prg_rom[(address - PRG_ROM_BANK_0_START) as usize],
-                    3 => self.prg_rom[(address - PRG_ROM_BANK_0_START) as usize + 0x4000 * self.prg_bank as usize],
-                    _ => panic!()
+                    0 | 1 => self.prg_rom[(address - PRG_ROM_BANK_0_START) as usize + 0x8000 * (self.prg_bank & 0b11110) as usize], // switchable (32 KB bank)
+                    2 => self.prg_rom[(address - PRG_ROM_BANK_0_START) as usize], // fixed to first bank (16 KB bank)
+                    3 => self.prg_rom[(address - PRG_ROM_BANK_0_START) as usize + 0x4000 * self.prg_bank as usize], // switchable (16 KB bank)
+                    _ => unreachable!()
                 }
             },
             PRG_ROM_BANK_1_START ..= PRG_ROM_BANK_1_END => {
                 let mode = (self.control >> 2) & 0b11;
                 match mode {
-                    0 | 1 => self.prg_rom[(address - PRG_ROM_BANK_0_START) as usize + 0x8000 * (self.prg_bank & 0b11110) as usize],
-                    2 => self.prg_rom[(address - PRG_ROM_BANK_1_START) as usize + 0x4000 * self.prg_bank as usize],
-                    3 => self.prg_rom[(address - PRG_ROM_BANK_1_START) as usize + self.prg_rom.len() - 0x4000],
-                    _ => panic!()
+                    0 | 1 => self.prg_rom[(address - PRG_ROM_BANK_0_START) as usize + 0x8000 * (self.prg_bank & 0b11110) as usize], // switchable (32 KB bank)
+                    2 => self.prg_rom[(address - PRG_ROM_BANK_1_START) as usize + 0x4000 * self.prg_bank as usize], // switchable (16 KB bank)
+                    3 => self.prg_rom[(address - PRG_ROM_BANK_1_START) as usize + self.prg_rom.len() - 0x4000], // fixed to last bank (16 KB bank)
+                    _ => unreachable!()
                 }
             },
             _ => unimplemented!()
@@ -66,22 +66,22 @@ impl Mapper for Mmc1 {
     fn write(&mut self, address: u16, value: u8) {
         match address {
             PRG_RAM_START ..= PRG_RAM_END => self.prg_ram[(address - PRG_RAM_START) as usize] = value,
-            PRG_ROM_START ..= PRG_ROM_END => if (value & 0x80) == 0 {
+            PRG_ROM_START ..= PRG_ROM_END => self.shift_register = if (value & 0x80) == 0 {
+                let value = ((value & 1) << 4) | (self.shift_register >> 1);
                 if (self.shift_register & 1) == 0 {
-                    self.shift_register = ((value & 1) << 4) | (self.shift_register >> 1);
+                    value
                 } else {
-                    let value = ((value & 1) << 4) | (self.shift_register >> 1);
                     match address {
                         0x8000 ..= 0x9fff => self.control = value,
                         0xa000 ..= 0xbfff => self.chr_bank_0 = value,
                         0xc000 ..= 0xdfff => self.chr_bank_1 = value,
                         0xe000 ..= 0xffff => self.prg_bank = value,
-                        _ => panic!()
+                        _ => unreachable!()
                     }
-                    self.shift_register = 0b10000;
+                    0b10000
                 }
             } else {
-                self.shift_register = 0b10000;
+                0b10000
             },
             _ => unimplemented!()
         }
