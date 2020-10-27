@@ -47,7 +47,7 @@ impl Mapper for Mmc1 {
     fn read(&self, address: u16) -> u8 {
         match address {
             PRG_RAM_START ..= PRG_RAM_END => if self.prg_ram_enable {
-                self.prg_ram[(address - PRG_RAM_START) as usize + 0x2000 * self.prg_ram_bank as usize]
+                self.prg_ram[(address - PRG_RAM_START) as usize]
             } else {
                 0
             },
