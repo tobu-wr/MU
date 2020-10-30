@@ -69,7 +69,7 @@ impl Mapper for Mmc3 {
                     _ => unreachable!()
                 }
             },
-            PRG_ROM_BANK_3_START ..= PRG_ROM_BANK_3_END => self.prg_rom[(address - PRG_ROM_BANK_2_START) as usize + self.prg_rom.len() - PRG_ROM_BANK_SIZE], // fixed to last bank
+            PRG_ROM_BANK_3_START ..= PRG_ROM_BANK_3_END => self.prg_rom[(address - PRG_ROM_BANK_3_START) as usize + self.prg_rom.len() - PRG_ROM_BANK_SIZE], // fixed to last bank
             _ => unimplemented!()
         }
     }
