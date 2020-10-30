@@ -435,7 +435,7 @@ impl Logger {
 			0x60 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
 	
 			// KIL
-			0x32 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0x02 | 0x32 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
 	
 			_ => |emulator, opcode| {
 				let pc = emulator.cpu.pc.wrapping_sub(1);
@@ -839,7 +839,7 @@ fn format_instruction(data: &Data) -> String {
 		0x40 => format("RTI"),
 		0x60 => format("RTS"),
 
-		0x32 => format("KIL"),
+		0x02 | 0x32 => format("KIL"),
 
 		_ => {
 			warn!("Unknown opcode {:02X} at {:04X}", data.opcode, data.pc);

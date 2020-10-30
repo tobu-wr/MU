@@ -661,7 +661,7 @@ fn get_instruction(opcode: u8) -> fn(&mut Emulator) {
 		// RTS
 		0x60 => |emulator| emulator.cpu.pc = pull16(emulator).wrapping_add(1),
 
-		// STP
+		// KIL
 		0x02 | 0x32 => |_| panic!("CPU stopped"),
 
 		_ => |emulator| {
