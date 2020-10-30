@@ -33,7 +33,7 @@ impl Mapper for Nrom {
     fn write(&mut self, address: u16, value: u8) {
         match address {
             PRG_RAM_START ..= PRG_RAM_END => self.prg_ram[(address - PRG_RAM_START) as usize] = value,
-            PRG_ROM_START ..= PRG_ROM_END => {}, // ignore writes to PRG ROM
+            PRG_ROM_START ..= PRG_ROM_END => {}, // ignore
             _ => unimplemented!()
         }
     }

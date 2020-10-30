@@ -83,7 +83,7 @@ impl Mapper for Mmc3 {
                 if (value % 2) == 0 {
                     self.r = value & 0b111;
                     self.prg_rom_bank_mode = (value >> 6) & 1;
-                    self.chr_a12_inversion = (value >> 7) & 1;
+                    self.chr_a12_inversion = value >> 7;
                 } else {
                     match self.r {
                         0 => {}, // TODO
@@ -92,8 +92,8 @@ impl Mapper for Mmc3 {
                         3 => {}, // TODO
                         4 => {}, // TODO
                         5 => {}, // TODO
-                        6 => self.prg_rom_bank_0 = value & 0b11_1111,
-                        7 => self.prg_rom_bank_1 = value & 0b11_1111,
+                        6 => self.prg_rom_bank_0 = value & 0x3f,
+                        7 => self.prg_rom_bank_1 = value & 0x3f,
                         _ => unreachable!()
                     }
                 }

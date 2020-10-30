@@ -2,6 +2,9 @@ use super::*;
 
 const PRG_ROM_BANK_SIZE: usize = 0x4000;
 
+const PRG_ROM_START: u16 = 0x8000;
+const PRG_ROM_END: u16 = 0xffff;
+
 const PRG_ROM_BANK_0_START: u16 = 0x8000;
 const PRG_ROM_BANK_0_END: u16 = 0xbfff;
 
@@ -34,7 +37,7 @@ impl Mapper for Uxrom {
 
     fn write(&mut self, address: u16, value: u8) {
         match address {
-            0x8000 ..= 0xffff => self.prg_rom_bank = value & 0b1111,
+            PRG_ROM_START ..= PRG_ROM_END => self.prg_rom_bank = value & 0xf,
             _ => unimplemented!()
         }
     }
