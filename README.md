@@ -1,10 +1,10 @@
-# KirbyNES
+# Uemura Console Emulator
 
 ## Building and running
 `cargo run --release <rom path>`
 
 ## Controls
-| NES | Keyboard (AZERTY) |
+| NES | Keyboard |
 | --- | --- |
 | A | A |
 | B | Z |

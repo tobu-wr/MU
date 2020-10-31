@@ -103,7 +103,7 @@ impl Ppu {
 		let elapsed = self.instant.elapsed();
 		if elapsed >= Duration::from_secs(1) {
 			let fps = (self.frame_counter as f32) / elapsed.as_secs_f32();
-			window.set_title(&format!("{} - FPS: {}", EMULATOR_NAME, fps as u16));
+			window.set_title(&format!("{} - FPS: {}", WINDOW_TITLE, fps as u16));
 			self.frame_counter = 0;
 			self.instant = Instant::now();
 		}
