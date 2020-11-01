@@ -151,6 +151,10 @@ impl Ppu {
 					}
 					// render sprites
 					if (self.ppumask & 0x10) != 0 {
+						let sprite_size = (self.ppuctrl >> 6) & 1;
+						if sprite_size == 1 {
+							unimplemented!("8x16 sprites");
+						}
 						for number in (0..64).rev() {
 							let sprite_y = self.oam[number * 4];
 							let tile_number = self.oam[number * 4 + 1];
