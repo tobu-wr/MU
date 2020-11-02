@@ -4,7 +4,7 @@ use cpu::*;
 use ppu::*;
 use joypad::*;
 
-pub const WINDOW_TITLE: &str = "Uemura Console Emulator 1.0.0 Alpha";
+pub const WINDOW_TITLE: &str = "MU 1.0.0 Alpha";
 pub const RAM_SIZE: usize = 0x800;
 
 pub struct Emulator {
