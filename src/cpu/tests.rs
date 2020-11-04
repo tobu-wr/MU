@@ -11,7 +11,7 @@ pub fn read8_debug(emulator: &Emulator, address: u16) -> u8 {
 fn nestest() {
 	let mut emulator = Emulator::new();
 	emulator.load_file("tests/cpu/nestest/nestest.nes");
-	emulator.cpu.set_pc(0xc000);
+	emulator.cpu.pc = 0xc000;
 
 	let mut cycle_counter: u16 = 7;
 
