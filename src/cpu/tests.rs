@@ -49,24 +49,6 @@ fn nestest() {
 	}
 }
 
-#[cfg(feature = "trace")]
-#[test]
-fn nestest_trace() {
-	let expected_log_file = File::open("tests/cpu/nestest/nestest_simplified.log").unwrap();
-	let expected_logs: Vec<_> = BufReader::new(expected_log_file).lines().map(|line| line.unwrap()).collect();
-	{
-		let mut emulator = Emulator::new();
-		emulator.load_file("tests/cpu/nestest/nestest.nes");
-		emulator.cpu.set_pc(0xc000);
-		for _ in 0..expected_logs.len() {
-			Cpu::execute_next_instruction(&mut emulator);
-		}
-	}
-	let log_file = File::open("trace.log").unwrap();
-	let logs: Vec<_> = BufReader::new(log_file).lines().map(|line| line.unwrap()).collect();
-	assert_eq!(logs, expected_logs);
-}
-
 fn run_test(filename: &str) {
 	let mut emulator = Emulator::new();
 	emulator.load_file(filename);
