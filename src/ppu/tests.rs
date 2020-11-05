@@ -139,34 +139,3 @@ fn timing() {
 fn timing_order() {
 	run_test("tests/ppu/ppu_sprite_hit/10-timing_order.nes");
 }
-
-#[test]
-fn oam_read() {
-	run_test("tests/ppu/oam_read.nes");
-}
-
-#[test]
-#[ignore]
-fn palette_ram() {
-	let mut emulator = Emulator::new();
-	emulator.load_file("tests/ppu/blargg_ppu_tests/palette_ram.nes");
-
-	// TODO
-	/*while  {
-		Cpu::execute_next_instruction(&mut emulator);
-		emulator.ppu.do_cycle(&mut emulator.cpu, &mut emulator.window);
-	}*/
-}
-
-#[test]
-#[ignore]
-fn sprite_ram() {
-	let mut emulator = Emulator::new();
-	emulator.load_file("tests/ppu/blargg_ppu_tests/sprite_ram.nes");
-
-	// TODO
-	/*while  {
-		Cpu::execute_next_instruction(&mut emulator);
-		emulator.ppu.do_cycle(&mut emulator.cpu, &mut emulator.window);
-	}*/
-}
