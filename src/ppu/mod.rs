@@ -213,6 +213,8 @@ impl Ppu {
 					if (self.ppuctrl & 0x80) != 0 {
 						cpu.request_interrupt(Interrupt::Nmi);
 					}
+
+					#[cfg(not(test))]
 					window.update_with_buffer(&self.frame_buffer, FRAME_WIDTH, FRAME_HEIGHT).unwrap();
 
 					#[cfg(feature = "benchmark")]
