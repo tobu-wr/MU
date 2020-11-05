@@ -22,7 +22,6 @@ fn run_test(filename: &str) {
 }
 
 #[test]
-#[ignore]
 fn vbl_basics() {
 	run_test("tests/ppu/ppu_vbl_nmi/01-vbl_basics.nes");
 }

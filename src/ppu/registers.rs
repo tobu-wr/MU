@@ -81,6 +81,10 @@ impl Register for Ppustatus {
         value
     }
 
+    fn write(_ppu: &mut Ppu, _value: u8) {
+        // ignore
+    }
+
     #[cfg(any(feature = "trace", test))]
     fn read_debug(ppu: &Ppu) -> u8 {
         ppu.ppustatus
