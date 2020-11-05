@@ -36,7 +36,7 @@ pub struct Ppu {
 	ppuaddr: u16,
 	ppudata_buffer: u8,
 	flipflop: bool,
-	cycle_counter: u8,
+	cycle_counter: u16,
 	scanline_counter: u16,
 	frame_buffer: [u32; FRAME_BUFFER_SIZE],
 	oam: [u8; OAM_SIZE],
@@ -111,7 +111,7 @@ impl Ppu {
 
 	pub fn do_cycle(&mut self, cpu: &mut Cpu, window: &mut Window) {
 		self.cycle_counter += 1;
-		if self.cycle_counter == 113 {
+		if self.cycle_counter == 341 {
 			self.cycle_counter = 0;
 			self.scanline_counter = (self.scanline_counter + 1) % 262;
 			match self.scanline_counter {

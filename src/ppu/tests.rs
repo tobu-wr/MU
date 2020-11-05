@@ -7,13 +7,13 @@ fn run_test(filename: &str) {
 	emulator.load_file(filename);
 	Cpu::init_pc(&mut emulator);
 	while read8_debug(&emulator, 0x6000) != 0x80 {
-		let cycles = Cpu::execute_next_instruction(&mut emulator);
+		let cycles = 3 * Cpu::execute_next_instruction(&mut emulator);
 		for _ in 0..cycles {
 			emulator.ppu.do_cycle(&mut emulator.cpu, &mut emulator.window);
 		}
 	}
 	while read8_debug(&emulator, 0x6000) == 0x80 {
-		let cycles = Cpu::execute_next_instruction(&mut emulator);
+		let cycles = 3 * Cpu::execute_next_instruction(&mut emulator);
 		for _ in 0..cycles {
 			emulator.ppu.do_cycle(&mut emulator.cpu, &mut emulator.window);
 		}
@@ -34,7 +34,6 @@ fn vbl_set_time() {
 }
 
 #[test]
-#[ignore]
 fn vbl_clear_time() {
 	run_test("tests/ppu/ppu_vbl_nmi/03-vbl_clear_time.nes");
 }
