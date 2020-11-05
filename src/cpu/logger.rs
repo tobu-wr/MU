@@ -69,7 +69,7 @@ impl Logger {
 	pub(super) fn get_trace_function(opcode: u8) -> fn(&Emulator, u8) {
 		match opcode {
 			// NOPs
-			0x1a | 0x3a | 0x5a | 0x7a | 0xda | 0xea | 0xfa => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0x1a | 0x3a | 0x5a | 0x7a | 0xda | 0xea | 0xfa => trace_function,
 			0x80 => trace_function_immediate,
 			0x04 | 0x44 | 0x64 | 0x82 | 0x89 | 0xc2 | 0xe2 => trace_function_zero_page,
 			0x14 | 0x34 | 0x54 | 0x74 | 0xd4 | 0xf4 => trace_function_zero_page_x,
@@ -141,22 +141,22 @@ impl Logger {
 			0x9c => trace_function_absolute_x,
 	
 			// TAX
-			0xaa => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0xaa => trace_function,
 			
 			// TXA
-			0x8a => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0x8a => trace_function,
 	
 			// TAY
-			0xa8 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0xa8 => trace_function,
 	
 			// TYA
-			0x98 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0x98 => trace_function,
 	
 			// TSX
-			0xba => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0xba => trace_function,
 	
 			// TXS
-			0x9a => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0x9a => trace_function,
 	
 			// AND
 			0x29 => trace_function_immediate,
@@ -205,7 +205,7 @@ impl Logger {
 			0x2c => trace_function_absolute,
 	
 			// LSR
-			0x4a => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0x4a => trace_function,
 			0x46 => trace_function_zero_page,
 			0x56 => trace_function_zero_page_x,
 			0x4e => trace_function_absolute,
@@ -221,7 +221,7 @@ impl Logger {
 			0x53 => trace_function_indirect_y,		
 	
 			// ASL
-			0x0a => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0x0a => trace_function,
 			0x06 => trace_function_zero_page,
 			0x16 => trace_function_zero_page_x,
 			0x0e => trace_function_absolute,
@@ -237,7 +237,7 @@ impl Logger {
 			0x13 => trace_function_indirect_y,
 	
 			// ROR
-			0x6a => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0x6a => trace_function,
 			0x66 => trace_function_zero_page,
 			0x76 => trace_function_zero_page_x,
 			0x6e => trace_function_absolute,
@@ -253,7 +253,7 @@ impl Logger {
 			0x73 => trace_function_indirect_y,
 	
 			// ROL
-			0x2a => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0x2a => trace_function,
 			0x26 => trace_function_zero_page,
 			0x36 => trace_function_zero_page_x,
 			0x2e => trace_function_absolute,
@@ -289,10 +289,10 @@ impl Logger {
 			0xf1 => trace_function_indirect_y,
 	
 			// INX
-			0xe8 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0xe8 => trace_function,
 	
 			// INY
-			0xc8 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0xc8 => trace_function,
 	
 			// INC
 			0xe6 => trace_function_zero_page,
@@ -310,10 +310,10 @@ impl Logger {
 			0xf3 => trace_function_indirect_y,
 	
 			// DEX
-			0xca => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0xca => trace_function,
 	
 			// DEY
-			0x88 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0x88 => trace_function,
 	
 			// DEC
 			0xc6 => trace_function_zero_page,
@@ -351,37 +351,37 @@ impl Logger {
 			0xd1 => trace_function_indirect_y,
 	
 			// PHA
-			0x48 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0x48 => trace_function,
 	
 			// PLA
-			0x68 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0x68 => trace_function,
 	
 			// PHP
-			0x08 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0x08 => trace_function,
 	
 			// PLP
-			0x28 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0x28 => trace_function,
 	
 			// CLC
-			0x18 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0x18 => trace_function,
 	
 			// SEC
-			0x38 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0x38 => trace_function,
 	
 			// CLI
-			0x58 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0x58 => trace_function,
 	
 			// SEI
-			0x78 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0x78 => trace_function,
 	
 			// CLD
-			0xd8 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0xd8 => trace_function,
 	
 			// SED
-			0xf8 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0xf8 => trace_function,
 	
 			// CLV
-			0xb8 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0xb8 => trace_function,
 	
 			// JMP
 			0x4c => trace_function_jump_absolute,
@@ -426,21 +426,21 @@ impl Logger {
 			0xf0 => trace_function_jump_relative,
 	
 			// BRK
-			0x00 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0x00 => trace_function,
 	
 			// RTI
-			0x40 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0x40 => trace_function,
 	
 			// RTS
-			0x60 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0x60 => trace_function,
 	
 			// KIL
-			0x02 | 0x32 => |emulator, opcode| create_trace_data(emulator, opcode, Vec::new()),
+			0x02 | 0x32 => trace_function,
 	
 			_ => |emulator, opcode| {
 				let pc = emulator.cpu.pc.wrapping_sub(1);
 				warn!("Unknown opcode {:02X} at {:04X}", opcode, pc);
-				create_trace_data(emulator, opcode, Vec::new());
+				trace_function(emulator, opcode);
 			}
 		}
 	}
@@ -458,6 +458,10 @@ fn create_trace_data(emulator: &Emulator, opcode: u8, opcode_data: Vec<u16>) {
 		s: emulator.cpu.s
 	};
 	emulator.cpu.logger.buffer.borrow_mut().push(data);
+}
+
+fn trace_function(emulator: &Emulator, opcode: u8) {
+	create_trace_data(emulator, opcode, Vec::new());
 }
 
 fn trace_function_immediate(emulator: &Emulator, opcode: u8) {
