@@ -21,7 +21,7 @@ impl Emulator {
 		let options = WindowOptions{ resize: true, ..WindowOptions::default() };
 		let mut window = Window::new(WINDOW_TITLE, FRAME_WIDTH, FRAME_HEIGHT, options).unwrap();
 
-		#[cfg(not(feature = "benchmark"))]
+		#[cfg(not(feature = "fullspeed"))]
 		window.limit_update_rate(Some(std::time::Duration::from_nanos(1_000_000_000 / 60)));
 
 		Self {
