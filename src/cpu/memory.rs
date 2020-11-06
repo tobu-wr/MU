@@ -23,12 +23,12 @@ pub(super) fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 		RAM_START ..= RAM_END => emulator.ram[(address - RAM_START) as usize % RAM_SIZE],
 		PPUCTRL_ADDRESS => 0, // write only
 		PPUMASK_ADDRESS => 0, // write only
-		PPUSTATUS_ADDRESS => Ppustatus::read(&mut emulator.ppu),
+		PPUSTATUS_ADDRESS => read_ppustatus(&mut emulator.ppu),
 		OAMADDR_ADDRESS => 0, // write only
-		OAMDATA_ADDRESS => Oamdata::read(&mut emulator.ppu),
+		OAMDATA_ADDRESS => read_oamdata(&mut emulator.ppu),
 		PPUSCROLL_ADDRESS => 0, // write only
 		PPUADDR_ADDRESS => 0, // write only
-		PPUDATA_ADDRESS => Ppudata::read(&mut emulator.ppu),
+		PPUDATA_ADDRESS => read_ppudata(&mut emulator.ppu),
 		0x2008 ..= 0x3fff => read8(emulator, 0x2000 + (address - 0x2000) % 8), // mirrors of 0x2000-0x2007
 		OAMDMA_ADDRESS => 0, // write only
 		0x4000 ..= 0x4013 | 0x4015 | 0x4017 => {
@@ -64,12 +64,12 @@ pub(super) fn read8_debug(emulator: &Emulator, address: u16) -> u8 {
 		RAM_START ..= RAM_END => emulator.ram[(address - RAM_START) as usize % RAM_SIZE],
 		PPUCTRL_ADDRESS => 0, // write only
 		PPUMASK_ADDRESS => 0, // write only
-		PPUSTATUS_ADDRESS => Ppustatus::read_debug(&emulator.ppu),
+		PPUSTATUS_ADDRESS => read_ppustatus_debug(&emulator.ppu),
 		OAMADDR_ADDRESS => 0, // write only
-		OAMDATA_ADDRESS => Oamdata::read_debug(&emulator.ppu),
+		OAMDATA_ADDRESS => read_oamdata_debug(&emulator.ppu),
 		PPUSCROLL_ADDRESS => 0, // write only
 		PPUADDR_ADDRESS => 0, // write only
-		PPUDATA_ADDRESS => Ppudata::read_debug(&emulator.ppu),
+		PPUDATA_ADDRESS => read_ppudata_debug(&emulator.ppu),
 		0x2008 ..= 0x3fff => read8_debug(emulator, 0x2000 + (address - 0x2000) % 8), // mirrors of 0x2000-0x2007
 		OAMDMA_ADDRESS => 0, // write only
 		JOY1_ADDRESS => emulator.joypad.read_debug(&emulator.window),
@@ -95,16 +95,16 @@ pub(super) fn read16_zeropage_debug(emulator: &Emulator, address: u8) -> u16 {
 pub(super) fn write(emulator: &mut Emulator, address: u16, value: u8) {
 	match address {
 		RAM_START ..= RAM_END => emulator.ram[(address - RAM_START) as usize % RAM_SIZE] = value,
-		PPUCTRL_ADDRESS => Ppuctrl::write(&mut emulator.ppu, value),
-		PPUMASK_ADDRESS => Ppumask::write(&mut emulator.ppu, value),
+		PPUCTRL_ADDRESS => write_ppuctrl(&mut emulator.ppu, value),
+		PPUMASK_ADDRESS => write_ppumask(&mut emulator.ppu, value),
 		PPUSTATUS_ADDRESS => {}, // read only
-		OAMADDR_ADDRESS => Oamaddr::write(&mut emulator.ppu, value),
-		OAMDATA_ADDRESS => Oamdata::write(&mut emulator.ppu, value),
-		PPUSCROLL_ADDRESS => Ppuscroll::write(&mut emulator.ppu, value),
-		PPUADDR_ADDRESS => Ppuaddr::write(&mut emulator.ppu, value),
-		PPUDATA_ADDRESS => Ppudata::write(&mut emulator.ppu, value),
+		OAMADDR_ADDRESS => write_oamaddr(&mut emulator.ppu, value),
+		OAMDATA_ADDRESS => write_oamdata(&mut emulator.ppu, value),
+		PPUSCROLL_ADDRESS => write_ppuscroll(&mut emulator.ppu, value),
+		PPUADDR_ADDRESS => write_ppuaddr(&mut emulator.ppu, value),
+		PPUDATA_ADDRESS => write_ppudata(&mut emulator.ppu, value),
 		0x2008 ..= 0x3fff => write(emulator, 0x2000 + (address - 0x2000) % 8, value), // mirrors of 0x2000-0x2007
-		OAMDMA_ADDRESS => Oamdma::write(emulator, value),
+		OAMDMA_ADDRESS => write_oamdma(emulator, value),
 		0x4000 ..= 0x4013 | 0x4015 | 0x4017 => {
 			// TODO: implement APU registers
 			warn!("Write to an APU register at {:04X}", address);
