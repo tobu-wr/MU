@@ -11,32 +11,8 @@ pub struct Ppuaddr;
 pub struct Ppudata;
 pub struct Oamdma;
 
-pub trait Register {
-    fn name() -> String;
-
-    fn read(&mut Ppu) -> u8 {
-        error!("Read from {}", Self::name());
-        panic!();
-    }
-
-    fn write(&mut Ppu, u8) {
-        error!("Write to {}", Self::name());
-        panic!();
-    }
-
-    #[cfg(any(feature = "trace", test))]
-    fn read_debug(&Ppu) -> u8 {
-        warn!("Read from {}", Self::name());
-        0
-    }
-}
-
-impl Register for Ppuctrl {
-    fn name() -> String {
-        "PPUCTRL".to_string()
-    }
-
-    fn write(ppu: &mut Ppu, value: u8) {
+impl Ppuctrl {
+    pub fn write(ppu: &mut Ppu, value: u8) {
         ppu.ppuctrl = value;
         if (ppu.ppuctrl & ppu.ppustatus & 0x80) != 0 {
             // TODO: trigger NMI
@@ -45,93 +21,65 @@ impl Register for Ppuctrl {
     }
 
     #[cfg(any(feature = "trace", test))]
-    fn read_debug(ppu: &Ppu) -> u8 {
+    pub fn read_debug(ppu: &Ppu) -> u8 {
         ppu.ppuctrl
     }
 }
 
-impl Register for Ppumask {
-    fn name() -> String {
-        "PPUMASK".to_string()
-    }
-
-    fn read(_ppu: &mut Ppu) -> u8 {
-        0 // TODO: implement open bus behavior
-    }
-
-    fn write(ppu: &mut Ppu, value: u8) {
+impl Ppumask {
+    pub fn write(ppu: &mut Ppu, value: u8) {
         ppu.ppumask = value
     }
 
     #[cfg(any(feature = "trace", test))]
-    fn read_debug(ppu: &Ppu) -> u8 {
+    pub fn read_debug(ppu: &Ppu) -> u8 {
         ppu.ppumask
     }
 }
 
-impl Register for Ppustatus {
-    fn name() -> String {
-        "PPUSTATUS".to_string()
-    }
-
-    fn read(ppu: &mut Ppu) -> u8 {
+impl Ppustatus {
+    pub fn read(ppu: &mut Ppu) -> u8 {
         let value = ppu.ppustatus;
         ppu.ppustatus &= 0x7f;
         ppu.flipflop = false;
         value
     }
 
-    fn write(_ppu: &mut Ppu, _value: u8) {
-        // ignore
-    }
-
     #[cfg(any(feature = "trace", test))]
-    fn read_debug(ppu: &Ppu) -> u8 {
+    pub fn read_debug(ppu: &Ppu) -> u8 {
         ppu.ppustatus
     }
 }
 
-impl Register for Oamaddr {
-    fn name() -> String {
-        "OAMADDR".to_string()
-    }
-
-    fn write(ppu: &mut Ppu, value: u8) {
+impl Oamaddr {
+    pub fn write(ppu: &mut Ppu, value: u8) {
         ppu.oamaddr = value;
     }
 
     #[cfg(any(feature = "trace", test))]
-    fn read_debug(ppu: &Ppu) -> u8 {
+    pub fn read_debug(ppu: &Ppu) -> u8 {
         ppu.oamaddr
     }
 }
 
-impl Register for Oamdata {
-    fn name() -> String {
-        "OAMDATA".to_string()
-    }
-
-    fn read(ppu: &mut Ppu) -> u8 {
+impl Oamdata {
+    pub fn read(ppu: &mut Ppu) -> u8 {
         ppu.oam[ppu.oamaddr as usize]
     }
 
-    fn write(ppu: &mut Ppu, value: u8) {
+    pub fn write(ppu: &mut Ppu, value: u8) {
         ppu.oam[ppu.oamaddr as usize] = value;
         ppu.oamaddr = ppu.oamaddr.wrapping_add(1);
     }
 
     #[cfg(any(feature = "trace", test))]
-    fn read_debug(ppu: &Ppu) -> u8 {
+    pub fn read_debug(ppu: &Ppu) -> u8 {
         ppu.oam[ppu.oamaddr as usize]
     }
 }
 
-impl Register for Ppuscroll {
-    fn name() -> String {
-        "PPUSCROLL".to_string()
-    }
-
-    fn write(ppu: &mut Ppu, value: u8) {
+impl Ppuscroll {
+    pub fn write(ppu: &mut Ppu, value: u8) {
         if ppu.flipflop {
             ppu.scroll_y = value
         } else {
@@ -141,17 +89,13 @@ impl Register for Ppuscroll {
     }
 
     #[cfg(any(feature = "trace", test))]
-    fn read_debug(_ppu: &Ppu) -> u8 {
+    pub fn read_debug(_ppu: &Ppu) -> u8 {
         0
     }
 }
 
-impl Register for Ppuaddr {
-    fn name() -> String {
-        "PPUADDR".to_string()
-    }
-
-    fn write(ppu: &mut Ppu, value: u8) {
+impl Ppuaddr {
+    pub fn write(ppu: &mut Ppu, value: u8) {
         ppu.ppuaddr = if ppu.flipflop {
             (ppu.ppuaddr & 0xff00) | (value as u16)
         } else {
@@ -161,17 +105,13 @@ impl Register for Ppuaddr {
     }
 
     #[cfg(any(feature = "trace", test))]
-    fn read_debug(ppu: &Ppu) -> u8 {
+    pub fn read_debug(ppu: &Ppu) -> u8 {
         read16_debug(ppu, ppu.ppuaddr)
     }
 }
 
-impl Register for Ppudata {
-    fn name() -> String {
-        "PPUDATA".to_string()
-    }
-
-    fn read(ppu: &mut Ppu) -> u8 {
+impl Ppudata {
+    pub fn read(ppu: &mut Ppu) -> u8 {
         let old_value = ppu.ppudata_buffer;
         ppu.ppudata_buffer = ppu.memory.read(ppu.ppuaddr);
         increment_ppuaddr(ppu);
@@ -182,13 +122,13 @@ impl Register for Ppudata {
         }
     }
 
-    fn write(ppu: &mut Ppu, value: u8) {
+    pub fn write(ppu: &mut Ppu, value: u8) {
         ppu.memory.write(ppu.ppuaddr, value);
         increment_ppuaddr(ppu);
     }
 
     #[cfg(any(feature = "trace", test))]
-    fn read_debug(ppu: &Ppu) -> u8 {
+    pub fn read_debug(ppu: &Ppu) -> u8 {
         if ppu.ppuaddr <= 0x3eff {
             ppu.ppudata_buffer
         } else {
@@ -198,11 +138,6 @@ impl Register for Ppudata {
 }
 
 impl Oamdma {
-    pub fn read() -> u8 {
-        error!("Read from OAMDMA");
-        panic!();
-    }
-
     pub fn write(emulator: &mut Emulator, value: u8) {
         let start = (value as usize) << 8;
         let end = start + OAM_SIZE;

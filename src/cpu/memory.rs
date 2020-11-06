@@ -21,16 +21,16 @@ const MAPPER_END: u16 = 0xffff;
 pub(super) fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 	match address {
 		RAM_START ..= RAM_END => emulator.ram[(address - RAM_START) as usize % RAM_SIZE],
-		PPUCTRL_ADDRESS => Ppuctrl::read(&mut emulator.ppu),
-		PPUMASK_ADDRESS => Ppumask::read(&mut emulator.ppu),
+		PPUCTRL_ADDRESS => 0, // write only
+		PPUMASK_ADDRESS => 0, // write only
 		PPUSTATUS_ADDRESS => Ppustatus::read(&mut emulator.ppu),
-		OAMADDR_ADDRESS => Oamaddr::read(&mut emulator.ppu),
+		OAMADDR_ADDRESS => 0, // write only
 		OAMDATA_ADDRESS => Oamdata::read(&mut emulator.ppu),
-		PPUSCROLL_ADDRESS => Ppuscroll::read(&mut emulator.ppu),
-		PPUADDR_ADDRESS => Ppuaddr::read(&mut emulator.ppu),
+		PPUSCROLL_ADDRESS => 0, // write only
+		PPUADDR_ADDRESS => 0, // write only
 		PPUDATA_ADDRESS => Ppudata::read(&mut emulator.ppu),
 		0x2008 ..= 0x3fff => read8(emulator, 0x2000 + (address - 0x2000) % 8), // mirrors of 0x2000-0x2007
-		OAMDMA_ADDRESS => Oamdma::read(),
+		OAMDMA_ADDRESS => 0, // write only
 		0x4000 ..= 0x4013 | 0x4015 | 0x4017 => {
 			// TODO: implement APU registers
 			warn!("Read from an APU register at {:04X}", address);
@@ -38,7 +38,7 @@ pub(super) fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 		},
 		JOY1_ADDRESS => emulator.joypad.read(&emulator.window),
 		0x4018 ..= 0x5fff => {
-			// TODO: implement open bus behavior and expansion ROM
+			// TODO: implement expansion ROM
 			warn!("Read from expansion ROM at {:04X}", address);
 			0
 		},
@@ -97,7 +97,7 @@ pub(super) fn write(emulator: &mut Emulator, address: u16, value: u8) {
 		RAM_START ..= RAM_END => emulator.ram[(address - RAM_START) as usize % RAM_SIZE] = value,
 		PPUCTRL_ADDRESS => Ppuctrl::write(&mut emulator.ppu, value),
 		PPUMASK_ADDRESS => Ppumask::write(&mut emulator.ppu, value),
-		PPUSTATUS_ADDRESS => Ppustatus::write(&mut emulator.ppu, value),
+		PPUSTATUS_ADDRESS => {}, // read only
 		OAMADDR_ADDRESS => Oamaddr::write(&mut emulator.ppu, value),
 		OAMDATA_ADDRESS => Oamdata::write(&mut emulator.ppu, value),
 		PPUSCROLL_ADDRESS => Ppuscroll::write(&mut emulator.ppu, value),
