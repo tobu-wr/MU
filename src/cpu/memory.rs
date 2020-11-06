@@ -62,16 +62,16 @@ pub(super) fn read16_zeropage(emulator: &mut Emulator, address: u8) -> u16 {
 pub(super) fn read8_debug(emulator: &Emulator, address: u16) -> u8 {
 	match address {
 		RAM_START ..= RAM_END => emulator.ram[(address - RAM_START) as usize % RAM_SIZE],
-		PPUCTRL_ADDRESS => Ppuctrl::read_debug(&emulator.ppu),
-		PPUMASK_ADDRESS => Ppumask::read_debug(&emulator.ppu),
+		PPUCTRL_ADDRESS => 0, // write only
+		PPUMASK_ADDRESS => 0, // write only
 		PPUSTATUS_ADDRESS => Ppustatus::read_debug(&emulator.ppu),
-		OAMADDR_ADDRESS => Oamaddr::read_debug(&emulator.ppu),
+		OAMADDR_ADDRESS => 0, // write only
 		OAMDATA_ADDRESS => Oamdata::read_debug(&emulator.ppu),
-		PPUSCROLL_ADDRESS => Ppuscroll::read_debug(&emulator.ppu),
-		PPUADDR_ADDRESS => Ppuaddr::read_debug(&emulator.ppu),
+		PPUSCROLL_ADDRESS => 0, // write only
+		PPUADDR_ADDRESS => 0, // write only
 		PPUDATA_ADDRESS => Ppudata::read_debug(&emulator.ppu),
 		0x2008 ..= 0x3fff => read8_debug(emulator, 0x2000 + (address - 0x2000) % 8), // mirrors of 0x2000-0x2007
-		OAMDMA_ADDRESS => Oamdma::read_debug(),
+		OAMDMA_ADDRESS => 0, // write only
 		JOY1_ADDRESS => emulator.joypad.read_debug(&emulator.window),
 		MAPPER_START ..= MAPPER_END => emulator.mapper.as_ref().unwrap().read(address),
 		_ => 0

@@ -19,21 +19,11 @@ impl Ppuctrl {
             warn!("NMI not triggered");
         }
     }
-
-    #[cfg(any(feature = "trace", test))]
-    pub fn read_debug(ppu: &Ppu) -> u8 {
-        ppu.ppuctrl
-    }
 }
 
 impl Ppumask {
     pub fn write(ppu: &mut Ppu, value: u8) {
         ppu.ppumask = value
-    }
-
-    #[cfg(any(feature = "trace", test))]
-    pub fn read_debug(ppu: &Ppu) -> u8 {
-        ppu.ppumask
     }
 }
 
@@ -55,11 +45,6 @@ impl Oamaddr {
     pub fn write(ppu: &mut Ppu, value: u8) {
         ppu.oamaddr = value;
     }
-
-    #[cfg(any(feature = "trace", test))]
-    pub fn read_debug(ppu: &Ppu) -> u8 {
-        ppu.oamaddr
-    }
 }
 
 impl Oamdata {
@@ -67,14 +52,14 @@ impl Oamdata {
         ppu.oam[ppu.oamaddr as usize]
     }
 
-    pub fn write(ppu: &mut Ppu, value: u8) {
-        ppu.oam[ppu.oamaddr as usize] = value;
-        ppu.oamaddr = ppu.oamaddr.wrapping_add(1);
-    }
-
     #[cfg(any(feature = "trace", test))]
     pub fn read_debug(ppu: &Ppu) -> u8 {
         ppu.oam[ppu.oamaddr as usize]
+    }
+
+    pub fn write(ppu: &mut Ppu, value: u8) {
+        ppu.oam[ppu.oamaddr as usize] = value;
+        ppu.oamaddr = ppu.oamaddr.wrapping_add(1);
     }
 }
 
@@ -87,11 +72,6 @@ impl Ppuscroll {
         };
         ppu.flipflop = !ppu.flipflop;
     }
-
-    #[cfg(any(feature = "trace", test))]
-    pub fn read_debug(_ppu: &Ppu) -> u8 {
-        0
-    }
 }
 
 impl Ppuaddr {
@@ -102,11 +82,6 @@ impl Ppuaddr {
             (ppu.ppuaddr & 0x00ff) | ((value as u16) << 8)
         } % 0x4000;
         ppu.flipflop = !ppu.flipflop;
-    }
-
-    #[cfg(any(feature = "trace", test))]
-    pub fn read_debug(ppu: &Ppu) -> u8 {
-        read16_debug(ppu, ppu.ppuaddr)
     }
 }
 
@@ -122,11 +97,6 @@ impl Ppudata {
         }
     }
 
-    pub fn write(ppu: &mut Ppu, value: u8) {
-        ppu.memory.write(ppu.ppuaddr, value);
-        increment_ppuaddr(ppu);
-    }
-
     #[cfg(any(feature = "trace", test))]
     pub fn read_debug(ppu: &Ppu) -> u8 {
         if ppu.ppuaddr <= 0x3eff {
@@ -134,6 +104,11 @@ impl Ppudata {
         } else {
             ppu.memory.read(ppu.ppuaddr)
         }
+    }
+
+    pub fn write(ppu: &mut Ppu, value: u8) {
+        ppu.memory.write(ppu.ppuaddr, value);
+        increment_ppuaddr(ppu);
     }
 }
 
@@ -145,11 +120,6 @@ impl Oamdma {
             emulator.ppu.oam[emulator.ppu.oamaddr as usize] = *value;
             emulator.ppu.oamaddr = emulator.ppu.oamaddr.wrapping_add(1);
         }
-    }
-
-    #[cfg(any(feature = "trace", test))]
-    pub fn read_debug() -> u8 {
-        0
     }
 }
 
