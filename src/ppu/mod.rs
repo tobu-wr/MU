@@ -10,8 +10,7 @@ mod nametable_viewer;
 #[cfg(feature = "benchmark")]
 use std::time::{Instant, Duration};
 
-use minifb::Window;
-
+use window::*;
 use cpu::*;
 use self::memory::*;
 
@@ -21,8 +20,6 @@ use emulator::*;
 #[cfg(feature = "nametable-viewer")]
 use self::nametable_viewer::*;
 
-pub const FRAME_WIDTH: usize = 256;
-pub const FRAME_HEIGHT: usize = 240;
 const FRAME_BUFFER_SIZE: usize = FRAME_WIDTH * FRAME_HEIGHT;
 const OAM_SIZE: usize = 256;
 
@@ -215,7 +212,7 @@ impl Ppu {
 					}
 
 					#[cfg(not(test))]
-					window.update_with_buffer(&self.frame_buffer, FRAME_WIDTH, FRAME_HEIGHT).unwrap();
+					window.update(&self.frame_buffer);
 
 					#[cfg(feature = "benchmark")]
 					self.display_fps(window);

@@ -1,10 +1,9 @@
-use minifb::{Window, WindowOptions};
 use mappers::*;
 use cpu::*;
 use ppu::*;
 use joypad::*;
+use window::*;
 
-pub const WINDOW_TITLE: &str = "MU 1.0.0 Alpha";
 pub const RAM_SIZE: usize = 0x800;
 
 pub struct Emulator {
@@ -18,19 +17,13 @@ pub struct Emulator {
 
 impl Emulator {
 	pub fn new() -> Self {
-		let options = WindowOptions{ resize: true, ..WindowOptions::default() };
-		let mut window = Window::new(WINDOW_TITLE, FRAME_WIDTH, FRAME_HEIGHT, options).unwrap();
-
-		#[cfg(not(feature = "fullspeed"))]
-		window.limit_update_rate(Some(std::time::Duration::from_nanos(1_000_000_000 / 60)));
-
 		Self {
 			ram: [0; RAM_SIZE],
 			mapper: None,
 			cpu: Cpu::new(),
 			ppu: Ppu::new(),
 			joypad: Joypad::new(),
-			window
+			window: Window::new()
 		}
 	}
 

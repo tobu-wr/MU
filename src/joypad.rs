@@ -1,4 +1,4 @@
-use minifb::{Key, Window};
+use window::*;
 
 pub struct Joypad {
     register: u8,
@@ -15,7 +15,7 @@ impl Joypad {
 
     pub fn read(&mut self, window: &Window) -> u8 {
         if self.polling {
-            window.is_key_down(Key::A) as u8
+            window.is_key_down(Key::Q) as u8
         } else {
             let state = self.register & 1;
             self.register >>= 1;
@@ -26,7 +26,7 @@ impl Joypad {
     #[cfg(any(feature = "trace", test))]
     pub fn read_debug(&self, window: &Window) -> u8 {
         if self.polling {
-            window.is_key_down(Key::A) as u8
+            window.is_key_down(Key::Q) as u8
         } else {
             self.register & 1
         }

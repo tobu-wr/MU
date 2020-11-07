@@ -8,6 +8,7 @@ mod cpu;
 mod ppu;
 mod joypad;
 mod mappers;
+mod window;
 
 use emulator::*;
 
