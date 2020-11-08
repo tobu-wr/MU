@@ -1,3 +1,4 @@
+use std::time::{Instant, Duration};
 use minifb::WindowOptions;
 
 pub const FRAME_WIDTH: usize = 256;
@@ -16,7 +17,9 @@ pub enum Key {
 }
 
 pub struct Window {
-    window: minifb::Window
+    window: minifb::Window,    
+    frame_counter: u16,
+    instant: Instant
 }
 
 impl Window {
@@ -25,10 +28,12 @@ impl Window {
         let mut window = minifb::Window::new(WINDOW_TITLE, FRAME_WIDTH, FRAME_HEIGHT, options).unwrap();
     
         #[cfg(not(feature = "fullspeed"))]
-        window.limit_update_rate(Some(std::time::Duration::from_nanos(1_000_000_000 / 60)));
+        window.limit_update_rate(Some(std::time::Duration::from_secs_f64(1.0 / 60.0)));
     
         Self {
-            window
+            window,
+            frame_counter: 0,
+            instant: Instant::now()
         }
     }
 
@@ -51,5 +56,15 @@ impl Window {
 
     pub fn update(&mut self, buffer: &[u32]) {
         self.window.update_with_buffer(buffer, FRAME_WIDTH, FRAME_HEIGHT).unwrap();
+        self.frame_counter += 1;
+        
+        let elapsed = self.instant.elapsed();
+        if elapsed >= Duration::from_secs(1) {
+            self.instant = Instant::now();
+            let fps = self.frame_counter as f64 / elapsed.as_secs_f64();
+            self.frame_counter = 0;
+            let title = format!("{} - FPS: {}", WINDOW_TITLE, fps.round() as u16);
+            self.window.set_title(&title);
+        }
     }
 }
