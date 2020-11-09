@@ -32,7 +32,7 @@ pub struct Ppu {
 	flipflop: bool,
 	cycle_counter: u16,
 	scanline_counter: u16,
-	frame_buffer: [u32; FRAME_BUFFER_SIZE],
+	frame_buffer: Vec<u32>,
 	oam: [u8; OAM_SIZE],
 	memory: Memory,
 
@@ -54,7 +54,7 @@ impl Ppu {
 			flipflop: false,
 			cycle_counter: 0,
 			scanline_counter: 0,
-			frame_buffer: [0; FRAME_BUFFER_SIZE],
+			frame_buffer: vec![0; FRAME_BUFFER_SIZE],
 			oam: [0; OAM_SIZE],
 			memory: Memory::new(),
 
