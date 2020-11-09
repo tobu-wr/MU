@@ -91,9 +91,9 @@ impl Joypad {
         self.right_button_down = false;
     }
 
-    pub fn read(&mut self, window: &Window) -> u8 {
+    pub fn read(&mut self) -> u8 {
         if self.strobe {
-            a_button_down as u8
+            self.a_button_down as u8
         } else {
             let state = self.register & 1;
             self.register >>= 1;
@@ -102,27 +102,27 @@ impl Joypad {
     }
 
     #[cfg(any(feature = "trace", test))]
-    pub fn read_debug(&self, window: &Window) -> u8 {
+    pub fn read_debug(&self) -> u8 {
         if self.strobe {
-            a_button_down as u8
+            self.a_button_down as u8
         } else {
             self.register & 1
         }
     }
 
-    pub fn write(&mut self, window: &Window, value: u8) {
+    pub fn write(&mut self, value: u8) {
         if (value & 1) == 1 {
             self.strobe = true;
         } else if self.strobe {
             self.strobe = false;
-            self.register = (a_button_down as u8) << 0
-                          | (b_button_down as u8) << 1
-                          | (select_button_down as u8) << 2
-                          | (start_button_down as u8) << 3
-                          | (up_button_down as u8) << 4
-                          | (down_button_down as u8) << 5
-                          | (left_button_down as u8) << 6
-                          | (right_button_down as u8) << 7;
+            self.register = (self.a_button_down as u8) << 0
+                          | (self.b_button_down as u8) << 1
+                          | (self.select_button_down as u8) << 2
+                          | (self.start_button_down as u8) << 3
+                          | (self.up_button_down as u8) << 4
+                          | (self.down_button_down as u8) << 5
+                          | (self.left_button_down as u8) << 6
+                          | (self.right_button_down as u8) << 7;
         }
     }
 }
