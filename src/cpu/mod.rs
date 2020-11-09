@@ -12,11 +12,11 @@ use emulator::*;
 
 use self::{
 	memory::*,
-	addressing_modes::*,
-
-	#[cfg(feature = "trace")]
-	use logger::*;
+	addressing_modes::*
 };
+
+#[cfg(feature = "trace")]
+use self::logger::*;
 
 const STACK_ADDRESS: u16 = 0x100;
 const NMI_VECTOR_ADDRESS: u16 = 0xfffa;

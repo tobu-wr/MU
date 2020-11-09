@@ -4,11 +4,13 @@ mod uxrom;
 mod mmc3;
 mod axrom;
 
-use self::nrom::*;
-use self::mmc1::*;
-use self::uxrom::*;
-use self::mmc3::*;
-use self::axrom::*;
+use self::{
+    nrom::*,
+    mmc1::*,
+    uxrom::*,
+    mmc3::*,
+    axrom::*
+};
 
 pub trait Mapper {
     fn read(&self, u16) -> u8 {
