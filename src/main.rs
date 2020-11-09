@@ -1,4 +1,4 @@
-extern crate minifb;
+extern crate winit;
 
 #[macro_use]
 extern crate log;
@@ -18,5 +18,6 @@ fn main() {
 	let filename = std::env::args().nth(1).unwrap();
 	let mut emulator = Emulator::new();
 	emulator.load_file(&filename);
+	
 	emulator.run();
 }
