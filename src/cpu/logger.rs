@@ -1,6 +1,8 @@
-use std::io::prelude::Write;
-use std::fs::File;
-use std::cell::RefCell;
+use std::{
+	io::prelude::Write,
+	fs::File,
+	cell::RefCell
+};
 
 use emulator::*;
 use super::memory::*;

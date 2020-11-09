@@ -9,11 +9,14 @@ mod logger;
 
 use std::mem::{self, MaybeUninit};
 use emulator::*;
-use self::memory::*;
-use self::addressing_modes::*;
 
-#[cfg(feature = "trace")]
-use self::logger::*;
+use self::{
+	memory::*,
+	addressing_modes::*,
+
+	#[cfg(feature = "trace")]
+	use logger::*;
+};
 
 const STACK_ADDRESS: u16 = 0x100;
 const NMI_VECTOR_ADDRESS: u16 = 0xfffa;

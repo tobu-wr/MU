@@ -1,7 +1,9 @@
 use super::*;
 
-use std::fs::File;
-use std::io::{BufReader, BufRead};
+use std::{
+	fs::File,
+	io::{BufReader, BufRead}
+};
 
 pub fn read8_debug(emulator: &Emulator, address: u16) -> u8 {
 	memory::read8_debug(emulator, address)
