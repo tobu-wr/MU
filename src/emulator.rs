@@ -51,15 +51,14 @@ impl Emulator {
 		let mapper_number = (contents[7] & 0xf0) | (contents[6] >> 4);
 		info!("Cartridge mapper: {}", mapper_number);
 		self.mapper = Some(create_mapper(mapper_number, prg_rom));
+
+		Cpu::init_pc(self);
 	}
 
-	pub fn run(&mut self) {
-		Cpu::init_pc(self);
-		while self.window.is_open() {
-			let cycles = 3 * Cpu::execute_next_instruction(self);
-			for _ in 0..cycles {
-				self.ppu.do_cycle(&mut self.cpu, &mut self.window);
-			}
+	pub fn step(&mut self) {
+		let cycles = 3 * Cpu::execute_next_instruction(self);
+		for _ in 0..cycles {
+			self.ppu.do_cycle(&mut self.cpu, &mut self.window);
 		}
 	}
 }
