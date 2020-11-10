@@ -12,8 +12,8 @@ mod window;
 
 use winit::{
 	event::*,
-    event_loop::{ControlFlow, EventLoop},
-    window::WindowBuilder
+	event_loop::{ControlFlow, EventLoop},
+	window::WindowBuilder
 };
 
 use emulator::*;
@@ -29,19 +29,19 @@ fn main() {
 	let window = WindowBuilder::new().build(&event_loop).unwrap();
 
 	event_loop.run(move |event, _, control_flow| {
-        match event {
-            Event::WindowEvent {
-                ref event,
-                ..
-            } => match event {
+		match event {
+			Event::WindowEvent {
+				ref event,
+				..
+			} => match event {
 				WindowEvent::CloseRequested => {
 					*control_flow = ControlFlow::Exit;
 					return;
 				},
 				WindowEvent::KeyboardInput {
 					ref input,
-                    ..
-                } => match input {
+					..
+				} => match input {
 					KeyboardInput {
 						state: ElementState::Pressed,
 						ref virtual_keycode,
@@ -79,7 +79,7 @@ fn main() {
 			Event::RedrawRequested(_) => {
 				// TODO
 			},
-            _ => {}
+			_ => {}
 		}
 
 		*control_flow = ControlFlow::Poll;
