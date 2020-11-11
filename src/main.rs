@@ -1,4 +1,5 @@
 extern crate winit;
+extern crate pixels;
 
 #[macro_use]
 extern crate log;
@@ -13,10 +14,13 @@ mod window;
 use winit::{
 	event::*,
 	event_loop::{ControlFlow, EventLoop},
-	window::WindowBuilder
+	window::Window
 };
 
+use pixels::{Pixels, SurfaceTexture};
+
 use emulator::*;
+use window::*;
 
 fn main() {
 	env_logger::Builder::new().filter_level(log::LevelFilter::max()).init();
@@ -26,18 +30,18 @@ fn main() {
 	emulator.load_file(&filename);
 	
 	let event_loop = EventLoop::new();
-	let window = WindowBuilder::new().build(&event_loop).unwrap();
+	let window = Window::new(&event_loop).unwrap();
 
+	let surface_texture = SurfaceTexture::new(FRAME_WIDTH as _, FRAME_HEIGHT as _, &window);
+	let mut pxl = Pixels::new(FRAME_WIDTH as _, FRAME_HEIGHT as _, surface_texture).unwrap();
+	
 	event_loop.run(move |event, _, control_flow| {
 		match event {
 			Event::WindowEvent {
 				ref event,
 				..
 			} => match event {
-				WindowEvent::CloseRequested => {
-					*control_flow = ControlFlow::Exit;
-					return;
-				},
+				WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
 				WindowEvent::KeyboardInput {
 					ref input,
 					..
@@ -47,8 +51,8 @@ fn main() {
 						ref virtual_keycode,
 						..
 					} => match virtual_keycode {
-						Some(VirtualKeyCode::Q) => emulator.joypad.press_a_button(),
-						Some(VirtualKeyCode::W) => emulator.joypad.press_b_button(),
+						Some(VirtualKeyCode::A) => emulator.joypad.press_a_button(),
+						Some(VirtualKeyCode::Z) => emulator.joypad.press_b_button(),
 						Some(VirtualKeyCode::Space) => emulator.joypad.press_select_button(),
 						Some(VirtualKeyCode::Return) => emulator.joypad.press_start_button(),
 						Some(VirtualKeyCode::Up) => emulator.joypad.press_up_button(),
@@ -62,8 +66,8 @@ fn main() {
 						ref virtual_keycode,
 						..
 					} => match virtual_keycode {
-						Some(VirtualKeyCode::Q) => emulator.joypad.release_a_button(),
-						Some(VirtualKeyCode::W) => emulator.joypad.release_b_button(),
+						Some(VirtualKeyCode::A) => emulator.joypad.release_a_button(),
+						Some(VirtualKeyCode::Z) => emulator.joypad.release_b_button(),
 						Some(VirtualKeyCode::Space) => emulator.joypad.release_select_button(),
 						Some(VirtualKeyCode::Return) => emulator.joypad.release_start_button(),
 						Some(VirtualKeyCode::Up) => emulator.joypad.release_up_button(),
@@ -71,19 +75,18 @@ fn main() {
 						Some(VirtualKeyCode::Left) => emulator.joypad.release_left_button(),
 						Some(VirtualKeyCode::Right) => emulator.joypad.release_right_button(),
 						_ => {}
-					},
-					_ => {}
+					}
 				},
 				_ => {}
 			},
-			Event::RedrawRequested(_) => {
-				// TODO
+			Event::MainEventsCleared => {
+				while !emulator.window.is_draw_requested() {
+					emulator.step();	
+				}
+				emulator.window.draw(pxl.get_frame());
+				pxl.render().unwrap();
 			},
 			_ => {}
 		}
-
-		*control_flow = ControlFlow::Poll;
-
-		emulator.step();
     });
 }
