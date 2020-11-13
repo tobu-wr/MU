@@ -1,10 +1,10 @@
 extern crate winit;
-extern crate pixels;
 
 #[macro_use]
 extern crate log;
 
 mod emulator;
+mod renderer;
 mod cpu;
 mod ppu;
 mod joypad;
@@ -17,10 +17,8 @@ use winit::{
 	window::Window
 };
 
-use pixels::{Pixels, SurfaceTexture};
-
 use emulator::*;
-use window::*;
+use renderer::*;
 
 fn main() {
 	env_logger::Builder::new().filter_level(log::LevelFilter::max()).init();
@@ -32,8 +30,7 @@ fn main() {
 	let event_loop = EventLoop::new();
 	let window = Window::new(&event_loop).unwrap();
 
-	let surface_texture = SurfaceTexture::new(FRAME_WIDTH as _, FRAME_HEIGHT as _, &window);
-	let mut pxl = Pixels::new(FRAME_WIDTH as _, FRAME_HEIGHT as _, surface_texture).unwrap();
+	let mut renderer = Renderer::new(&window);
 	
 	event_loop.run(move |event, _, control_flow| {
 		match event {
@@ -83,8 +80,8 @@ fn main() {
 				while !emulator.window.is_draw_requested() {
 					emulator.step();	
 				}
-				emulator.window.draw(pxl.get_frame());
-				pxl.render().unwrap();
+				emulator.window.draw(renderer.get_frame_buffer());
+				renderer.draw();
 			},
 			_ => {}
 		}
