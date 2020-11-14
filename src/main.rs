@@ -1,4 +1,6 @@
 extern crate winit;
+extern crate wgpu;
+extern crate futures;
 
 #[macro_use]
 extern crate log;
