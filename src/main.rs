@@ -9,7 +9,7 @@ mod cpu;
 mod ppu;
 mod joypad;
 mod mappers;
-mod window;
+mod screen;
 
 use winit::{
 	event::*,
@@ -77,11 +77,11 @@ fn main() {
 				_ => {}
 			},
 			Event::MainEventsCleared => {
-				while !emulator.window.is_draw_requested() {
+				while !emulator.screen.is_draw_requested() {
 					emulator.step();	
 				}
-				emulator.window.draw(renderer.get_frame_buffer());
-				renderer.draw();
+				renderer.draw(emulator.screen.get_frame_buffer());
+				emulator.screen.finish_drawing();
 			},
 			_ => {}
 		}
