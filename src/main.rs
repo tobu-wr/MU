@@ -37,8 +37,8 @@ fn main() {
 	let window = WindowBuilder::new().with_title(WINDOW_TITLE).build(&event_loop).unwrap();
 	
 	let mut renderer = Renderer::new(&window);
-    let mut frame_counter = 0u16;
-    let mut instant = Instant::now();
+	let mut frame_counter = 0u16;
+	let mut instant = Instant::now();
 	
 	event_loop.run(move |event, _, control_flow| {
 		match event {
