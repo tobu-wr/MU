@@ -13,14 +13,18 @@ mod joypad;
 mod mappers;
 mod screen;
 
+use std::time::{Instant, Duration};
+
 use winit::{
 	event::*,
 	event_loop::{ControlFlow, EventLoop},
-	window::Window
+	window::WindowBuilder
 };
 
 use emulator::*;
 use renderer::*;
+
+const WINDOW_TITLE: &str = "MU 1.0.0 Alpha";
 
 fn main() {
 	env_logger::Builder::new().filter_level(log::LevelFilter::max()).init();
@@ -30,9 +34,11 @@ fn main() {
 	emulator.load_file(&filename);
 	
 	let event_loop = EventLoop::new();
-	let window = Window::new(&event_loop).unwrap();
-
+	let window = WindowBuilder::new().with_title(WINDOW_TITLE).build(&event_loop).unwrap();
+	
 	let mut renderer = Renderer::new(&window);
+    let mut frame_counter = 0u16;
+    let mut instant = Instant::now();
 	
 	event_loop.run(move |event, _, control_flow| {
 		match event {
@@ -84,6 +90,16 @@ fn main() {
 				}
 				renderer.draw(emulator.screen.get_frame_buffer());
 				emulator.screen.finish_drawing();
+
+				frame_counter += 1;
+				let elapsed = instant.elapsed();
+				if elapsed >= Duration::from_secs(1) {
+					instant = Instant::now();
+					let fps = frame_counter as f64 / elapsed.as_secs_f64();
+					frame_counter = 0;
+					let title = format!("{} - FPS: {}", WINDOW_TITLE, fps.round());
+					window.set_title(&title);
+				}
 			},
 			_ => {}
 		}
