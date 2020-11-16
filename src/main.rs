@@ -24,7 +24,7 @@ use winit::{
 use emulator::*;
 use renderer::*;
 
-const WINDOW_TITLE: &str = "MU 1.0.0 Alpha";
+const WINDOW_TITLE: &str = "MU 1.0.0";
 
 fn main() {
 	env_logger::Builder::new().filter_level(log::LevelFilter::max()).init();
