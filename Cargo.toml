@@ -16,6 +16,7 @@ log = "0.4.11"
 env_logger = "0.8.1"
 wgpu = "0.6.0"
 futures = "0.3.8"
+shaderc = "0.7.0"
 
 [dev-dependencies]
 criterion = "0.3.3"
