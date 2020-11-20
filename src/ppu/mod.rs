@@ -7,7 +7,7 @@ mod tests;
 #[cfg(feature = "nametable-viewer")]
 mod nametable_viewer;
 
-use window::*;
+use screen::*;
 use cpu::*;
 use self::memory::*;
 
@@ -17,7 +17,6 @@ use emulator::*;
 #[cfg(feature = "nametable-viewer")]
 use self::nametable_viewer::*;
 
-const FRAME_BUFFER_SIZE: usize = FRAME_WIDTH * FRAME_HEIGHT;
 const OAM_SIZE: usize = 256;
 
 pub struct Ppu {
@@ -32,7 +31,6 @@ pub struct Ppu {
 	flipflop: bool,
 	cycle_counter: u16,
 	scanline_counter: u16,
-	frame_buffer: Vec<u32>,
 	oam: [u8; OAM_SIZE],
 	memory: Memory,
 
@@ -54,7 +52,6 @@ impl Ppu {
 			flipflop: false,
 			cycle_counter: 0,
 			scanline_counter: 0,
-			frame_buffer: vec![0; FRAME_BUFFER_SIZE],
 			oam: [0; OAM_SIZE],
 			memory: Memory::new(),
 
@@ -67,19 +64,7 @@ impl Ppu {
 		self.memory.load_chr_rom(chr_rom);
 	}
 
-	fn set_pixel(&mut self, x: u16, y: u16, color: u8) {
-		const COLORS: [u32; 0x40] = [0x00545454, 0x00001e74, 0x00081090, 0x00300088, 0x00440064, 0x005c0030, 0x00540400, 0x003c1800,
-									 0x00202a00, 0x00083a00, 0x00004000, 0x00003c00, 0x0000323c, 0x00000000, 0x00000000, 0x00000000,
-									 0x00989698, 0x00084cc4, 0x003032ec, 0x005c1ee4, 0x008814b0, 0x00a01464, 0x00982220, 0x00783c00,
-									 0x00545a00, 0x00287200, 0x00087c00, 0x00007628, 0x00006678, 0x00000000, 0x00000000, 0x00000000,
-									 0x00eceeec, 0x004c9aec, 0x00787cec, 0x00b062ec, 0x00e454ec, 0x00ec58b4, 0x00ec6a64, 0x00d48820,
-									 0x00a0aa00, 0x0074c400, 0x004cd020, 0x0038cc6c, 0x0038b4cc, 0x003c3c3c, 0x00000000, 0x00000000,
-									 0x00eceeec, 0x00a8ccec, 0x00bcbcec, 0x00d4b2ec, 0x00ecaeec, 0x00ecaed4, 0x00ecb4b0, 0x00e4c490,
-									 0x00ccd278, 0x00b4de78, 0x00a8e290, 0x0098e2b4, 0x00a0d6e4, 0x00a0a2a0, 0x00000000, 0x00000000];
-		self.frame_buffer[(y as usize) * FRAME_WIDTH + x as usize] = COLORS[color as usize];
-	}
-
-	pub fn do_cycle(&mut self, cpu: &mut Cpu, window: &mut Window) {
+	pub fn do_cycle(&mut self, cpu: &mut Cpu, screen: &mut Screen) {
 		self.cycle_counter += 1;
 		if self.cycle_counter == 341 {
 			self.cycle_counter = 0;
@@ -116,7 +101,7 @@ impl Ppu {
 								4 * palette_number as u16 + color_number as u16
 							} + 0x3f00;
 							let color = self.memory.read(color_address);
-							self.set_pixel(x as _, self.scanline_counter as _, color);
+							screen.set_pixel(x as _, self.scanline_counter as _, color);
 						}
 					}
 					// render sprites
@@ -170,7 +155,7 @@ impl Ppu {
 											self.ppustatus |= 0x40; // sprite 0 hit
 										}
 										let color = self.memory.read(0x3f00 + 4 * palette_number as u16 + color_number as u16);
-										self.set_pixel(x, y, color);
+										screen.set_pixel(x, y, color);
 									}
 								}
 							}
@@ -185,7 +170,7 @@ impl Ppu {
 					}
 
 					#[cfg(not(test))]
-					window.update(&self.frame_buffer);
+					screen.request_draw();
 
 					#[cfg(feature = "nametable-viewer")]
 					NametableViewer::update(self);
