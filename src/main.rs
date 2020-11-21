@@ -91,6 +91,7 @@ fn main() {
 				renderer.draw(emulator.screen.get_frame_buffer());
 				emulator.screen.finish_drawing();
 
+				// compute and display fps
 				frame_counter += 1;
 				let elapsed = instant.elapsed();
 				if elapsed >= Duration::from_secs(1) {
