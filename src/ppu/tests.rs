@@ -9,13 +9,13 @@ fn run_test(filename: &str) {
 	while read8_debug(&emulator, 0x6000) != 0x80 {
 		let cycles = 3 * Cpu::execute_next_instruction(&mut emulator);
 		for _ in 0..cycles {
-			emulator.ppu.do_cycle(&mut emulator.cpu, &mut emulator.window);
+			emulator.ppu.do_cycle(&mut emulator.cpu, &mut emulator.screen);
 		}
 	}
 	while read8_debug(&emulator, 0x6000) == 0x80 {
 		let cycles = 3 * Cpu::execute_next_instruction(&mut emulator);
 		for _ in 0..cycles {
-			emulator.ppu.do_cycle(&mut emulator.cpu, &mut emulator.window);
+			emulator.ppu.do_cycle(&mut emulator.cpu, &mut emulator.screen);
 		}
 	}
 	assert_eq!(read8_debug(&emulator, 0x6000), 0);
