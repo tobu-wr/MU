@@ -81,8 +81,8 @@ impl Ppu {
 						let tile_row = yy / 8;
 						let pixel_row = yy % 8;
 						let attribute_row = tile_row / 4;
-						for x in 0..FRAME_WIDTH as u16 {
-							let xx = x + self.scroll_x as u16;
+						for column in 0..FRAME_WIDTH as u16 {
+							let xx = column + self.scroll_x as u16;
 							let tile_column = xx / 8;
 							let pixel_column = xx % 8;
 							let attribute_column = tile_column / 4;
@@ -101,7 +101,7 @@ impl Ppu {
 								4 * palette_number as u16 + color_number as u16
 							} + 0x3f00;
 							let color = self.memory.read(color_address);
-							screen.set_pixel(x as _, self.scanline_counter as _, color);
+							screen.set_pixel(self.scanline_counter as _, column as _, color);
 						}
 					}
 					// render sprites
@@ -120,26 +120,26 @@ impl Ppu {
 							let sprite_x = self.oam[number * 4 + 3];
 							let pattern_address = 0x1000 * ((self.ppuctrl >> 3) & 1) as u16;
 							for pixel_row in 0..8 {
-								let y = (if vertical_flip {
+								let row = (if vertical_flip {
 									7 - pixel_row
 								} else {
 									pixel_row
 								}) + sprite_y as u16;
 								
 								// ugly:
-								if y != self.scanline_counter {
+								if row != self.scanline_counter {
 									continue;
 								}
 								
 								let low_byte = self.memory.read(pattern_address + (tile_number as u16) * 16 + pixel_row);
 								let high_byte = self.memory.read(pattern_address + (tile_number as u16) * 16 + pixel_row + 8);
 								for pixel_column in 0..8 {
-									let x = (if horizontal_flip {
+									let column = (if horizontal_flip {
 										7 - pixel_column
 									} else {
 										pixel_column
 									}) + sprite_x as u16;
-									if x >= FRAME_WIDTH as u16 {
+									if column >= FRAME_WIDTH as u16 {
 										// sprite in leftmost 8 pixels
 										if (sprite_x < 8) && ((self.ppuctrl & 0x04) == 0) {
 											break; // hide
@@ -151,11 +151,11 @@ impl Ppu {
 									let high_bit = (high_byte >> (7 - pixel_column)) & 1;
 									let color_number = (high_bit << 1) | low_bit;
 									if color_number != 0 {
-										if number == 0 && self.frame_buffer[(y as usize) * FRAME_WIDTH + x as usize] != 0 {
-											self.ppustatus |= 0x40; // sprite 0 hit
-										}
+									//	if number == 0 && self.frame_buffer[(y as usize) * FRAME_WIDTH + x as usize] != 0 {
+									//		self.ppustatus |= 0x40; // sprite 0 hit
+									//	}
 										let color = self.memory.read(0x3f00 + 4 * palette_number as u16 + color_number as u16);
-										screen.set_pixel(x, y, color);
+										screen.set_pixel(row as _, column as _, color);
 									}
 								}
 							}
