@@ -89,7 +89,7 @@ fn main() {
 					emulator.step();	
 				}
 				renderer.draw(emulator.screen.get_frame_buffer());
-				emulator.screen.finish_drawing();
+				emulator.screen.finish_draw();
 
 				// compute and display fps
 				frame_counter += 1;
