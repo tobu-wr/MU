@@ -14,7 +14,7 @@ fullspeed = []
 winit = "0.23.0"
 log = "0.4.11"
 env_logger = "0.8.2"
-wgpu = "0.6.0"
+wgpu = "0.6.2"
 futures = "0.3.8"
 shaderc = "0.7.0"
 
