@@ -937,7 +937,7 @@ dependencies = [
  "futures 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "shaderc 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "wgpu 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "wgpu 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "winit 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -1700,7 +1700,7 @@ dependencies = [
 
 [[package]]
 name = "wgpu"
-version = "0.6.0"
+version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "arrayvec 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2070,7 +2070,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum wayland-scanner 0.28.2 (registry+https://github.com/rust-lang/crates.io-index)" = "5ee5bd43a1d746efc486515fec561e47205f328b74802b959f10f5500f7e56cc"
 "checksum wayland-sys 0.28.2 (registry+https://github.com/rust-lang/crates.io-index)" = "0814adbecc7ea97869971e1d1c1b657e31863dda6fd768f119ad3dc408a01e58"
 "checksum web-sys 0.3.45 (registry+https://github.com/rust-lang/crates.io-index)" = "4bf6ef87ad7ae8008e15a355ce696bed26012b7caa21605188cfd8214ab51e2d"
-"checksum wgpu 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "549160f188eef412ac978499ddf0ceadad4c9159bb1160f9e6b9d4cc8ee977dc"
+"checksum wgpu 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)" = "991903e4c9f5b7319732b30a3d0339e27a51ea992cea22769b5f6c7f7076af6d"
 "checksum wgpu-core 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)" = "ea487deeae90e06d77eb8e6cef945247774e7c0a0a226d238b31e90633594365"
 "checksum wgpu-types 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)" = "1e3529528e608b54838ee618c3923b0f46e6db0334cfc6c42a16cf4ceb3bdb57"
 "checksum winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)" = "167dc9d6949a9b857f3451275e911c3f44255842c1f7a76f33c55103a909087a"
