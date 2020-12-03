@@ -151,6 +151,7 @@ impl Ppu {
 									let high_bit = (high_byte >> (7 - pixel_column)) & 1;
 									let color_number = (high_bit << 1) | low_bit;
 									if color_number != 0 { // opaque
+										// TODO
 										//if number == 0 && screen.is_pixel_opaque(row as _, column as _) {
 										//	self.ppustatus |= 0x40; // sprite 0 hit
 										//}
