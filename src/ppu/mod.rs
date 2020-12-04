@@ -19,6 +19,8 @@ use self::nametable_viewer::*;
 
 const OAM_SIZE: usize = 256;
 
+const BACKGROUND_SIZE: usize = FRAME_WIDTH * FRAME_HEIGHT;
+
 pub struct Ppu {
 	ppuctrl: u8,
 	ppumask: u8,
@@ -33,7 +35,8 @@ pub struct Ppu {
 	scanline_counter: u16,
 	oam: [u8; OAM_SIZE],
 	memory: Memory,
-
+	background_opacity: [bool; BACKGROUND_SIZE],
+	
 	#[cfg(feature = "nametable-viewer")]
 	nametable_viewer: NametableViewer
 }
@@ -54,6 +57,7 @@ impl Ppu {
 			scanline_counter: 0,
 			oam: [0; OAM_SIZE],
 			memory: Memory::new(),
+			background_opacity: [false; BACKGROUND_SIZE],
 
 			#[cfg(feature = "nametable-viewer")]
 			nametable_viewer: NametableViewer::new()
@@ -96,6 +100,7 @@ impl Ppu {
 							let high_bit = (high_byte >> (7 - pixel_column)) & 1;
 							let color_number = (high_bit << 1) | low_bit;
 							let color_address = if color_number == 0 { // is pixel opaque?
+								
 								0 // backdrop color
 							} else {
 								4 * palette_number as u16 + color_number as u16
