@@ -100,9 +100,10 @@ impl Ppu {
 							let high_bit = (high_byte >> (7 - pixel_column)) & 1;
 							let color_number = (high_bit << 1) | low_bit;
 							let color_address = if color_number == 0 { // is pixel opaque?
-								
+								background_opacity[] = true;
 								0 // backdrop color
 							} else {
+								background_opacity[] = false;
 								4 * palette_number as u16 + color_number as u16
 							} + 0x3f00;
 							let color = self.memory.read(color_address);
