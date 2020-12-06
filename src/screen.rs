@@ -17,7 +17,7 @@ impl Screen {
         }
     }
 
-    pub fn get_frame_buffer(&mut self) -> &[u8] {
+    pub fn get_frame_buffer(&self) -> &[u8] {
         &self.frame_buffer
     }
 
