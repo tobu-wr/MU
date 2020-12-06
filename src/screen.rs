@@ -21,7 +21,7 @@ impl Screen {
         &self.frame_buffer
     }
 
-    pub fn set_pixel(&mut self, row: usize, column: usize, color: u8) {
+    pub fn set_pixel(&mut self, row: usize, column: usize, color: usize) {
         const RGBA: [u32; 0x40] = [0x545454ff, 0x001e74ff, 0x081090ff, 0x300088ff, 0x440064ff, 0x5c0030ff, 0x540400ff, 0x3c1800ff,
                                    0x202a00ff, 0x083a00ff, 0x004000ff, 0x003c00ff, 0x00323cff, 0x000000ff, 0x000000ff, 0x000000ff,
                                    0x989698ff, 0x084cc4ff, 0x3032ecff, 0x5c1ee4ff, 0x8814b0ff, 0xa01464ff, 0x982220ff, 0x783c00ff,
@@ -32,7 +32,7 @@ impl Screen {
                                    0xccd278ff, 0xb4de78ff, 0xa8e290ff, 0x98e2b4ff, 0xa0d6e4ff, 0xa0a2a0ff, 0x000000ff, 0x000000ff];
         
         let offset = (row * FRAME_WIDTH + column) * PIXEL_SIZE;
-        self.frame_buffer[offset..offset + PIXEL_SIZE].copy_from_slice(&RGBA[color as usize].to_be_bytes());
+        self.frame_buffer[offset..offset + PIXEL_SIZE].copy_from_slice(&RGBA[color].to_be_bytes());
     }
 
     pub fn is_draw_requested(&self) -> bool {
