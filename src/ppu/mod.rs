@@ -19,8 +19,6 @@ use self::nametable_viewer::*;
 
 const OAM_SIZE: usize = 256;
 
-const BACKGROUND_SIZE: usize = FRAME_WIDTH * FRAME_HEIGHT;
-
 pub struct Ppu {
 	ppuctrl: u8,
 	ppumask: u8,
@@ -35,7 +33,6 @@ pub struct Ppu {
 	scanline_counter: u16,
 	oam: [u8; OAM_SIZE],
 	memory: Memory,
-	background_opacity: [bool; BACKGROUND_SIZE],
 	
 	#[cfg(feature = "nametable-viewer")]
 	nametable_viewer: NametableViewer
@@ -57,7 +54,6 @@ impl Ppu {
 			scanline_counter: 0,
 			oam: [0; OAM_SIZE],
 			memory: Memory::new(),
-			background_opacity: [false; BACKGROUND_SIZE],
 
 			#[cfg(feature = "nametable-viewer")]
 			nametable_viewer: NametableViewer::new()
@@ -77,6 +73,7 @@ impl Ppu {
 				// visible scanlines
 				0 ..= 239 => {
 					// render background
+					let mut background_opacity: [bool; FRAME_WIDTH] = [false; FRAME_WIDTH];
 					if (self.ppumask & 0x08) != 0 {
 						let nametable_address = 0x2000 + 0x400 * (self.ppuctrl & 0b11) as u16;
 						let attribute_table_address = nametable_address + 0x3c0;
@@ -100,14 +97,13 @@ impl Ppu {
 							let high_bit = (high_byte >> (7 - pixel_column)) & 1;
 							let color_number = (high_bit << 1) | low_bit;
 							let color_address = if color_number == 0 { // is pixel opaque?
-								background_opacity[] = true;
 								0 // backdrop color
 							} else {
-								background_opacity[] = false;
+								background_opacity[column as usize] = true;
 								4 * palette_number as u16 + color_number as u16
 							} + 0x3f00;
 							let color = self.memory.read(color_address);
-							screen.set_pixel(self.scanline_counter as _, column as _, color);
+							screen.set_pixel(self.scanline_counter as _, column as _, color as _);
 						}
 					}
 					// render sprites
@@ -157,12 +153,11 @@ impl Ppu {
 									let high_bit = (high_byte >> (7 - pixel_column)) & 1;
 									let color_number = (high_bit << 1) | low_bit;
 									if color_number != 0 { // opaque
-										// TODO
-										//if number == 0 && screen.is_pixel_opaque(row as _, column as _) {
-										//	self.ppustatus |= 0x40; // sprite 0 hit
-										//}
+										if number == 0 && background_opacity[column as usize] {
+											self.ppustatus |= 0x40; // sprite 0 hit
+										}
 										let color = self.memory.read(0x3f00 + 4 * palette_number as u16 + color_number as u16);
-										screen.set_pixel(row as _, column as _, color);
+										screen.set_pixel(row as _, column as _, color as _);
 									}
 								}
 							}
