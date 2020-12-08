@@ -72,8 +72,8 @@ impl Ppu {
 			match self.scanline_counter {
 				// visible scanlines
 				0 ..= 239 => {
+					let mut background_opacity = [false; FRAME_WIDTH];
 					// render background
-					let mut background_opacity: [bool; FRAME_WIDTH] = [false; FRAME_WIDTH];
 					if (self.ppumask & 0x08) != 0 {
 						let nametable_address = 0x2000 + 0x400 * (self.ppuctrl & 0b11) as u16;
 						let attribute_table_address = nametable_address + 0x3c0;
