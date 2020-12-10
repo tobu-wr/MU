@@ -24,8 +24,6 @@ use winit::{
 use emulator::*;
 use renderer::*;
 
-const WINDOW_TITLE: &str = "MU 1.0.0";
-
 fn main() {
 	env_logger::Builder::new().filter_level(log::LevelFilter::max()).init();
 
@@ -34,6 +32,8 @@ fn main() {
 	emulator.load_file(&filename);
 	
 	let event_loop = EventLoop::new();
+
+	const WINDOW_TITLE: &str = "MU 1.0.0";
 	let window = WindowBuilder::new().with_title(WINDOW_TITLE).build(&event_loop).unwrap();
 	
 	let mut renderer = Renderer::new(&window);
