@@ -2,7 +2,6 @@ pub const FRAME_WIDTH: usize = 256;
 pub const FRAME_HEIGHT: usize = 240;
 
 const PIXEL_SIZE: usize = 4;
-const FRAME_BUFFER_SIZE: usize = FRAME_WIDTH * FRAME_HEIGHT * PIXEL_SIZE;
 
 pub struct Screen {
     frame_buffer: Vec<u8>,
@@ -12,7 +11,7 @@ pub struct Screen {
 impl Screen {
     pub fn new() -> Self {
         Self {
-            frame_buffer: vec![0; FRAME_BUFFER_SIZE],
+            frame_buffer: vec![0; FRAME_WIDTH * FRAME_HEIGHT * PIXEL_SIZE],
             draw_requested: false
         }
     }
