@@ -36,7 +36,7 @@ impl Renderer {
             format: TextureFormat::Bgra8UnormSrgb,
             width: size.width,
             height: size.height,
-            present_mode: PresentMode::Fifo // TODO: test mailbox & immediate
+            present_mode: PresentMode::Mailbox
         };
         let swap_chain = device.create_swap_chain(&surface, &swap_chain_descriptor);
         Self {
@@ -51,31 +51,24 @@ impl Renderer {
 
     pub fn draw(&mut self, frame_buffer: &[u8]) {
         let frame = self.swap_chain.get_current_frame().unwrap().output;
-        let command_encoder_descriptor = CommandEncoderDescriptor {
+        let encoder_descriptor = CommandEncoderDescriptor {
             label: None
         };
-        let mut encoder = self.device.create_command_encoder(&command_encoder_descriptor);
+        let mut encoder = self.device.create_command_encoder(&encoder_descriptor);
+        let render_pass_color_attachment_descriptor = RenderPassColorAttachmentDescriptor {
+            attachment: &frame.view,
+            resolve_target: None,
+            ops: Operations {
+                load: LoadOp::Clear(Color::BLACK),
+                store: true
+            }
+        };
         let render_pass_descriptor = RenderPassDescriptor {
-            color_attachments: &[
-                RenderPassColorAttachmentDescriptor {
-                    attachment: &frame.view,
-                    resolve_target: None,
-                    ops: Operations {
-                        load: LoadOp::Clear(Color {
-                            r: 0.1,
-                            g: 0.2,
-                            b: 0.3,
-                            a: 1.0
-                        }),
-                        store: true
-                    }
-                }
-            ],
+            color_attachments: &[render_pass_color_attachment_descriptor],
             depth_stencil_attachment: None
         };
-        {
-            encoder.begin_render_pass(&render_pass_descriptor);
-        }
+        let render_pass = encoder.begin_render_pass(&render_pass_descriptor);
+        drop(render_pass);
         self.queue.submit(std::iter::once(encoder.finish()));
     }
 }
