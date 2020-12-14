@@ -12,7 +12,8 @@ pub struct Renderer {
     queue: Queue,
     swap_chain_descriptor: SwapChainDescriptor,
     swap_chain: SwapChain,
-    size: PhysicalSize<u32>
+    size: PhysicalSize<u32>,
+    render_pipeline: RenderPipeline
 }
 
 impl Renderer {
@@ -39,13 +40,68 @@ impl Renderer {
             present_mode: PresentMode::Mailbox
         };
         let swap_chain = device.create_swap_chain(&surface, &swap_chain_descriptor);
+        let vertex_shader_source = include_str!("shader.vert");
+        let fragment_shader_source = include_str!("shader.frag");
+        let mut shader_compiler = shaderc::Compiler::new().unwrap();
+        let vertex_shader_spirv = shader_compiler.compile_into_spirv(vertex_shader_source, shaderc::ShaderKind::Vertex, "shader.vert", "main", None).unwrap();
+        let fragment_shader_spirv = shader_compiler.compile_into_spirv(fragment_shader_source, shaderc::ShaderKind::Fragment, "shader.frag", "main", None).unwrap();
+        let vertex_shader_module = device.create_shader_module(util::make_spirv(&vertex_shader_spirv.as_binary_u8()));
+        let fragment_shader_module = device.create_shader_module(util::make_spirv(&fragment_shader_spirv.as_binary_u8()));
+        let pipeline_layout_descriptor = PipelineLayoutDescriptor {
+            label: None,
+            bind_group_layouts: &[],
+            push_constant_ranges: &[]
+        };
+        let pipeline_layout = device.create_pipeline_layout(&pipeline_layout_descriptor);
+        let vertex_stage_descriptor = ProgrammableStageDescriptor {
+            module: &vertex_shader_module,
+            entry_point: "main"
+        };
+        let fragment_stage_descriptor = ProgrammableStageDescriptor {
+            module: &fragment_shader_module,
+            entry_point: "main"
+        };
+        let rasterization_state_descriptor = RasterizationStateDescriptor {
+            front_face: FrontFace::Ccw,
+            cull_mode: CullMode::Back,
+            depth_bias: 0,
+            depth_bias_slope_scale: 0.0,
+            depth_bias_clamp: 0.0,
+            clamp_depth: false
+        };
+        let color_state_descriptor = ColorStateDescriptor {
+            format: swap_chain_descriptor.format,
+            color_blend: BlendDescriptor::REPLACE,
+            alpha_blend: BlendDescriptor::REPLACE,
+            write_mask: ColorWrite::ALL
+        };
+        let vertex_state_descriptor = VertexStateDescriptor {
+            index_format: IndexFormat::Uint16,
+            vertex_buffers: &[],
+        };
+        let render_pipeline_descriptor = RenderPipelineDescriptor {
+            label: None,
+            layout: Some(&pipeline_layout),
+            vertex_stage: vertex_stage_descriptor,
+            fragment_stage: Some(fragment_stage_descriptor),
+            rasterization_state: Some(rasterization_state_descriptor),
+            color_states: &[color_state_descriptor],
+            primitive_topology: PrimitiveTopology::TriangleList,
+            depth_stencil_state: None,
+            vertex_state: vertex_state_descriptor,
+            sample_count: 1,
+            sample_mask: !0,
+            alpha_to_coverage_enabled: false
+        };
+        let render_pipeline = device.create_render_pipeline(&render_pipeline_descriptor);
         Self {
             surface,
             device,
             queue,
             swap_chain_descriptor,
             swap_chain,
-            size
+            size,
+            render_pipeline
         }
     }
 
