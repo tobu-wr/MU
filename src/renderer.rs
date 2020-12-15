@@ -123,7 +123,9 @@ impl Renderer {
             color_attachments: &[render_pass_color_attachment_descriptor],
             depth_stencil_attachment: None
         };
-        let render_pass = encoder.begin_render_pass(&render_pass_descriptor);
+        let mut render_pass = encoder.begin_render_pass(&render_pass_descriptor);
+        render_pass.set_pipeline(&self.render_pipeline);
+        render_pass.draw(0..3, 0..1);
         drop(render_pass);
         self.queue.submit(std::iter::once(encoder.finish()));
     }
