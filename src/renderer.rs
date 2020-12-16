@@ -40,13 +40,8 @@ impl Renderer {
             present_mode: PresentMode::Mailbox
         };
         let swap_chain = device.create_swap_chain(&surface, &swap_chain_descriptor);
-        let vertex_shader_source = include_str!("shader.vert");
-        let fragment_shader_source = include_str!("shader.frag");
-        let mut shader_compiler = shaderc::Compiler::new().unwrap();
-        let vertex_shader_spirv = shader_compiler.compile_into_spirv(vertex_shader_source, shaderc::ShaderKind::Vertex, "shader.vert", "main", None).unwrap();
-        let fragment_shader_spirv = shader_compiler.compile_into_spirv(fragment_shader_source, shaderc::ShaderKind::Fragment, "shader.frag", "main", None).unwrap();
-        let vertex_shader_module = device.create_shader_module(util::make_spirv(&vertex_shader_spirv.as_binary_u8()));
-        let fragment_shader_module = device.create_shader_module(util::make_spirv(&fragment_shader_spirv.as_binary_u8()));
+        let vertex_shader_module = device.create_shader_module(include_spirv!("shader.vert.spv"));
+        let fragment_shader_module = device.create_shader_module(include_spirv!("shader.frag.spv"));
         let pipeline_layout_descriptor = PipelineLayoutDescriptor {
             label: None,
             bind_group_layouts: &[],
