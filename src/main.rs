@@ -33,8 +33,8 @@ fn main() {
 	
 	let event_loop = EventLoop::new();
 
-	const WINDOW_TITLE: &str = "MU 1.0.0";
-	let window = WindowBuilder::new().with_title(WINDOW_TITLE).build(&event_loop).unwrap();
+	const EMULATOR_NAME: &str = "MU";
+	let window = WindowBuilder::new().with_title(EMULATOR_NAME).build(&event_loop).unwrap();
 	
 	let mut renderer = Renderer::new(&window);
 	let mut frame_counter = 0u16;
@@ -98,7 +98,7 @@ fn main() {
 					instant = Instant::now();
 					let fps = frame_counter as f64 / elapsed.as_secs_f64();
 					frame_counter = 0;
-					let title = format!("{} - FPS: {}", WINDOW_TITLE, fps.round());
+					let title = format!("{} - FPS: {}", EMULATOR_NAME, fps.round());
 					window.set_title(&title);
 				}
 			},
