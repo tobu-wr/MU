@@ -25,7 +25,7 @@ use emulator::*;
 use renderer::*;
 
 fn main() {
-	env_logger::Builder::new().filter_level(log::LevelFilter::max()).init();
+	env_logger::Builder::new().filter_level(log::LevelFilter::Info).init();
 
 	let filename = std::env::args().nth(1).unwrap();
 	let mut emulator = Emulator::new();
@@ -82,11 +82,16 @@ fn main() {
 						_ => {}
 					}
 				},
+				WindowEvent::Resized(size) => renderer.resize(*size),
+				WindowEvent::ScaleFactorChanged {
+					ref new_inner_size,
+					..
+				} => renderer.resize(**new_inner_size),
 				_ => {}
 			},
 			Event::MainEventsCleared => {
 				while !emulator.screen.is_draw_requested() {
-					emulator.step();	
+					emulator.step();
 				}
 				renderer.draw(emulator.screen.get_frame_buffer());
 				emulator.screen.finish_draw();

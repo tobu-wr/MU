@@ -12,16 +12,16 @@ pub struct Renderer {
     queue: Queue,
     swap_chain_descriptor: SwapChainDescriptor,
     swap_chain: SwapChain,
-    size: PhysicalSize<u32>,
     render_pipeline: RenderPipeline,
+    texture_size: Extent3d,
     texture: Texture,
     bind_group: BindGroup
 }
 
 impl Renderer {
     pub fn new(window: &Window) -> Self {
-        let size = window.inner_size();
-        let instance = Instance::new(BackendBit::PRIMARY);
+        let window_size = window.inner_size();
+        let instance = Instance::new(BackendBit::VULKAN);
         let surface = unsafe { instance.create_surface(window) };
         let adapter_options = RequestAdapterOptions {
             power_preference: PowerPreference::Default,
@@ -37,8 +37,8 @@ impl Renderer {
         let swap_chain_descriptor = SwapChainDescriptor {
             usage: TextureUsage::OUTPUT_ATTACHMENT,
             format: TextureFormat::Bgra8UnormSrgb,
-            width: size.width,
-            height: size.height,
+            width: window_size.width,
+            height: window_size.height,
             present_mode: PresentMode::Mailbox
         };
         let swap_chain = device.create_swap_chain(&surface, &swap_chain_descriptor);
@@ -137,7 +137,7 @@ impl Renderer {
         };
         let vertex_state_descriptor = VertexStateDescriptor {
             index_format: IndexFormat::Uint16,
-            vertex_buffers: &[],
+            vertex_buffers: &[]
         };
         let render_pipeline_descriptor = RenderPipelineDescriptor {
             label: None,
@@ -160,14 +160,32 @@ impl Renderer {
             queue,
             swap_chain_descriptor,
             swap_chain,
-            size,
             render_pipeline,
+            texture_size,
             texture,
             bind_group
         }
     }
 
+    pub fn resize(&mut self, size: PhysicalSize<u32>) {
+        self.swap_chain_descriptor.width = size.width;
+        self.swap_chain_descriptor.height = size.height;
+        self.swap_chain = self.device.create_swap_chain(&self.surface, &self.swap_chain_descriptor);
+    }
+
     pub fn draw(&mut self, frame_buffer: &[u8]) {
+        let texture_copy_view = TextureCopyView {
+            texture: &self.texture,
+            mip_level: 0,
+            origin: Origin3d::ZERO
+        };
+        let texture_data_layout = TextureDataLayout {
+            offset: 0,
+            bytes_per_row: 4 * self.texture_size.width,
+            rows_per_image: self.texture_size.height
+        };
+        self.queue.write_texture(texture_copy_view, frame_buffer, texture_data_layout, self.texture_size);
+
         let frame = self.swap_chain.get_current_frame().unwrap().output;
         let encoder_descriptor = CommandEncoderDescriptor {
             label: None
@@ -190,22 +208,6 @@ impl Renderer {
         render_pass.set_bind_group(0, &self.bind_group, &[]);
         render_pass.draw(0..6, 0..1);
         drop(render_pass);
-        let texture_copy_view = TextureCopyView {
-            texture: &self.texture,
-            mip_level: 0,
-            origin: Origin3d::ZERO
-        };
-        let texture_data_layout = TextureDataLayout {
-            offset: 0,
-            bytes_per_row: 4 * 256,
-            rows_per_image: 240,
-        };
-        self.queue.write_texture(texture_copy_view, frame_buffer, texture_data_layout,
-            Extent3d {
-            width: 256,
-            height: 240,
-            depth: 1
-        });
         self.queue.submit(std::iter::once(encoder.finish()));
     }
 }
