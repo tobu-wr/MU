@@ -19,7 +19,7 @@ pub struct Renderer {
 }
 
 impl Renderer {
-    pub fn new(window: &Window) -> Self {
+    pub fn new(window: &Window, frame_width: u32, frame_height: u32) -> Self {
         let window_size = window.inner_size();
         let instance = Instance::new(BackendBit::VULKAN);
         let surface = unsafe { instance.create_surface(window) };
@@ -43,8 +43,8 @@ impl Renderer {
         };
         let swap_chain = device.create_swap_chain(&surface, &swap_chain_descriptor);
         let texture_size = Extent3d {
-            width: 256,
-            height: 240,
+            width: frame_width,
+            height: frame_height,
             depth: 1
         };
         let texture_descriptor = TextureDescriptor {
@@ -121,14 +121,6 @@ impl Renderer {
             module: &fragment_shader_module,
             entry_point: "main"
         };
-        let rasterization_state_descriptor = RasterizationStateDescriptor {
-            front_face: FrontFace::Ccw,
-            cull_mode: CullMode::Back,
-            depth_bias: 0,
-            depth_bias_slope_scale: 0.0,
-            depth_bias_clamp: 0.0,
-            clamp_depth: false
-        };
         let color_state_descriptor = ColorStateDescriptor {
             format: swap_chain_descriptor.format,
             color_blend: BlendDescriptor::REPLACE,
@@ -144,7 +136,7 @@ impl Renderer {
             layout: Some(&pipeline_layout),
             vertex_stage: vertex_stage_descriptor,
             fragment_stage: Some(fragment_stage_descriptor),
-            rasterization_state: Some(rasterization_state_descriptor),
+            rasterization_state: None,
             color_states: &[color_state_descriptor],
             primitive_topology: PrimitiveTopology::TriangleList,
             depth_stencil_state: None,

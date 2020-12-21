@@ -23,6 +23,7 @@ use winit::{
 
 use emulator::*;
 use renderer::*;
+use screen::*;
 
 fn main() {
 	env_logger::Builder::new().filter_level(log::LevelFilter::Info).init();
@@ -36,7 +37,7 @@ fn main() {
 	const EMULATOR_NAME: &str = "MU";
 	let window = WindowBuilder::new().with_title(EMULATOR_NAME).build(&event_loop).unwrap();
 	
-	let mut renderer = Renderer::new(&window);
+	let mut renderer = Renderer::new(&window, FRAME_WIDTH as _, FRAME_HEIGHT as _);
 	let mut frame_counter = 0u16;
 	let mut instant = Instant::now();
 	
@@ -101,9 +102,10 @@ fn main() {
 				let elapsed = instant.elapsed();
 				if elapsed >= Duration::from_secs(1) {
 					instant = Instant::now();
-					let fps = frame_counter as f64 / elapsed.as_secs_f64();
+					let fps = (frame_counter as f64 / elapsed.as_secs_f64()).round();
 					frame_counter = 0;
-					let title = format!("{} - FPS: {}", EMULATOR_NAME, fps.round());
+					let speed = (fps / 0.6).round();
+					let title = format!("{} - FPS: {} - SPEED: {}%", EMULATOR_NAME, fps, speed);
 					window.set_title(&title);
 				}
 			},
