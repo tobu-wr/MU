@@ -38,9 +38,11 @@ fn main() {
 	let window = WindowBuilder::new().with_title(EMULATOR_NAME).build(&event_loop).unwrap();
 	
 	let mut renderer = Renderer::new(&window, FRAME_WIDTH as _, FRAME_HEIGHT as _);
+
 	let mut frame_counter = 0u16;
-	let mut instant = Instant::now();
-	
+	let mut frame_counting_instant = Instant::now();
+	let mut last_frame_instant = Instant::now();
+
 	event_loop.run(move |event, _, control_flow| {
 		match event {
 			Event::WindowEvent {
@@ -91,17 +93,26 @@ fn main() {
 				_ => {}
 			},
 			Event::MainEventsCleared => {
+				// draw frame
 				while !emulator.screen.is_draw_requested() {
 					emulator.step();
 				}
 				renderer.draw(emulator.screen.get_frame_buffer());
 				emulator.screen.finish_draw();
 
-				// compute and display fps
+				// regulate frame rate
+				const FRAME_DURATION: Duration = Duration::from_millis(17);
+				let elapsed = last_frame_instant.elapsed();
+				if elapsed < FRAME_DURATION {
+					std::thread::sleep(FRAME_DURATION - elapsed);
+				}
+				last_frame_instant = Instant::now();
+
+				// compute and display frame rate
 				frame_counter += 1;
-				let elapsed = instant.elapsed();
+				let elapsed = frame_counting_instant.elapsed();
 				if elapsed >= Duration::from_secs(1) {
-					instant = Instant::now();
+					frame_counting_instant = Instant::now();
 					let fps = (frame_counter as f64 / elapsed.as_secs_f64()).round();
 					frame_counter = 0;
 					let speed = (fps / 0.6).round();
