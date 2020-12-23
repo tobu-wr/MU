@@ -11,13 +11,11 @@ debugger = []
 fullspeed = []
 
 [dependencies]
-minifb = "0.19.1"
+winit = "0.24.0"
 log = "0.4.11"
-env_logger = "0.8.1"
+env_logger = "0.8.2"
+wgpu = "0.6.2"
+futures = "0.3.8"
 
-[dev-dependencies]
-criterion = "0.3.3"
-
-[[bench]]
-name = "benchmark"
-harness = false
+[build-dependencies]
+shaderc = "0.7.0"

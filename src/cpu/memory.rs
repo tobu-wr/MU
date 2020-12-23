@@ -36,7 +36,7 @@ pub(super) fn read8(emulator: &mut Emulator, address: u16) -> u8 {
 			warn!("Read from an APU register at {:04X}", address);
 			0
 		},
-		JOY1_ADDRESS => emulator.joypad.read(&emulator.window),
+		JOY1_ADDRESS => emulator.joypad.read(),
 		0x4018 ..= 0x5fff => {
 			// TODO: implement expansion ROM
 			warn!("Read from expansion ROM at {:04X}", address);
@@ -72,7 +72,7 @@ pub(super) fn read8_debug(emulator: &Emulator, address: u16) -> u8 {
 		PPUDATA_ADDRESS => read_ppudata_debug(&emulator.ppu),
 		0x2008 ..= 0x3fff => read8_debug(emulator, 0x2000 + (address - 0x2000) % 8), // mirrors of 0x2000-0x2007
 		OAMDMA_ADDRESS => 0, // write only
-		JOY1_ADDRESS => emulator.joypad.read_debug(&emulator.window),
+		JOY1_ADDRESS => emulator.joypad.read_debug(),
 		MAPPER_START ..= MAPPER_END => emulator.mapper.as_ref().unwrap().read(address),
 		_ => 0
 	}
@@ -109,7 +109,7 @@ pub(super) fn write(emulator: &mut Emulator, address: u16, value: u8) {
 			// TODO: implement APU registers
 			warn!("Write to an APU register at {:04X}", address);
 		},
-		JOY1_ADDRESS => emulator.joypad.write(&emulator.window, value),
+		JOY1_ADDRESS => emulator.joypad.write(value),
 		0x4018 ..= 0x5fff => {
 			// TODO: implement expansion ROM
 			warn!("Write to expansion ROM at {:04X}", address);
