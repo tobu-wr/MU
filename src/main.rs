@@ -42,6 +42,7 @@ fn main() {
 	let mut frame_counter = 0u16;
 	let mut frame_counting_instant = Instant::now();
 	let mut last_frame_instant = Instant::now();
+	let mut last_frame_extra_sleep_time = Duration::new(0, 0);
 
 	event_loop.run(move |event, _, control_flow| {
 		match event {
@@ -101,12 +102,21 @@ fn main() {
 				emulator.screen.finish_draw();
 
 				// regulate frame rate
-				const FRAME_DURATION: Duration = Duration::from_millis(17);
-				let elapsed = last_frame_instant.elapsed();
-				if elapsed < FRAME_DURATION {
-					std::thread::sleep(FRAME_DURATION - elapsed);
+				if cfg!(not(feature = "fullspeed")) {
+					const FRAME_DURATION: Duration = Duration::from_nanos(16_666_667);
+					let last_frame_duration = last_frame_instant.elapsed();
+					if last_frame_duration < FRAME_DURATION {
+						let mut sleep_time = FRAME_DURATION - last_frame_duration;
+						if sleep_time > last_frame_extra_sleep_time {
+							sleep_time -= last_frame_extra_sleep_time;
+							std::thread::sleep(sleep_time);
+							last_frame_extra_sleep_time = last_frame_instant.elapsed() - last_frame_duration - sleep_time;
+						} else {
+							last_frame_extra_sleep_time -= sleep_time;
+						}
+					}
+					last_frame_instant = Instant::now();
 				}
-				last_frame_instant = Instant::now();
 
 				// compute and display frame rate
 				frame_counter += 1;
