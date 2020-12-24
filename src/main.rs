@@ -125,7 +125,8 @@ fn main() {
 					frame_counting_instant = Instant::now();
 					let fps = (frame_counter as f64 / elapsed.as_secs_f64()).round();
 					frame_counter = 0;
-					let speed = (fps / 0.6).round();
+					const FRAME_RATE: f64 = 60.0;
+					let speed = (100.0 * fps / FRAME_RATE).round();
 					let title = format!("{} - FPS: {} - SPEED: {}%", EMULATOR_NAME, fps, speed);
 					window.set_title(&title);
 				}
