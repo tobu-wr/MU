@@ -54,20 +54,16 @@ impl Mapper for Mmc3 {
             } else {
                 0
             },
-            PRG_ROM_BANK_0_START ..= PRG_ROM_BANK_0_END => {
-                match self.prg_rom_bank_mode {
-                    0 => self.prg_rom[(address - PRG_ROM_BANK_0_START) as usize + PRG_ROM_BANK_SIZE * self.prg_rom_bank_0 as usize], // switchable
-                    1 => self.prg_rom[(address - PRG_ROM_BANK_0_START) as usize + self.prg_rom.len() - 2 * PRG_ROM_BANK_SIZE], // fixed to second-last bank
-                    _ => unreachable!()
-                }
+            PRG_ROM_BANK_0_START ..= PRG_ROM_BANK_0_END => match self.prg_rom_bank_mode {
+                0 => self.prg_rom[(address - PRG_ROM_BANK_0_START) as usize + PRG_ROM_BANK_SIZE * self.prg_rom_bank_0 as usize], // switchable
+                1 => self.prg_rom[(address - PRG_ROM_BANK_0_START) as usize + self.prg_rom.len() - 2 * PRG_ROM_BANK_SIZE], // fixed to second-last bank
+                _ => unreachable!()
             },
             PRG_ROM_BANK_1_START ..= PRG_ROM_BANK_1_END => self.prg_rom[(address - PRG_ROM_BANK_1_START) as usize + PRG_ROM_BANK_SIZE * self.prg_rom_bank_1 as usize], // switchable
-            PRG_ROM_BANK_2_START ..= PRG_ROM_BANK_2_END => {
-                match self.prg_rom_bank_mode {
-                    0 => self.prg_rom[(address - PRG_ROM_BANK_2_START) as usize + self.prg_rom.len() - 2 * PRG_ROM_BANK_SIZE], // fixed to second-last bank
-                    1 => self.prg_rom[(address - PRG_ROM_BANK_2_START) as usize + PRG_ROM_BANK_SIZE * self.prg_rom_bank_0 as usize], // switchable
-                    _ => unreachable!()
-                }
+            PRG_ROM_BANK_2_START ..= PRG_ROM_BANK_2_END => match self.prg_rom_bank_mode {
+                0 => self.prg_rom[(address - PRG_ROM_BANK_2_START) as usize + self.prg_rom.len() - 2 * PRG_ROM_BANK_SIZE], // fixed to second-last bank
+                1 => self.prg_rom[(address - PRG_ROM_BANK_2_START) as usize + PRG_ROM_BANK_SIZE * self.prg_rom_bank_0 as usize], // switchable
+                _ => unreachable!()
             },
             PRG_ROM_BANK_3_START ..= PRG_ROM_BANK_3_END => self.prg_rom[(address - PRG_ROM_BANK_3_START) as usize + self.prg_rom.len() - PRG_ROM_BANK_SIZE], // fixed to last bank
             _ => unimplemented!()
@@ -79,45 +75,37 @@ impl Mapper for Mmc3 {
             PRG_RAM_START ..= PRG_RAM_END => if self.prg_ram_enable {
                 self.prg_ram[(address - PRG_RAM_START) as usize] = value;
             },
-            PRG_ROM_BANK_0_START ..= PRG_ROM_BANK_0_END => {
-                if (value % 2) == 0 {
-                    self.r = value & 0b111;
-                    self.prg_rom_bank_mode = (value >> 6) & 1;
-                    self.chr_a12_inversion = value >> 7;
-                } else {
-                    match self.r {
-                        0 => {}, // TODO
-                        1 => {}, // TODO
-                        2 => {}, // TODO
-                        3 => {}, // TODO
-                        4 => {}, // TODO
-                        5 => {}, // TODO
-                        6 => self.prg_rom_bank_0 = value & 0x3f,
-                        7 => self.prg_rom_bank_1 = value & 0x3f,
-                        _ => unreachable!()
-                    }
+            PRG_ROM_BANK_0_START ..= PRG_ROM_BANK_0_END => if (value % 2) == 0 {
+                self.r = value & 0b111;
+                self.prg_rom_bank_mode = (value >> 6) & 1;
+                self.chr_a12_inversion = value >> 7;
+            } else {
+                match self.r {
+                    0 => {}, // TODO
+                    1 => {}, // TODO
+                    2 => {}, // TODO
+                    3 => {}, // TODO
+                    4 => {}, // TODO
+                    5 => {}, // TODO
+                    6 => self.prg_rom_bank_0 = value & 0x3f,
+                    7 => self.prg_rom_bank_1 = value & 0x3f,
+                    _ => unreachable!()
                 }
             },
-            PRG_ROM_BANK_1_START ..= PRG_ROM_BANK_1_END => {
-                if (value % 2) == 0 {
-                    self.mirroring = value & 1;
-                } else {
-                    self.prg_ram_enable = (value >> 7) == 1;
-                }
+            PRG_ROM_BANK_1_START ..= PRG_ROM_BANK_1_END => if (value % 2) == 0 {
+                self.mirroring = value & 1;
+            } else {
+                self.prg_ram_enable = (value >> 7) == 1;
             },
-            PRG_ROM_BANK_2_START ..= PRG_ROM_BANK_2_END => {
-                if (value % 2) == 0 {
-                    // TODO: IRQ latch
-                } else {
-                    // TODO: IRQ reload
-                }
+            PRG_ROM_BANK_2_START ..= PRG_ROM_BANK_2_END => if (value % 2) == 0 {
+                // TODO: IRQ latch
+            } else {
+                // TODO: IRQ reload
             },
-            PRG_ROM_BANK_3_START ..= PRG_ROM_BANK_3_END => {
-                if (value % 2) == 0 {
-                    // TODO: IRQ disable
-                } else {
-                    // TODO: IRQ enable
-                }
+            PRG_ROM_BANK_3_START ..= PRG_ROM_BANK_3_END => if (value % 2) == 0 {
+                // TODO: IRQ disable
+            } else {
+                // TODO: IRQ enable
             },
             _ => unimplemented!()
         }
