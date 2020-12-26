@@ -7,13 +7,20 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
-
+  check:
     runs-on: windows-latest
-
     steps:
     - uses: actions/checkout@v2
+    - name: Install Ninja
+      run: choco install ninja
     - name: Check
       run: cargo check --features "trace debugger" --tests --verbose
+  
+  test:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Ninja
+      run: choco install ninja
     - name: Test
       run: cargo test --release --features "fullspeed" --verbose
