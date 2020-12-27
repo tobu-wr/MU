@@ -1,6 +1,7 @@
 use mappers::*;
 use cpu::*;
 use ppu::*;
+use apu::*;
 use joypad::*;
 use screen::*;
 
@@ -11,6 +12,7 @@ pub struct Emulator {
 	pub mapper: Option<Box<dyn Mapper>>,
 	pub cpu: Cpu,
 	pub ppu: Ppu,
+	pub apu: Apu,
 	pub joypad: Joypad,
 	pub screen: Screen
 }
@@ -22,6 +24,7 @@ impl Emulator {
 			mapper: None,
 			cpu: Cpu::new(),
 			ppu: Ppu::new(),
+			apu: Apu::new(),
 			joypad: Joypad::new(),
 			screen: Screen::new()
 		}

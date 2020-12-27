@@ -9,6 +9,7 @@ mod emulator;
 mod renderer;
 mod cpu;
 mod ppu;
+mod apu;
 mod joypad;
 mod mappers;
 mod screen;
