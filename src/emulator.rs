@@ -59,7 +59,7 @@ impl Emulator {
 	}
 
 	pub fn step(&mut self) {
-		let cycles = 3 * Cpu::execute_next_instruction(self);
+		let cycles = 3 * self.cpu.execute_next_instruction();
 		for _ in 0..cycles {
 			self.ppu.do_cycle(&mut self.cpu, &mut self.screen);
 		}

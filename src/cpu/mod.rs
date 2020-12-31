@@ -233,30 +233,31 @@ impl Cpu {
 		}
 	}
 
-	pub fn execute_next_instruction(emulator: &mut Emulator) -> u8 {
-		match emulator.cpu.pending_interrupt {
+	pub fn execute_next_instruction(&mut self) -> u8 {
+		/*match self.pending_interrupt {
 			Some(Interrupt::Nmi) => perform_interrupt(emulator, NMI_VECTOR_ADDRESS),
-			Some(Interrupt::Irq) => if !emulator.cpu.get_flag(Flag::I) {
+			Some(Interrupt::Irq) => if !self.get_flag(Flag::I) {
 				perform_interrupt(emulator, IRQ_VECTOR_ADDRESS);
 			},
 			None => {}
 		}
 		
 		let opcode = read_next8(emulator);
-		let entry = emulator.cpu.lookup_table[opcode as usize];
+		let entry = self.lookup_table[opcode as usize];
 
 		#[cfg(feature = "trace")]
 		(entry.trace_function)(emulator, opcode);
 
-		emulator.cpu.branch_taken = false;
-		emulator.cpu.page_crossed = false;
+		self.branch_taken = false;
+		self.page_crossed = false;
 		(entry.instruction)(emulator);
 		
-		(if emulator.cpu.page_crossed {
+		(if self.page_crossed {
 			entry.page_crossing_cycles
 		} else {
 			entry.cycles
-		}) + emulator.cpu.branch_taken as u8
+		}) + self.branch_taken as u8*/
+		0
 	}
 }
 
