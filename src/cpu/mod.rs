@@ -141,9 +141,9 @@ impl Cpu {
 		}
 	}
 
-	pub fn init_pc(emulator: &mut Emulator) {
-		emulator.cpu.pc = read16(emulator, RESET_VECTOR_ADDRESS);
-		info!("PC: {:04X}", emulator.cpu.pc);
+	pub fn init_pc(&mut self) {
+		self.pc = read16(emulator, RESET_VECTOR_ADDRESS);
+		info!("PC: {:04X}", self.pc);
 	}
 
 	fn check_page_crossing(&mut self, address_a: u16, address_b: u16) {

@@ -55,7 +55,7 @@ impl Emulator {
 		info!("Cartridge mapper: {}", mapper_number);
 		self.mapper = Some(create_mapper(mapper_number, prg_rom));
 
-		Cpu::init_pc(self);
+		self.cpu.init_pc();
 	}
 
 	pub fn step(&mut self) {
