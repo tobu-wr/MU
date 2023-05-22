@@ -1,5 +1,5 @@
 # MU
-MU is a NES and SNES emulator written to play around with Rust. The name "MU" stands for "Masayuki Uemura" who is the designer of these consoles.
+MU is a WIP NES emulator (and maybe SNES in the future) written to play around with Rust. The name "MU" stands for "Masayuki Uemura" who is the designer of this console.
 
 ## Building and running
 `cargo run --release <rom path>`
@@ -15,8 +15,6 @@ MU is a NES and SNES emulator written to play around with Rust. The name "MU" st
 
 ## Screenshots
 <p align="center">
-  <img src="screenshots/donkey-kong.png"/>
-  <img src="screenshots/balloon-fight.png"/>
   <img src="screenshots/mario-bros.png"/>
 </p>
 
